@@ -201,6 +201,9 @@ test('E2E-12 识别失败不卡死：兜底按钮永远显示，可点亮进入�
     await new Promise((r) => setTimeout(r, 3000));
     assert.equal(persisted(window)?.progress?.u5?.wordsDone?.includes('may') || false, false,
       '识别失败时不应点亮');
+    // 失败后兜底按钮应进入引导态（闪绿光），明确告诉孩子点哪里
+    const guide = buttons(window).find((b) => b.textContent.includes('手动点亮'));
+    assert.ok(guide.className.includes('is-guiding'), '识别失败后按钮应有引导态');
     // 用兜底按钮点亮，学习继续
     await clickButton(window, '我读好了（手动点亮）');
     const p = persisted(window);

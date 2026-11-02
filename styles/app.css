@@ -185,6 +185,8 @@ textarea.text-input { min-height: 140px; resize: vertical; }
 }
 .fab.alert { background: var(--rose-soft); color: #c4455f; animation: pulse 1.6s infinite; }
 @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+/* 兜底点亮按钮引导态：识别失败后闪绿光 */
+.btn.is-guiding { border: 3px solid var(--leaf); color: var(--ok); animation: pulse 1.4s infinite; }
 
 /* ============ 弹层 ============ */
 .modal-mask {

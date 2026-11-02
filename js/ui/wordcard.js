@@ -69,8 +69,10 @@ export function renderWordCard(ctx, unit) {
         onclick: () => doRecord(w),
       }));
       // 兜底按钮永远显示：识别不可用/失败时，学习绝不被技术卡死
+      // 识别失败过一次后，按钮自动闪绿光引导孩子去点
       actions.appendChild(h('button', {
-        class: 'btn ghost', text: '✅ 我读好了（手动点亮）',
+        class: `btn ghost ${session.recognizeFailed ? 'is-guiding' : ''}`,
+        text: '✅ 我读好了（手动点亮）',
         onclick: () => finishWord(w, { score: 60, level: 'ok', matched: true, reason: 'manual' }),
       }));
     } else {
@@ -107,7 +109,9 @@ export function renderWordCard(ctx, unit) {
     await recorder.stop();
     const rec = await speech.recognizeOnce('en-US', 4000);
     if (!rec.ok || !rec.transcript) {
-      toast('没听清哦～可以再试一次，或点"我读好了"继续', 3200);
+      session.recognizeFailed = true;
+      toast('没听清哦～点绿色按钮"我读好了"继续', 3600);
+      renderCard();
       return;
     }
     const result = scorePronunciation(w.tts || w.w, rec.transcript);
@@ -119,6 +123,7 @@ export function renderWordCard(ctx, unit) {
 
   function finishWord(w, result) {
     doneSet.add(w.w);
+    session.recognizeFailed = false;
     const next = ctx.updateUnitProgress(unit.id, (up) => ({
       ...up,
       wordsDone: Array.from(doneSet),
