@@ -5,27 +5,35 @@ import {
   addStars, checkIn, dateKey, getUnitProgress, setUnitProgress, unitStars, defaultUnitProgress,
 } from '../js/core/progress.js';
 
+const WORDS12 = Array.from({ length: 12 }, (_, i) => `w${i}`);
+
 test('Stage1：词未点亮 → 不通过', () => {
   const p = { ...defaultUnitProgress(), wordsDone: ['may', 'pet'], listenScore: 1 };
-  assert.equal(isStage1Passed(p, 12, p.listenScore), false);
+  assert.equal(isStage1Passed(p, { wordTotal: 12 }), false);
 });
 
 test('Stage1：词全亮但听辨 60% → 不通过', () => {
-  const words = Array.from({ length: 12 }, (_, i) => `w${i}`);
-  const p = { ...defaultUnitProgress(), wordsDone: words, listenScore: 0.6 };
-  assert.equal(isStage1Passed(p, 12, p.listenScore), false);
+  const p = { ...defaultUnitProgress(), wordsDone: WORDS12, listenScore: 0.6 };
+  assert.equal(isStage1Passed(p, { wordTotal: 12 }), false);
 });
 
 test('Stage1：词全亮且听辨 80% → 通过', () => {
-  const words = Array.from({ length: 12 }, (_, i) => `w${i}`);
-  const p = { ...defaultUnitProgress(), wordsDone: words, listenScore: 0.8 };
-  assert.equal(isStage1Passed(p, 12, p.listenScore), true);
+  const p = { ...defaultUnitProgress(), wordsDone: WORDS12, listenScore: 0.8 };
+  assert.equal(isStage1Passed(p, { wordTotal: 12 }), true);
 });
 
 test('Stage1：听辨分数缺失 → 不通过', () => {
-  const words = Array.from({ length: 12 }, (_, i) => `w${i}`);
-  const p = { ...defaultUnitProgress(), wordsDone: words, listenScore: null };
-  assert.equal(isStage1Passed(p, 12, p.listenScore), false);
+  const p = { ...defaultUnitProgress(), wordsDone: WORDS12, listenScore: null };
+  assert.equal(isStage1Passed(p, { wordTotal: 12 }), false);
+});
+
+test('Stage1：四会词拼写未完成 → 不通过（认读词不要求拼写）', () => {
+  const base = { ...defaultUnitProgress(), wordsDone: WORDS12, listenScore: 0.9 };
+  assert.equal(isStage1Passed(base, { wordTotal: 12, spellingTotal: 5 }), false, '拼写未完成不应通过');
+  const ok = { ...base, spellingDone: ['may', 'pet', 'rabbit', 'feed'] };
+  assert.equal(isStage1Passed(ok, { wordTotal: 12, spellingTotal: 5 }), false, '拼了 4/5 也不行');
+  const all = { ...base, spellingDone: ['may', 'pet', 'rabbit', 'feed', 'hold'] };
+  assert.equal(isStage1Passed(all, { wordTotal: 12, spellingTotal: 5 }), true, '5 词全拼过才通过');
 });
 
 test('阶段串行解锁：Stage2 必须 Stage1 先过', () => {
@@ -44,19 +52,19 @@ test('maxUnlockedStage 反映实际可进入阶段', () => {
 });
 
 test('computeStagePassed 依赖前序阶段', () => {
-  const words = Array.from({ length: 12 }, (_, i) => `w${i}`);
-  const p = { ...defaultUnitProgress(), wordsDone: words, listenScore: 0.9 };
-  const r = computeStagePassed(p, { wordTotal: 12, sentenceOk: true, outputOk: true, quizBest: 0.8 });
+  const p = { ...defaultUnitProgress(), wordsDone: WORDS12, listenScore: 0.9,
+              spellingDone: ['a', 'b', 'c', 'd', 'e'] };
+  const r = computeStagePassed(p, { wordTotal: 12, spellingTotal: 5, sentenceOk: true, outputOk: true, quizBest: 0.8 });
   assert.deepEqual(r, [true, true, true, true]);
 
-  const r2 = computeStagePassed(p, { wordTotal: 12, sentenceOk: false, outputOk: true, quizBest: 0.9 });
+  const r2 = computeStagePassed(p, { wordTotal: 12, spellingTotal: 5, sentenceOk: false, outputOk: true, quizBest: 0.9 });
   assert.deepEqual(r2, [true, false, false, false]);
 });
 
 test('computeStagePassed：微测 <80% 时 Stage4 不通过', () => {
-  const words = Array.from({ length: 12 }, (_, i) => `w${i}`);
-  const p = { ...defaultUnitProgress(), wordsDone: words, listenScore: 0.9 };
-  const r = computeStagePassed(p, { wordTotal: 12, sentenceOk: true, outputOk: true, quizBest: 0.5 });
+  const p = { ...defaultUnitProgress(), wordsDone: WORDS12, listenScore: 0.9,
+              spellingDone: ['a', 'b', 'c', 'd', 'e'] };
+  const r = computeStagePassed(p, { wordTotal: 12, spellingTotal: 5, sentenceOk: true, outputOk: true, quizBest: 0.5 });
   assert.equal(r[3], false);
 });
 

@@ -1,7 +1,7 @@
 // 应用入口：状态管理、路由、渲染调度
 import { loadState, saveState, defaultState } from './core/storage.js';
 import {
-  defaultUnitProgress, computeStagePassed, canEnterStage,
+  defaultUnitProgress, computeStagePassed, canEnterStage, isStage1Passed,
   addStars as addStarsCore, checkIn, getUnitProgress, setUnitProgress, dateKey,
 } from './core/progress.js';
 import { buildReviewPlan, dueReviews, pendingCount } from './core/scheduler.js';
@@ -12,6 +12,8 @@ import { renderUnit } from './ui/unit.js';
 import { renderWordCard } from './ui/wordcard.js';
 import { renderListen } from './ui/listen.js';
 import { renderPhonics } from './ui/phonics.js';
+import { renderSpelling } from './ui/spelling.js';
+import { renderHandwriting } from './ui/handwriting.js';
 import { renderSentence } from './ui/sentence.js';
 import { renderOutput } from './ui/output.js';
 import { renderStories, renderQuiz } from './ui/story.js';
@@ -74,6 +76,21 @@ function completeStage(unitId, stageIdx) {
       reviewPlan: buildReviewPlan(dateKey(), (state.data?.reviewCards || []).map((c) => c.id)),
     };
     save();
+  }
+}
+
+// Stage1 自动通关检查：满足条件立即标记通过并解锁 Stage2
+function checkStage1(unitId) {
+  const unit = state.data;
+  if (!unit) return;
+  const p = getUnitProgress(state.state, unitId);
+  if (!p || p.stagePassed?.[0]) return;
+  const wordTotal = unit.words.length;
+  const spellingTotal = unit.words.filter((w) => w.tier === 'four').length;
+  if (isStage1Passed(p, { wordTotal, spellingTotal })) {
+    completeStage(unitId, 0);
+    toast('🎉 单词奠基通关！核心句型已解锁！', 3200);
+    confetti();
   }
 }
 
@@ -190,6 +207,7 @@ function render() {
     addStars,
     addWrong,
     completeStage,
+    checkStage1,
     navigate,
     render,
     replaceState: (s) => { state.state = s; save(); },
@@ -216,6 +234,8 @@ function render() {
     } else if (s === 0) {
       if (r.mod === 'listen') main.appendChild(renderListen(ctx, unit));
       else if (r.mod === 'phonics') main.appendChild(renderPhonics(ctx, unit));
+      else if (r.mod === 'spelling') main.appendChild(renderSpelling(ctx, unit));
+      else if (r.mod === 'handwriting') main.appendChild(renderHandwriting(ctx, unit));
       else main.appendChild(renderWordCard(ctx, unit));
     } else if (s === 1) {
       main.appendChild(renderSentence(ctx, unit));

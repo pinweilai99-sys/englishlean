@@ -32,6 +32,14 @@ function mergeUnitProgress(raw) {
   if (Array.isArray(raw.wordsDone)) out.wordsDone = raw.wordsDone.filter((w) => typeof w === 'string');
   if (raw.listenScore === null || typeof raw.listenScore === 'number') out.listenScore = raw.listenScore ?? null;
   if (raw.quizBest === null || typeof raw.quizBest === 'number') out.quizBest = raw.quizBest ?? null;
+  if (Array.isArray(raw.spellingDone)) out.spellingDone = raw.spellingDone.filter((w) => typeof w === 'string');
+  if (Array.isArray(raw.handwritingDone)) out.handwritingDone = raw.handwritingDone.filter((w) => typeof w === 'string');
+  if (raw.reviewCount && typeof raw.reviewCount === 'object') {
+    out.reviewCount = {};
+    for (const [w, n] of Object.entries(raw.reviewCount)) {
+      if (typeof w === 'string' && Number.isFinite(n)) out.reviewCount[w] = n;
+    }
+  }
   return out;
 }
 

@@ -222,3 +222,90 @@ test('E2E-12 识别失败不卡死：兜底按钮永远显示，可点亮进入�
     assert.equal(p2.progress.u5.wordsDone.length, 1, '不应重复点亮');
   } finally { cleanup(); }
 });
+
+
+test('E2E-13 黄金链路：12词点亮+拼写5词+听辨全对 → Stage1 自动通关 → Stage2 解锁', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [false, false, false, false],
+      wordsDone: UNIT.words.map((w) => w.w), listenScore: null, quizBest: null,
+      spellingDone: [], handwritingDone: [], reviewCount: {} } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    // Stage2 此时仍锁（缺拼写+听辨）
+    await navigate(window, app, '#/unit/u5/stage/1');
+    assert.match(mainText(window), /这一关还没解锁/);
+    // 拼写屋：逐词拼出 5 个四会词
+    await navigate(window, app, '#/unit/u5/stage/0/spelling');
+    const fourWords = UNIT.words.filter((w) => w.tier === 'four');
+    for (const w of fourWords) {
+      // 每个字母块按目标词顺序点击（重复字母点任意一个匹配块）
+      for (const ch of w.w.toLowerCase()) {
+        const block = buttons(window).find(
+          (b) => b.classList.contains('option') && b.textContent.trim() === ch);
+        assert.ok(block, `找不到字母块 ${ch}（拼 ${w.w}）`);
+        block.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 20));
+      }
+    }
+    let p = persisted(window);
+    assert.deepEqual([...p.progress.u5.spellingDone].sort(), fourWords.map((w) => w.w).sort(),
+      '5 个四会词都应落盘');
+    // 听辨游戏：6 题全对（从 session 读正确答案）
+    await navigate(window, app, '#/unit/u5/stage/0/listen');
+    for (let k = 0; k < UNIT.listenPairs.length; k++) {
+      const ans = app.state.session.listenAnswer;
+      const btn = buttons(window).find((b) => b.classList.contains('option') && b.textContent.trim() === ans);
+      btn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+      await new Promise((r) => setTimeout(r, 1350));
+    }
+    p = persisted(window);
+    assert.equal(p.progress.u5.listenScore, 1, '一轮全对 listenScore=1');
+    assert.equal(p.progress.u5.stagePassed[0], true, 'Stage1 应自动通关');
+    // Stage2 自动解锁
+    await navigate(window, app, '#/unit/u5/stage/1');
+    assert.match(mainText(window), /核心句型/);
+  } finally { cleanup(); }
+});
+
+test('E2E-14 复习模式：已点亮词可反复学，复习遍数落盘', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [false, false, false, false],
+      wordsDone: ['may', 'pet'], listenScore: null, quizBest: null,
+      spellingDone: [], handwritingDone: [], reviewCount: {} } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0');
+    assert.match(mainText(window), /已复习 0 遍/, '应显示复习次数');
+    await clickButton(window, '再学一遍');
+    // 重走三步
+    await clickButton(window, '听一听');
+    await clickButton(window, '我会认这个词');
+    await clickButton(window, '我读好了（手动点亮）');
+    const p = persisted(window);
+    assert.equal(p.progress.u5.reviewCount.may, 1, '复习遍数应 +1');
+    assert.equal(p.progress.u5.wordsDone.filter((w) => w === 'may').length, 1, '不应重复点亮');
+    assert.equal(p.progress.u5.wordsDone.length, 2, '点亮集合不变');
+    // 家长报告显示累计复习
+    await navigate(window, app, '#/parent');
+    assert.match(mainText(window), /累计复习 1 遍/);
+    assert.match(mainText(window), /拼写 0\/5/);
+  } finally { cleanup(); }
+});
+
+test('E2E-15 字帖屋：描红点亮落盘 + 打印按钮存在', async () => {
+  const { window, app, cleanup } = await freshApp();
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0/handwriting');
+    assert.match(mainText(window), /字帖屋/);
+    assert.ok(buttons(window).some((b) => b.textContent.includes('打印四线三格字帖')), '应有打印入口');
+    await clickButton(window, '我描好了');
+    const p = persisted(window);
+    assert.equal(p.progress.u5.handwritingDone.length, 1, '描红应落盘');
+  } finally { cleanup(); }
+});

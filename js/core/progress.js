@@ -10,23 +10,37 @@ export function defaultUnitProgress() {
     wordsDone: [],
     listenScore: null,
     quizBest: null,
+    spellingDone: [],
+    handwritingDone: [],
+    reviewCount: {},
   };
 }
 
-// Stage1 通关条件：所有四会+认读词全部点亮，且听辨正确率 >= 0.8
-export function isStage1Passed(unitProgress, wordTotal, listenScore) {
-  if (!unitProgress) return false;
-  const wordsDone = Array.isArray(unitProgress.wordsDone) ? unitProgress.wordsDone : [];
+// Stage1 通关条件（opts 形式，新增条件向后兼容）：
+// 1) 所有词全部点亮（四会+认读）
+// 2) 听辨正确率 >= 0.8
+// 3) 四会词全部拼写通过（spellingTotal>0 时启用；认读词不要求拼写，不会卡死零基础孩子）
+export function isStage1Passed(unitProgress, opts = {}) {
+  const p = unitProgress || {};
+  const wordTotal = opts.wordTotal ?? 0;
+  const spellingTotal = opts.spellingTotal ?? 0;
+  const wordsDone = Array.isArray(p.wordsDone) ? p.wordsDone : [];
   if (wordTotal > 0 && wordsDone.length < wordTotal) return false;
+  const listenScore = p.listenScore;
   if (listenScore === null || listenScore === undefined) return false;
-  return listenScore >= 0.8;
+  if (listenScore < 0.8) return false;
+  if (spellingTotal > 0) {
+    const spellingDone = Array.isArray(p.spellingDone) ? p.spellingDone : [];
+    if (spellingDone.length < spellingTotal) return false;
+  }
+  return true;
 }
 
 // 计算 4 个阶段的通过状态
 export function computeStagePassed(unitProgress, opts) {
-  const { wordTotal = 0, sentenceOk = false, outputOk = false, quizBest = null } = opts || {};
+  const { wordTotal = 0, spellingTotal = 0, sentenceOk = false, outputOk = false, quizBest = null } = opts || {};
   const p = unitProgress || {};
-  const s1 = isStage1Passed(p, wordTotal, p.listenScore);
+  const s1 = isStage1Passed(p, { wordTotal, spellingTotal });
   const s2 = s1 && !!sentenceOk;
   const s3 = s2 && !!outputOk;
   const s4 = s3 && quizBest !== null && quizBest !== undefined && quizBest >= 0.8;

@@ -23,8 +23,15 @@ export function renderParent(ctx, unit) {
   const wordTotal = unit.words.length;
   const quizBest = p?.quizBest;
   wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:22px', text: '📊 学习报告' }));
+  const fourTotal = unit.words.filter((w) => w.tier === 'four').length;
+  const spellingDone = p?.spellingDone?.length || 0;
+  const handwritingDone = p?.handwritingDone?.length || 0;
+  const reviewTotal = Object.values(p?.reviewCount || {}).reduce((a, b) => a + b, 0);
   const stats = h('div', { class: 'stat-row' }, [
     h('span', { class: 'stat', text: `🔤 单词 ${wordsDone}/${wordTotal}` }),
+    h('span', { class: 'stat', text: `🔤 拼写 ${spellingDone}/${fourTotal}` }),
+    h('span', { class: 'stat', text: `✍️ 描红 ${handwritingDone}/${fourTotal}` }),
+    h('span', { class: 'stat', text: `🔁 累计复习 ${reviewTotal} 遍` }),
     h('span', { class: 'stat', text: `⭐ 总星星 ${state.stars || 0}` }),
     h('span', { class: 'stat', text: `🔥 连续 ${state.streak || 0} 天` }),
     h('span', { class: 'stat', text: `📝 微测 ${quizBest === null || quizBest === undefined ? '未测' : Math.round(quizBest * 100) + '%'}` }),
