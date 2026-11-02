@@ -1,0 +1,88 @@
+// 单元数据校验：缺字段即报错并指明字段，不静默出错
+// 纯逻辑，可被 node --test 直接引入。
+
+const TIERS = ['four', 'read'];
+
+function isStr(v) { return typeof v === 'string' && v.trim().length > 0; }
+
+export function validateUnit(data) {
+  const errors = [];
+  const push = (path, msg) => errors.push(`${path}: ${msg}`);
+
+  if (!data || typeof data !== 'object') {
+    return { valid: false, errors: ['root: 单元数据必须是对象'] };
+  }
+
+  if (!isStr(data.id)) push('id', '必须是非空字符串');
+  if (!Number.isInteger(data.no)) push('no', '必须是整数');
+  if (!isStr(data.title)) push('title', '必须是非空字符串');
+
+  if (!data.objective || typeof data.objective !== 'object') {
+    push('objective', '必须存在');
+  } else {
+    if (!isStr(data.objective.child)) push('objective.child', '必须是非空字符串');
+    if (!isStr(data.objective.parent)) push('objective.parent', '必须是非空字符串');
+  }
+
+  if (!Array.isArray(data.words) || data.words.length === 0) {
+    push('words', '必须是非空数组');
+  } else {
+    data.words.forEach((w, i) => {
+      if (!w || typeof w !== 'object') { push(`words[${i}]`, '必须是对象'); return; }
+      if (!isStr(w.w)) push(`words[${i}].w`, '必须是非空字符串');
+      if (!isStr(w.ipa)) push(`words[${i}].ipa`, '必须是非空字符串');
+      if (!isStr(w.zh)) push(`words[${i}].zh`, '必须是非空字符串');
+      if (!TIERS.includes(w.tier)) push(`words[${i}].tier`, `必须是 ${TIERS.join(' 或 ')}`);
+    });
+  }
+
+  if (!data.phonics || typeof data.phonics !== 'object') push('phonics', '必须存在');
+  else {
+    if (!isStr(data.phonics.pattern)) push('phonics.pattern', '必须是非空字符串');
+    if (!Array.isArray(data.phonics.words) || data.phonics.words.length === 0) push('phonics.words', '必须是非空数组');
+  }
+
+  if (!Array.isArray(data.listenPairs) || data.listenPairs.length === 0) push('listenPairs', '必须是非空数组');
+  else data.listenPairs.forEach((p, i) => {
+    if (!Array.isArray(p) || p.length !== 2 || !p.every(isStr)) push(`listenPairs[${i}]`, '必须是两个非空字符串组成的数组');
+  });
+
+  if (!data.sentences || typeof data.sentences !== 'object') push('sentences', '必须存在');
+  else {
+    if (!isStr(data.sentences.pattern)) push('sentences.pattern', '必须是非空字符串');
+    if (!Array.isArray(data.sentences.slots) || data.sentences.slots.length === 0) push('sentences.slots', '必须是非空数组');
+    if (!Array.isArray(data.sentences.answers) || data.sentences.answers.length === 0) push('sentences.answers', '必须是非空数组');
+  }
+
+  if (!data.roleplay || typeof data.roleplay !== 'object') push('roleplay', '必须存在');
+  else {
+    if (!isStr(data.roleplay.child)) push('roleplay.child', '必须是非空字符串');
+    if (!Array.isArray(data.roleplay.parent) || data.roleplay.parent.length === 0) push('roleplay.parent', '必须是非空数组');
+  }
+
+  if (!data.mindmap || !Array.isArray(data.mindmap.chain) || data.mindmap.chain.length === 0) push('mindmap.chain', '必须是非空数组');
+
+  if (!Array.isArray(data.stories) || data.stories.length === 0) push('stories', '必须是非空数组');
+  else data.stories.forEach((s, i) => {
+    if (!s || typeof s !== 'object') { push(`stories[${i}]`, '必须是对象'); return; }
+    if (!isStr(s.id)) push(`stories[${i}].id`, '必须是非空字符串');
+    if (!isStr(s.title)) push(`stories[${i}].title`, '必须是非空字符串');
+    if (!isStr(s.text)) push(`stories[${i}].text`, '必须是非空字符串');
+  });
+
+  if (!Array.isArray(data.quiz) || data.quiz.length === 0) push('quiz', '必须是非空数组');
+  else data.quiz.forEach((q, i) => {
+    if (!q || typeof q !== 'object') { push(`quiz[${i}]`, '必须是对象'); return; }
+    if (!isStr(q.id)) push(`quiz[${i}].id`, '必须是非空字符串');
+    if (!isStr(q.type)) push(`quiz[${i}].type`, '必须是非空字符串');
+    if (!isStr(q.prompt)) push(`quiz[${i}].prompt`, '必须是非空字符串');
+    if (!Array.isArray(q.options) || q.options.length === 0) push(`quiz[${i}].options`, '必须是非空数组');
+    if (!Number.isInteger(q.answer)) push(`quiz[${i}].answer`, '必须是整数');
+    else if (Array.isArray(q.options) && (q.answer < 0 || q.answer >= q.options.length)) push(`quiz[${i}].answer`, `越界(应在 0~${q.options.length - 1})`);
+  });
+
+  if (!Array.isArray(data.reviewCards) || data.reviewCards.length === 0) push('reviewCards', '必须是非空数组');
+  if (!data.grammar || !Array.isArray(data.grammar.parentCard) || data.grammar.parentCard.length === 0) push('grammar.parentCard', '必须是非空数组');
+
+  return { valid: errors.length === 0, errors };
+}

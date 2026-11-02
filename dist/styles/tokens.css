@@ -1,0 +1,51 @@
+:root {
+  /* 品牌色：温暖明黄 + 草绿，儿童友好 */
+  --brand: #ffb703;
+  --brand-strong: #f08c00;
+  --brand-soft: #fff3d6;
+  --leaf: #52b788;
+  --leaf-soft: #e3f5ec;
+  --sky: #4cc9f0;
+  --sky-soft: #e2f6fd;
+  --rose: #ff8fa3;
+  --rose-soft: #ffe9ed;
+
+  --ink: #2f3b34;
+  --ink-soft: #6b7a72;
+  --ink-mute: #9aa8a0;
+  --paper: #fffdf7;
+  --card: #ffffff;
+  --line: #ece5d8;
+  --lock: #c9d2cc;
+
+  --ok: #2f9e6b;
+  --warn: #e8833a;
+  --danger: #d9534f;
+
+  /* 字体：零基础孩子需大字号 */
+  --fs-xs: 15px;
+  --fs-sm: 18px;
+  --fs-md: 21px;
+  --fs-lg: 26px;
+  --fs-xl: 34px;
+  --fs-xxl: 44px;
+
+  /* 间距 */
+  --sp-1: 6px;
+  --sp-2: 12px;
+  --sp-3: 18px;
+  --sp-4: 26px;
+  --sp-5: 36px;
+
+  /* 圆角与阴影 */
+  --r-sm: 12px;
+  --r-md: 20px;
+  --r-lg: 28px;
+  --r-pill: 999px;
+  --shadow-1: 0 2px 0 rgba(47, 59, 52, 0.06), 0 6px 16px rgba(47, 59, 52, 0.08);
+  --shadow-2: 0 4px 0 rgba(47, 59, 52, 0.08), 0 12px 28px rgba(47, 59, 52, 0.12);
+  --shadow-pop: 0 10px 0 rgba(47, 59, 52, 0.08);
+
+  --tap: 56px; /* 最小可点区域 */
+  --maxw: 1100px;
+}
