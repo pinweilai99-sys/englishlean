@@ -335,3 +335,101 @@ test('E2E-16 识别不可用时完全静默（不弹提示）+ 兜底点亮可�
     assert.ok(persisted(window).progress.u5.wordsDone.includes('may'), '兜底路径点亮');
   } finally { cleanup(); }
 });
+
+test('E2E-17 Stage3 真实输出：三项任务完成 → Stage3 通关', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/2');
+    assert.match(mainText(window), /真实输出/);
+    await clickButton(window, '演完了');
+    await clickButton(window, '写好了');
+    await clickButton(window, '我的宠物介绍好了');
+    await clickButton(window, '完成输出阶段');
+    const p = persisted(window);
+    assert.equal(p.progress.u5.stagePassed[2], true, 'Stage3 应已通过');
+  } finally { cleanup(); }
+});
+
+test('E2E-18 Stage4 故事屋：每篇故事可逐篇读完点亮（计入会话）', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, true, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: 0.9 } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/3');
+    assert.match(mainText(window), /故事屋/);
+    const total = UNIT.stories.length;
+    for (let i = 0; i < total; i++) {
+      await clickButton(window, '我读完并演了');
+    }
+    assert.equal(app.state.session.storiesDone.length, total, `${total} 篇故事都应已读`);
+  } finally { cleanup(); }
+});
+
+test('E2E-19 Stage4 考点微测：全部答对（≥80%）→ Stage4 通关并记最高分', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, true, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/3/quiz');
+    assert.match(mainText(window), /考点微测/);
+    UNIT.quiz.forEach((q, qi) => {
+      // 按题号精确定位题目块（避免不同题出现相同选项文本时误点）
+      const promptDiv = Array.from(window.document.querySelectorAll('div')).find(
+        (d) => (d.textContent || '').trim() === `${qi + 1}. ${q.prompt}`,
+      );
+      const box = promptDiv?.parentElement;
+      assert.ok(box, `找不到题目块 ${q.prompt}`);
+      const ans = q.options[q.answer];
+      const btn = Array.from(box.querySelectorAll('button')).find((b) => b.textContent.trim() === ans);
+      assert.ok(btn, `找不到正确选项 ${ans}（题：${q.prompt}）`);
+      btn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    });
+    await new Promise((r) => setTimeout(r, 60));
+    await clickButton(window, '完成巩固阶段');
+    const p = persisted(window);
+    assert.equal(p.progress.u5.stagePassed[3], true, 'Stage4 应已通过');
+    assert.ok(p.progress.u5.quizBest >= 0.8, '应记录微测最高分');
+  } finally { cleanup(); }
+});
+
+test('E2E-20 字母组合 ou 拼读站：找出全部 ou 词 → 鼓励反馈', async () => {
+  const { window, app, cleanup } = await freshApp();
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0/phonics');
+    assert.match(mainText(window), /字母组合 ou/);
+    const ouWords = UNIT.phonics.words;
+    for (const w of ouWords) {
+      const btn = buttons(window).find((b) => b.classList.contains('option') && b.textContent.trim() === w);
+      assert.ok(btn, `找不到 ou 词选项 ${w}`);
+      btn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+      await new Promise((r) => setTimeout(r, 30));
+    }
+    const toastText = window.document.getElementById('toast').textContent;
+    assert.match(toastText, /ou 全部找对啦/);
+  } finally { cleanup(); }
+});
+
+test('E2E-21 回忆卡中心：答对一张 → 记录结果并得星', async () => {
+  const { window, app, cleanup } = await freshApp();
+  try {
+    const before = persisted(window)?.stars || 0;
+    await navigate(window, app, '#/recall');
+    assert.match(mainText(window), /回忆卡中心/);
+    const cardId = UNIT.reviewCards[0].id;
+    await clickButton(window, '我答对了');
+    const p = persisted(window);
+    assert.equal(p.stars, before + 1, '答对应得 1 星');
+    assert.equal(app.state.session.recallResults[cardId], true, '应记录该卡答对');
+  } finally { cleanup(); }
+});

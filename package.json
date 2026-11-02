@@ -5,7 +5,7 @@
   "type": "module",
   "description": "小学英语零基础学习网页（Unit 5 模板）",
   "scripts": {
-    "test": "node --test tests/",
+    "test": "node --test tests/*.test.js",
     "serve": "python3 -m http.server 8080"
   },
   "dependencies": {
