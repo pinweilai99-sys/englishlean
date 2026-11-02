@@ -1,0 +1,14 @@
+{
+  "name": "englishlean",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "小学英语零基础学习网页（Unit 5 模板）",
+  "scripts": {
+    "test": "node --test tests/",
+    "serve": "python3 -m http.server 8080"
+  },
+  "dependencies": {
+    "jsdom": "^30.1.3"
+  }
+}

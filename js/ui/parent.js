@@ -1,0 +1,110 @@
+// 家长中心：语法参考卡 / 学习报告 / 错题本 / 导出恢复重置
+import { h, toast, confirmDialog, modal } from './dom.js';
+import { exportState, importState, resetState } from '../core/storage.js';
+
+export function renderParent(ctx, unit) {
+  const state = ctx.state;
+  const wrap = h('div', { class: 'card' });
+
+  // 语法参考卡
+  wrap.appendChild(h('div', { class: 'card-title', text: '📖 语法参考卡（给家长）' }));
+  const g = h('div', { class: 'stage-list' });
+  unit.grammar.parentCard.forEach((line) => {
+    g.appendChild(h('div', { class: 'stage-item is-open' }, [
+      h('span', { class: 'stage-no', text: '·' }),
+      h('span', { class: 'stage-meta' }, [h('strong', { style: 'font-weight:600', text: line })]),
+    ]));
+  });
+  wrap.appendChild(g);
+
+  // 学习报告
+  const p = state.progress?.[unit.id];
+  const wordsDone = p?.wordsDone?.length || 0;
+  const wordTotal = unit.words.length;
+  const quizBest = p?.quizBest;
+  wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:22px', text: '📊 学习报告' }));
+  const stats = h('div', { class: 'stat-row' }, [
+    h('span', { class: 'stat', text: `🔤 单词 ${wordsDone}/${wordTotal}` }),
+    h('span', { class: 'stat', text: `⭐ 总星星 ${state.stars || 0}` }),
+    h('span', { class: 'stat', text: `🔥 连续 ${state.streak || 0} 天` }),
+    h('span', { class: 'stat', text: `📝 微测 ${quizBest === null || quizBest === undefined ? '未测' : Math.round(quizBest * 100) + '%'}` }),
+    h('span', { class: 'stat', text: `❌ 错题 ${(state.wrongBank || []).length}` }),
+  ]);
+  wrap.appendChild(stats);
+
+  // 错题本
+  wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:22px', text: '❌ 错题本' }));
+  const wb = (state.wrongBank || []).filter((w) => w.unit === unit.id);
+  if (!wb.length) {
+    wrap.appendChild(h('p', { class: 'hint', text: '还没有错题，真棒！' }));
+  } else {
+    wb.forEach((w, i) => {
+      wrap.appendChild(h('div', { class: 'stage-item is-open' }, [
+        h('span', { class: 'stage-no', text: String(i + 1) }),
+        h('span', { class: 'stage-meta' }, [
+          h('strong', { style: 'font-weight:600', text: w.q }),
+          h('small', { text: `正确答案：${w.a}　你的答案：${w.chosen}` }),
+        ]),
+      ]));
+    });
+  }
+
+  // 数据管理
+  wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:22px', text: '💾 数据备份与恢复' }));
+  wrap.appendChild(h('p', { class: 'hint', text: '进度保存在本机浏览器。换设备或清理缓存前，请先导出备份。' }));
+  wrap.appendChild(h('div', { class: 'btn-row', style: 'margin-top:10px' }, [
+    h('button', {
+      class: 'btn', text: '⬇️ 导出进度',
+      onclick: () => {
+        const text = exportState(state);
+        const blob = new Blob([text], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const d = new Date();
+        const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+        a.href = url;
+        a.download = `englishlean_backup_${stamp}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast('备份已导出～');
+      },
+    }),
+    h('button', {
+      class: 'btn ghost', text: '⬆️ 恢复进度',
+      onclick: () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json,.json';
+        input.onchange = async () => {
+          const file = input.files?.[0];
+          if (!file) return;
+          const text = await file.text();
+          const res = importState(localStorage, text);
+          if (!res.ok) { toast(`❌ ${res.error}`); return; }
+          confirmDialog('确认恢复？', '恢复后会覆盖当前本机进度，确定吗？', () => {
+            ctx.replaceState(res.state);
+            toast('进度已恢复！');
+            ctx.render();
+          }, '确定恢复');
+        };
+        input.click();
+      },
+    }),
+    h('button', {
+      class: 'btn ghost', text: '🗑️ 清空本机进度',
+      onclick: () => {
+        confirmDialog('清空进度？', '会清除本机所有学习记录（不影响内容数据），此操作不可撤销。', () => {
+          const s = resetState(localStorage);
+          ctx.replaceState(s);
+          toast('已清空');
+          ctx.render();
+        }, '确定清空');
+      },
+    }),
+  ]));
+
+  return h('div', {}, [
+    h('button', { class: 'back-btn', text: '← 返回单元', onclick: () => ctx.navigate(`#/unit/${unit.id}`) }),
+    wrap,
+  ]);
+}
