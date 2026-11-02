@@ -13,6 +13,7 @@ export function defaultUnitProgress() {
     spellingDone: [],
     handwritingDone: [],
     reviewCount: {},
+    learnRound: 1,
   };
 }
 

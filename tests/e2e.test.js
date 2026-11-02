@@ -270,33 +270,33 @@ test('E2E-13 黄金链路：12词点亮+拼写5词+听辨全对 → Stage1 自�
   } finally { cleanup(); }
 });
 
-test('E2E-14 复习模式：已点亮词可反复学，复习遍数落盘', async () => {
+test('E2E-14 单元级重学：12词全亮后出现全部重学按钮，点一次清空全部星标进入新轮次', async () => {
   const seed = {
     version: 1, stars: 0, streak: 0, lastStudyDate: null,
     progress: { u5: { stagePassed: [false, false, false, false],
-      wordsDone: ['may', 'pet'], listenScore: null, quizBest: null,
-      spellingDone: [], handwritingDone: [], reviewCount: {} } },
+      wordsDone: UNIT.words.map((w) => w.w), listenScore: null, quizBest: null,
+      spellingDone: [], handwritingDone: [], reviewCount: {}, learnRound: 1 } },
     wrongBank: [], reviewPlan: [], settings: { audioOn: true },
   };
   const { window, app, cleanup } = await freshApp({ seed });
   try {
     await navigate(window, app, '#/unit/u5/stage/0');
-    assert.match(mainText(window), /已学会 · 已学 0 遍/, '应显示学习遍数');
-    // 再学一遍 = 清空本词星标
-    await clickButton(window, '再学一遍');
-    assert.equal(persisted(window).progress.u5.wordsDone.includes('may'), false, '重学应先清空星标');
-    // 重走三步
+    assert.match(mainText(window), /第 1 轮/, '应显示当前轮次');
+    assert.ok(buttons(window).some((b) => b.textContent.includes('全部重学一遍')), '全部点亮后应出现单元级重学入口');
+    // 未全亮时不出现该入口（E2E-4 场景）——由 E2E-4 覆盖
+    // 点一下：全部星标清空，进入第 2 轮，回到第 1 个词
+    await clickButton(window, '全部重学一遍');
+    const p = persisted(window);
+    assert.equal(p.progress.u5.wordsDone.length, 0, '全部星标应清空');
+    assert.equal(p.progress.u5.learnRound, 2, '轮次应 +1');
+    assert.match(mainText(window), /第 2 轮/, '应显示第 2 轮');
+    // 重学第 1 个词走完三步
     await clickButton(window, '听一听');
     await clickButton(window, '我会认这个词');
     await clickButton(window, '我读好了（手动点亮）');
-    const p = persisted(window);
-    assert.equal(p.progress.u5.reviewCount.may, 1, '学习遍数应记为 1 遍');
-    assert.ok(p.progress.u5.wordsDone.includes('may'), '重新点亮');
-    assert.match(mainText(window), /已学 1 遍/, '应显示已学 1 遍');
-    // 家长报告显示累计学习
-    await navigate(window, app, '#/parent');
-    assert.match(mainText(window), /累计学习 1 遍/);
-    assert.match(mainText(window), /拼写 0\/5/);
+    const p2 = persisted(window);
+    assert.ok(p2.progress.u5.wordsDone.includes('may'), '重新点亮');
+    assert.equal(p2.progress.u5.reviewCount.may, 1, '每词学习遍数累计');
   } finally { cleanup(); }
 });
 

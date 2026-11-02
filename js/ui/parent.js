@@ -32,6 +32,7 @@ export function renderParent(ctx, unit) {
     h('span', { class: 'stat', text: `🔤 拼写 ${spellingDone}/${fourTotal}` }),
     h('span', { class: 'stat', text: `✍️ 描红 ${handwritingDone}/${fourTotal}` }),
     h('span', { class: 'stat', text: `🔁 累计学习 ${reviewTotal} 遍` }),
+    h('span', { class: 'stat', text: `📚 学习轮次 第 ${p?.learnRound || 1} 轮` }),
     h('span', { class: 'stat', text: `⭐ 总星星 ${state.stars || 0}` }),
     h('span', { class: 'stat', text: `🔥 连续 ${state.streak || 0} 天` }),
     h('span', { class: 'stat', text: `📝 微测 ${quizBest === null || quizBest === undefined ? '未测' : Math.round(quizBest * 100) + '%'}` }),

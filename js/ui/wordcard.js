@@ -6,6 +6,7 @@ import * as tts from '../services/tts.js';
 import * as recorder from '../services/recorder.js';
 import * as speech from '../services/speech-match.js';
 import { scorePronunciation, scoreFeedback } from '../core/scoring.js';
+import { getRecognitionInfo } from '../services/speech-match.js';
 
 export function renderWordCard(ctx, unit) {
   const p = ctx.getUnitProgress(unit.id);
@@ -32,7 +33,11 @@ export function renderWordCard(ctx, unit) {
     const step = done ? 3 : session.step;
     const times = learnTimes(w);
 
-    wrap.appendChild(h('div', { class: 'card-sub', text: `单词 ${i + 1} / ${words.length}　${done ? `✅ 已学会 · 已学 ${times} 遍` : '🌱 学习中'}` }));
+    const round = (() => {
+      const fresh = ctx.getUnitProgress(unit.id);
+      return (fresh?.learnRound) || 1;
+    })();
+    wrap.appendChild(h('div', { class: 'card-sub', text: `第 ${round} 轮 · 单词 ${i + 1} / ${words.length}　${done ? `✅ 已学会 · 已学 ${times} 遍` : '🌱 学习中'}` }));
     wrap.appendChild(h('div', { class: 'word-pic', text: w.img }));
     wrap.appendChild(h('div', { class: 'word-text', text: w.w }));
     wrap.appendChild(h('div', { class: 'word-ipa', text: w.ipa }));
@@ -69,6 +74,13 @@ export function renderWordCard(ctx, unit) {
         onclick: () => { session.step = 2; renderCard(); },
       }));
     } else if (step === 2) {
+      const info = getRecognitionInfo();
+      const micNote = !info.supported
+        ? '🎙️ 本浏览器不支持语音识别，读完点绿色按钮点亮（用 Safari 打开可体验自动打分）'
+        : (info.local
+          ? '🎙️ 本设备支持本地识别（无需联网），跟读可以自动打分！'
+          : '🎙️ 本浏览器识别需联网（国内常不可用），读完点绿色按钮点亮；用 Safari 可本地打分');
+      wrap.appendChild(h('p', { class: 'hint', style: 'text-align:center', text: micNote }));
       actions.appendChild(h('button', {
         class: 'btn ghost', text: '🔊 听标准音',
         onclick: () => tts.speak(w.tts || w.w),
@@ -94,7 +106,7 @@ export function renderWordCard(ctx, unit) {
         },
       }));
       actions.appendChild(h('button', {
-        class: 'btn ghost', text: '🔁 再学一遍（重新点亮）',
+        class: 'btn ghost', text: '🔁 重学这个词',
         onclick: () => restartWord(w),
       }));
     }
@@ -109,6 +121,33 @@ export function renderWordCard(ctx, unit) {
       }));
     });
     wrap.appendChild(dotRow);
+
+    // 单元级重学：12 词全部点亮后才出现，点一次 = 全部词重新再学一轮
+    if (doneSet.size === words.length) {
+      const fresh = ctx.getUnitProgress(unit.id);
+      const nextRound = (fresh?.learnRound || 1) + 1;
+      wrap.appendChild(h('div', { style: 'text-align:center;margin-top:16px' }, [
+        h('button', {
+          class: 'btn leaf', text: `🔁 全部重学一遍（进入第 ${nextRound} 轮）`,
+          onclick: () => restartAll(),
+        }),
+        h('p', { class: 'hint', style: 'text-align:center', text: '点一下，12 个词的星星全部清空，从头再学一轮～' }),
+      ]));
+    }
+  }
+
+  // 全部重学：清空全部星标，从第 1 个词开始新一轮
+  function restartAll() {
+    doneSet.clear();
+    ctx.updateUnitProgress(unit.id, (up) => ({
+      ...up,
+      wordsDone: [],
+      learnRound: (up.learnRound || 1) + 1,
+    }));
+    session.wordIndex = 0;
+    session.step = 0;
+    renderCard();
+    toast('🔁 新的一轮开始！从第 1 个词重新学～', 2600);
   }
 
   async function doRecord(w) {

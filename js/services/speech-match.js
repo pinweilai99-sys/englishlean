@@ -11,6 +11,20 @@ export function isRecognitionSupported() {
     && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 }
 
+// 识别能力信息：supported=浏览器有识别 API；local=是否设备本地识别（无需联网）
+// Safari（macOS/iOS 14.5+）的 SpeechRecognition 在设备本地运行，可离线打分；
+// Chrome/Edge 的识别走 Google/Microsoft 云，国内网络常不可达。
+export function getRecognitionInfo() {
+  const supported = isRecognitionSupported();
+  let local = false;
+  if (supported && typeof navigator !== 'undefined' && navigator.userAgent) {
+    const ua = navigator.userAgent;
+    const isSafari = /Safari\//.test(ua) && !/Chrome|Chromium|Edg\//.test(ua);
+    local = isSafari;
+  }
+  return { supported, local };
+}
+
 // 识别一次，返回 { ok, transcript }（transcript 可能为空字符串）
 export function recognizeOnce(lang = 'en-US', timeoutMs = 6000) {
   if (!isRecognitionSupported()) {

@@ -40,6 +40,7 @@ function mergeUnitProgress(raw) {
       if (typeof w === 'string' && Number.isFinite(n)) out.reviewCount[w] = n;
     }
   }
+  if (Number.isFinite(raw.learnRound)) out.learnRound = Math.max(1, Math.floor(raw.learnRound));
   return out;
 }
 
