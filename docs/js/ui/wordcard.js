@@ -1,13 +1,13 @@
 // 单词图卡：三步学习流（听音 → 认形 → 跟读），跟读达标才点亮
 // 已点亮的词可"🔁 再学一遍"：清空本词星标、从头重学，学完重新点亮；
 // 每词学习遍数（learnCount，存于 reviewCount）落盘并展示。
-import { h, toast, starFly } from './dom.js?v=1793636272';
-import * as tts from '../services/tts.js?v=1793636272';
-import * as recorder from '../services/recorder.js?v=1793636272';
-import * as speech from '../services/speech-match.js?v=1793636272';
-import { scorePronunciation, scoreFeedback } from '../core/scoring.js?v=1793636272';
-import { getRecognitionInfo } from '../services/speech-match.js?v=1793636272';
-import * as localAsr from '../services/local-asr.js?v=1793636272';
+import { h, toast, starFly } from './dom.js?v=1793659532';
+import * as tts from '../services/tts.js?v=1793659532';
+import * as recorder from '../services/recorder.js?v=1793659532';
+import * as speech from '../services/speech-match.js?v=1793659532';
+import { scorePronunciation, scoreFeedback } from '../core/scoring.js?v=1793659532';
+import { getRecognitionInfo } from '../services/speech-match.js?v=1793659532';
+import * as localAsr from '../services/local-asr.js?v=1793659532';
 
 export function renderWordCard(ctx, unit) {
   const p = ctx.getUnitProgress(unit.id);

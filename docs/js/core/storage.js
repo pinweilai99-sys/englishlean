@@ -1,7 +1,7 @@
 // 存储层：localStorage 读写、默认值合并、版本校验、导入导出、重置
 // 纯逻辑，不依赖 DOM，可被 node --test 直接引入。
 
-import { defaultUnitProgress } from './progress.js?v=1793636272';
+import { defaultUnitProgress } from './progress.js?v=1793659532';
 
 export const STORAGE_KEY = 'englishlean_v1';
 export const CURRENT_VERSION = 1;
@@ -33,6 +33,7 @@ function mergeUnitProgress(raw) {
   if (raw.listenScore === null || typeof raw.listenScore === 'number') out.listenScore = raw.listenScore ?? null;
   if (raw.quizBest === null || typeof raw.quizBest === 'number') out.quizBest = raw.quizBest ?? null;
   if (Array.isArray(raw.spellingDone)) out.spellingDone = raw.spellingDone.filter((w) => typeof w === 'string');
+  if (Array.isArray(raw.spellingWrong)) out.spellingWrong = raw.spellingWrong.filter((w) => typeof w === 'string');
   if (Array.isArray(raw.handwritingDone)) out.handwritingDone = raw.handwritingDone.filter((w) => typeof w === 'string');
   if (raw.reviewCount && typeof raw.reviewCount === 'object') {
     out.reviewCount = {};

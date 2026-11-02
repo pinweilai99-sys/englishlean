@@ -1,7 +1,7 @@
 // 字帖屋（1.5）：四会词书写——屏上描红 + 下载 PDF 四线三格字帖
 // 描红：标准四线三格 + 浅灰范字，孩子用手指在屏上描（描红画布），描完点亮 handwritingDone（发星，不卡通关）。
 // 打印：四线三格，每词一行 = 示例 + 描红×2 + 空白×2，家长打印后孩子在纸上写。
-import { h, toast, starFly } from './dom.js?v=1793636272';
+import { h, toast, starFly } from './dom.js?v=1793659532';
 
 export function renderHandwriting(ctx, unit) {
   const fourWords = unit.words.filter((w) => w.tier === 'four');
