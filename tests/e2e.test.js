@@ -4,43 +4,75 @@ import assert from 'node:assert/strict';
 import {
   freshApp, buttons, clickButton, navigate, mainText, persisted, UNIT,
 } from './e2e-helper.mjs';
-import { buildPrintSheet } from '../js/ui/handwriting.js';
+import { computePdfLayout } from '../js/ui/handwriting.js';
 
-test('E2E-23 字帖打印版格式：标准四线三格（4 线 3 等格、基线压第 3 线、每词一组不跨页）', async () => {
-  const { window, cleanup } = await freshApp(); // 借 jsdom 全局 document
+test('E2E-23 PDF 字帖布局：标准四线三格（4 线 3 等格、基线压第 3 线、每词一组不跨页、不再直接打印）', async () => {
+  const { window, cleanup } = await freshApp(); // 借 jsdom 环境
   try {
-    const { style, sheet } = buildPrintSheet(UNIT);
-    window.document.body.appendChild(sheet);
+    const cmds = computePdfLayout(UNIT);
+    // 页眉：标题 + 姓名日期
+    assert.equal(cmds[0].t, 'img');
+    assert.equal(cmds[0].kind, 'title');
+    assert.equal(cmds[1].kind, 'namecard');
+    const BAND = 4.2, ROW_H = 12.6, NAME_H = 7, ROW_GAP = 3;
     const four = UNIT.words.filter((w) => w.tier === 'four');
-    const groups = sheet.querySelectorAll('.fw-group');
-    assert.equal(groups.length, four.length, '每个四会词一组');
-    const BAND = 26, ROW_H = 78, BASE = 52;
-    groups.forEach((g, gi) => {
-      const rows = g.querySelectorAll('.fw-row');
-      assert.equal(rows.length, 5, `词组 ${gi} 应有 5 行（示例+描红×2+空白×2）`);
-      rows.forEach((row) => {
-        const lines = row.querySelectorAll('.fw-line');
-        assert.equal(lines.length, 4, '每行 4 条线');
-        const tops = [...lines].map((l) => l.style.top);
-        assert.deepEqual(tops, ['0px', `${BAND}px`, `${BASE}px`, `${ROW_H}px`],
-          '四线位置应为 0/26/52/78（三等格），第 3 线为基线');
-        assert.ok(lines[2].classList.contains('baseline'), '第 3 线应是基线（加深）');
-      });
-      // 前三行有词：SVG 文本基线必须精确压在 BASE 上
-      [...rows].slice(0, 3).forEach((row) => {
-        const t = row.querySelector('svg text');
-        assert.ok(t, '词行应含 SVG 单词');
-        assert.equal(t.getAttribute('y'), String(BASE), '单词基线应压在第 3 线上');
-        assert.equal(t.getAttribute('font-size'), '58', '字号应使小写主体占满中格');
-        assert.equal(t.textContent, four[gi].w, '行内单词正确');
-      });
-      // 后两行空白：不出现单词
-      [...rows].slice(3).forEach((row) => {
-        assert.equal(row.querySelector('svg text'), null, '空白行不应有单词');
+    // 按换页拆分各页
+    const pages = cmds.reduce((acc, c) => {
+      if (c.t === 'page') acc.push([]);
+      else acc[acc.length - 1].push(c);
+      return acc;
+    }, [[]]);
+    assert.equal(pages.length, 2, '5 词应排 2 页');
+    // 逐词验证 5 行 × 4 线 + 基线
+    let idx = 2; // 跳过页眉两条
+    four.forEach((w) => {
+      // 词组之间可能有换页指令（组内绝不跨页 → 只会出现在组边界）
+      if (cmds[idx].t === 'page') idx += 1;
+      // 词名图（每组开头）
+      assert.equal(cmds[idx].t, 'img');
+      assert.equal(cmds[idx].kind, 'wordname');
+      assert.ok(cmds[idx].text.includes(w.w), '词名应包含该词');
+      idx += 1;
+      const modes = ['solid', 'trace', 'trace', 'blank', 'blank'];
+      modes.forEach((mode, mi) => {
+        const rowTop = idx; // 顺序遍历：4 线 + 可选 label/text
+        const lines = cmds.slice(idx, idx + 4);
+        assert.equal(lines.length, 4);
+        lines.forEach((ln, li) => {
+          assert.equal(ln.t, 'line', `词 ${w.w} 行 ${mi + 1} 第 ${li + 1} 条指令应为横线`);
+        });
+        const tops = lines.map((ln) => ln.y);
+        assert.deepEqual(
+          tops.map((t) => Math.round((t - tops[0]) * 100) / 100),
+          [0, BAND, BAND * 2, ROW_H],
+          `词 ${w.w} 行 ${mi + 1}：四线应为 0/4.2/8.4/12.6（三等格），第 3 线为基线`,
+        );
+        assert.equal(lines[2].c, 'base', '第 3 线应为加深基线');
+        idx += 4;
+        if (mode === 'blank') {
+          const lab = cmds[idx];
+          assert.equal(lab.t, 'img');
+          assert.equal(lab.text, '自己写');
+          idx += 1;
+        } else {
+          const lab = cmds[idx];
+          assert.equal(lab.t, 'img');
+          assert.equal(lab.text, mode === 'solid' ? '示例' : '描红');
+          const word = cmds[idx + 1];
+          assert.equal(word.t, 'text');
+          assert.equal(word.s, w.w, '行内单词正确');
+          assert.equal(word.color, mode === 'solid' ? 'ink' : 'trace', '描红行应为浅灰');
+          // 基线：text.y - 该行第一条线 y = 8.4（第 3 线）
+          const delta = Math.round((word.y - lines[0].y) * 100) / 100;
+          assert.equal(delta, BAND * 2, '单词基线应精确压在第 3 线上');
+          idx += 2;
+        }
       });
     });
-    // 组内不跨页断开
-    assert.match(style.textContent, /break-inside:\s*avoid/);
+    // 不残留 window.print 直接打印
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync(new URL('../js/ui/handwriting.js', import.meta.url), 'utf8');
+    assert.ok(!src.includes('window.print'), '不应再直接调用 window.print');
   } finally { cleanup(); }
 });
 
@@ -373,7 +405,7 @@ test('E2E-15 字帖屋：描红点亮落盘 + 打印按钮存在', async () => {
   try {
     await navigate(window, app, '#/unit/u5/stage/0/handwriting');
     assert.match(mainText(window), /字帖屋/);
-    assert.ok(buttons(window).some((b) => b.textContent.includes('打印四线三格字帖')), '应有打印入口');
+    assert.ok(buttons(window).some((b) => b.textContent.includes('下载 PDF 打印版字帖')), '应有下载 PDF 入口');
     await clickButton(window, '我描好了');
     const p = persisted(window);
     assert.equal(p.progress.u5.handwritingDone.length, 1, '描红应落盘');
