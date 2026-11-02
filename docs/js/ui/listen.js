@@ -1,7 +1,7 @@
 // 听辨游戏：最小对立对（pet/get, may/my …），答错自动入错题本
 // 每轮结束把正确率落盘 listenScore，并触发 Stage1 自动通关检查。
-import { h, toast, starFly } from './dom.js?v=1793627992';
-import * as tts from '../services/tts.js?v=1793627992';
+import { h, toast, starFly } from './dom.js?v=1793630178';
+import * as tts from '../services/tts.js?v=1793630178';
 
 export function renderListen(ctx, unit) {
   const pairs = unit.listenPairs;

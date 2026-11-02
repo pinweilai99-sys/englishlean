@@ -92,7 +92,8 @@ test('本地 Whisper 后台渐进加载 + 就绪自动启用（降级链不变�
   // 就绪优先本地转写；未就绪走浏览器识别/诚实反馈链
   assert.match(wc, /localAsr\.isReady\(\)/);
   assert.match(wc, /speech\.recognizeOnce/);
-  assert.match(wc, /收到你的声音啦/, '音量诚实反馈保留');
+  assert.match(wc, /识别失败不弹任何提示/, '识别失败静默（用户要求）');
+  assert.ok(!/收到你的声音/.test(wc), '不应再有"收到你的声音"提示文案');
   const parent = read('js/ui/parent.js');
   assert.match(parent, /本地识别模型|发音识别（本地模型）/);
 });

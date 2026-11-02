@@ -282,10 +282,10 @@ test('E2E-14 单元级重学：12词全亮后出现全部重学按钮，点一�
   try {
     await navigate(window, app, '#/unit/u5/stage/0');
     assert.match(mainText(window), /第 1 轮/, '应显示当前轮次');
-    assert.ok(buttons(window).some((b) => b.textContent.includes('全部重学一遍')), '全部点亮后应出现单元级重学入口');
+    assert.ok(buttons(window).some((b) => b.textContent.includes('全部单词重来一次')), '全部点亮后应出现单元级重学入口');
     // 未全亮时不出现该入口（E2E-4 场景）——由 E2E-4 覆盖
     // 点一下：全部星标清空，进入第 2 轮，回到第 1 个词
-    await clickButton(window, '全部重学一遍');
+    await clickButton(window, '全部单词重来一次');
     const p = persisted(window);
     assert.equal(p.progress.u5.wordsDone.length, 0, '全部星标应清空');
     assert.equal(p.progress.u5.learnRound, 2, '轮次应 +1');
@@ -313,7 +313,7 @@ test('E2E-15 字帖屋：描红点亮落盘 + 打印按钮存在', async () => {
 });
 
 
-test('E2E-16 识别不可用时按音量诚实反馈：有声音→"收到你的声音"，静音→"没听到声音"', async () => {
+test('E2E-16 识别不可用时完全静默（不弹提示）+ 兜底点亮可用', async () => {
   const { window, app, cleanup } = await freshApp({ stubAudio: true });
   try {
     await navigate(window, app, '#/unit/u5/stage/0');
@@ -324,16 +324,12 @@ test('E2E-16 识别不可用时按音量诚实反馈：有声音→"收到你的
     window.__micLevel = 0.5;
     await clickButton(window, '我来读');
     await new Promise((r) => setTimeout(r, 3000));
+    // 用户要求：识别失败不弹任何提示
     const toastText = window.document.getElementById('toast').textContent;
-    assert.match(toastText, /收到你的声音啦/, '有声音时应明确确认收到');
-    assert.match(toastText, /秒/, '应告知读了多久');
+    assert.ok(!toastText.includes('收到你的声音'), '不应弹"收到你的声音"提示');
+    assert.ok(!toastText.includes('没听清'), '不应弹"没听清"提示');
     assert.equal(persisted(window)?.progress?.u5?.wordsDone?.includes('may') || false, false,
       '识别失败不点亮');
-    // 静音场景：提示"没听到声音"
-    window.__micLevel = 0;
-    await clickButton(window, '我来读');
-    await new Promise((r) => setTimeout(r, 3000));
-    assert.match(window.document.getElementById('toast').textContent, /没听到声音/, '静音时应提示没听到声音');
     // 兜底点亮仍然可用
     await clickButton(window, '我读好了（手动点亮）');
     assert.ok(persisted(window).progress.u5.wordsDone.includes('may'), '兜底路径点亮');

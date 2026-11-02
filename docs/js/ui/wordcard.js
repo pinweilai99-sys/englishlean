@@ -1,13 +1,13 @@
 // 单词图卡：三步学习流（听音 → 认形 → 跟读），跟读达标才点亮
 // 已点亮的词可"🔁 再学一遍"：清空本词星标、从头重学，学完重新点亮；
 // 每词学习遍数（learnCount，存于 reviewCount）落盘并展示。
-import { h, toast, starFly } from './dom.js?v=1793627992';
-import * as tts from '../services/tts.js?v=1793627992';
-import * as recorder from '../services/recorder.js?v=1793627992';
-import * as speech from '../services/speech-match.js?v=1793627992';
-import { scorePronunciation, scoreFeedback } from '../core/scoring.js?v=1793627992';
-import { getRecognitionInfo } from '../services/speech-match.js?v=1793627992';
-import * as localAsr from '../services/local-asr.js?v=1793627992';
+import { h, toast, starFly } from './dom.js?v=1793630178';
+import * as tts from '../services/tts.js?v=1793630178';
+import * as recorder from '../services/recorder.js?v=1793630178';
+import * as speech from '../services/speech-match.js?v=1793630178';
+import { scorePronunciation, scoreFeedback } from '../core/scoring.js?v=1793630178';
+import { getRecognitionInfo } from '../services/speech-match.js?v=1793630178';
+import * as localAsr from '../services/local-asr.js?v=1793630178';
 
 export function renderWordCard(ctx, unit) {
   const p = ctx.getUnitProgress(unit.id);
@@ -114,10 +114,7 @@ export function renderWordCard(ctx, unit) {
           renderCard();
         },
       }));
-      actions.appendChild(h('button', {
-        class: 'btn ghost', text: '🔁 重学这个词',
-        onclick: () => restartWord(w),
-      }));
+
     }
     wrap.appendChild(actions);
 
@@ -137,10 +134,10 @@ export function renderWordCard(ctx, unit) {
       const nextRound = (fresh?.learnRound || 1) + 1;
       wrap.appendChild(h('div', { style: 'text-align:center;margin-top:16px' }, [
         h('button', {
-          class: 'btn leaf', text: `🔁 全部重学一遍（进入第 ${nextRound} 轮）`,
+          class: 'btn leaf', text: `🔁 全部单词重来一次（进入第 ${nextRound} 轮）`,
           onclick: () => restartAll(),
         }),
-        h('p', { class: 'hint', style: 'text-align:center', text: '点一下，12 个词的星星全部清空，从头再学一轮～' }),
+        h('p', { class: 'hint', style: 'text-align:center', text: '点一下，全部五角星清空，从第 1 个词重新学一轮～' }),
       ]));
     }
   }
@@ -190,19 +187,10 @@ export function renderWordCard(ctx, unit) {
     // 优先级 2：浏览器自带识别（Safari 本地 / Chrome 云）
     const rec = await speech.recognizeOnce('en-US', 4000);
     if (!rec.ok || !rec.transcript) {
-      // 孩子可能已手动点亮（竞态）：已点亮就不再报"没听清"，避免自相矛盾的提示
+      // 孩子可能已手动点亮（竞态）：已点亮就不再处理
       if (doneSet.has(w.w)) return;
+      // 用户要求：识别失败不弹任何提示——绿色按钮闪绿光引导已足够，学习不被打断
       session.recognizeFailed = true;
-      // 诚实反馈：本地检测音量/时长，确认孩子的声音收到了（不依赖云端识别）
-      const sec = rec2 ? (rec2.durationMs / 1000).toFixed(1) : null;
-      const heard = rec2 && rec2.maxRms !== null && rec2.maxRms > 0.01 && rec2.durationMs > 500;
-      if (heard) {
-        toast(`🎤 收到你的声音啦（读了 ${sec} 秒）！今天识别服务连不上，点绿色按钮点亮～`, 4600);
-      } else if (rec2 && rec2.maxRms !== null) {
-        toast('没听到声音哦～凑近一点、大声一点，或点绿色按钮继续', 3600);
-      } else {
-        toast('没听清哦～点绿色按钮"我读好了"继续', 3600);
-      }
       renderCard();
       return;
     }
@@ -216,18 +204,6 @@ export function renderWordCard(ctx, unit) {
       session.step = 2;
       renderCard();
     }
-  }
-
-  // 清空本词星标，从头重走三步；学完重新点亮并 +1 学习遍数
-  function restartWord(w) {
-    doneSet.delete(w.w);
-    ctx.updateUnitProgress(unit.id, (up) => ({
-      ...up,
-      wordsDone: Array.from(doneSet),
-    }));
-    session.step = 0;
-    renderCard();
-    toast('🔁 好的！重新学一遍，学完再点亮～', 2200);
   }
 
   function finishWord(w, result) {
