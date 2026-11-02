@@ -281,19 +281,21 @@ test('E2E-14 复习模式：已点亮词可反复学，复习遍数落盘', asyn
   const { window, app, cleanup } = await freshApp({ seed });
   try {
     await navigate(window, app, '#/unit/u5/stage/0');
-    assert.match(mainText(window), /已复习 0 遍/, '应显示复习次数');
+    assert.match(mainText(window), /已学会 · 已学 0 遍/, '应显示学习遍数');
+    // 再学一遍 = 清空本词星标
     await clickButton(window, '再学一遍');
+    assert.equal(persisted(window).progress.u5.wordsDone.includes('may'), false, '重学应先清空星标');
     // 重走三步
     await clickButton(window, '听一听');
     await clickButton(window, '我会认这个词');
     await clickButton(window, '我读好了（手动点亮）');
     const p = persisted(window);
-    assert.equal(p.progress.u5.reviewCount.may, 1, '复习遍数应 +1');
-    assert.equal(p.progress.u5.wordsDone.filter((w) => w === 'may').length, 1, '不应重复点亮');
-    assert.equal(p.progress.u5.wordsDone.length, 2, '点亮集合不变');
-    // 家长报告显示累计复习
+    assert.equal(p.progress.u5.reviewCount.may, 1, '学习遍数应记为 1 遍');
+    assert.ok(p.progress.u5.wordsDone.includes('may'), '重新点亮');
+    assert.match(mainText(window), /已学 1 遍/, '应显示已学 1 遍');
+    // 家长报告显示累计学习
     await navigate(window, app, '#/parent');
-    assert.match(mainText(window), /累计复习 1 遍/);
+    assert.match(mainText(window), /累计学习 1 遍/);
     assert.match(mainText(window), /拼写 0\/5/);
   } finally { cleanup(); }
 });
