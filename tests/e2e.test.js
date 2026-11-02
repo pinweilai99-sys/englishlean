@@ -558,3 +558,30 @@ test('E2E-22 听音选词收尾：12 题全做完 → 出完成页并停止自�
     assert.match(mainText(window), /本轮第 1 \/ 12 题/, '应重新从第 1 题开始');
   } finally { cleanup(); }
 });
+
+test('E2E-25 拼写屋"重新拼一遍"：拼完出完成页，点击后真正重开回到第一题（不再无响应）', async () => {
+  const { window, app, cleanup } = await freshApp();
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0/spelling');
+    const fourWords = UNIT.words.filter((w) => w.tier === 'four');
+    // 逐词拼对，拼空队列
+    for (const w of fourWords) {
+      assert.match(mainText(window), new RegExp(w.zh), `当前题应为 ${w.w}`);
+      for (const ch of w.w.toLowerCase()) {
+        const block = buttons(window).find(
+          (b) => b.classList.contains('option') && b.textContent.trim() === ch);
+        assert.ok(block, `找不到字母块 ${ch}（拼 ${w.w}）`);
+        block.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 20));
+      }
+    }
+    // 队列拼空 → 完成页
+    assert.match(mainText(window), /四会词全部会拼啦/, '应出现完成页');
+    // 点"重新拼一遍" → 队列重建，回到第一题（修复前点击无反应）
+    await clickButton(window, '重新拼一遍');
+    assert.match(mainText(window), /把这个词用字母拼出来/, '应重新出题');
+    assert.match(mainText(window), new RegExp(fourWords[0].zh), '应回到第一个四会词');
+    // 队列长度恢复 = 四会词数
+    assert.equal(app.state.session.spellQueue.length, fourWords.length, '队列应重建');
+  } finally { cleanup(); }
+});
