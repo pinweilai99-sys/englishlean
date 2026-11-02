@@ -109,19 +109,27 @@ export function renderWordCard(ctx, unit) {
     await recorder.stop();
     const rec = await speech.recognizeOnce('en-US', 4000);
     if (!rec.ok || !rec.transcript) {
+      // 孩子可能已手动点亮（竞态）：已点亮就不再报"没听清"，避免自相矛盾的提示
+      if (doneSet.has(w.w)) return;
       session.recognizeFailed = true;
       toast('没听清哦～点绿色按钮"我读好了"继续', 3600);
       renderCard();
       return;
     }
+    // 迟到的识别结果：孩子已点亮就不再重复加星/提示
+    if (doneSet.has(w.w)) return;
     const result = scorePronunciation(w.tts || w.w, rec.transcript);
-    toast(scoreFeedback(result), 2600);
-    if (result.level === 'good') finishWord(w, result);
-    else session.step = 2;
-    renderCard();
+    if (result.level === 'good') {
+      finishWord(w, result);
+    } else {
+      toast(scoreFeedback(result), 2600);
+      session.step = 2;
+      renderCard();
+    }
   }
 
   function finishWord(w, result) {
+    if (doneSet.has(w.w)) return; // 防重复点亮/重复加星
     doneSet.add(w.w);
     session.recognizeFailed = false;
     const next = ctx.updateUnitProgress(unit.id, (up) => ({
@@ -133,6 +141,8 @@ export function renderWordCard(ctx, unit) {
     session.step = 3;
     void next;
     renderCard();
+    // 点亮瞬间用明确的成功提示覆盖旧的"没听清"，避免信息自相矛盾
+    toast(result?.level === 'good' ? scoreFeedback(result) : '⭐ 点亮成功！继续加油～', 2600);
     if (doneSet.size === words.length) {
       toast('🎉 全部单词都点亮啦！去听辨游戏检验一下', 3200);
     }

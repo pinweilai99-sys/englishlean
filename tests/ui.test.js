@@ -51,8 +51,9 @@ test('单词卡实现三步学习流且步骤不可跳', () => {
 
 test('发音评分不作为解锁门槛（教育红线）', () => {
   const src = read('js/ui/wordcard.js');
-  // 非 good 结果不点亮词
-  assert.match(src, /if \(result\.level === 'good'\) finishWord/);
+  // 非 good 结果不点亮词（good 才走 finishWord；else 分支只有反馈+重绘，无点亮）
+  assert.match(src, /if \(result\.level === 'good'\) \{\s*finishWord/);
+  assert.match(src, /else \{\s*toast\(scoreFeedback/);
   // 提供手动点亮降级路径
   assert.match(src, /手动点亮/);
 });

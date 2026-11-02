@@ -208,7 +208,17 @@ test('E2E-12 识别失败不卡死：兜底按钮永远显示，可点亮进入�
     await clickButton(window, '我读好了（手动点亮）');
     const p = persisted(window);
     assert.ok(p.progress.u5.wordsDone.includes('may'), '兜底路径应点亮');
+    // 点亮瞬间 toast 必须是成功提示，不能再显示"没听清"（自相矛盾）
+    const toastText = window.document.getElementById('toast').textContent;
+    assert.match(toastText, /点亮成功/, '点亮后应显示成功提示');
+    assert.ok(!toastText.includes('没听清'), '点亮后不应残留"没听清"提示');
     // 点亮后出现"下一个单词"入口
     assert.ok(buttons(window).some((b) => b.textContent.includes('下一个单词')), '应出现下一词入口');
+    // 竞态防护：迟到的识别结果不重复加星、不重复点亮
+    const starsAfter = p.stars;
+    await new Promise((r) => setTimeout(r, 3500));
+    const p2 = persisted(window);
+    assert.equal(p2.stars, starsAfter, '迟到的识别结果不应重复加星');
+    assert.equal(p2.progress.u5.wordsDone.length, 1, '不应重复点亮');
   } finally { cleanup(); }
 });
