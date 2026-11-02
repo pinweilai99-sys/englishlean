@@ -72,40 +72,17 @@ export function renderHandwriting(ctx, unit) {
 }
 
 // 四线三格字帖（打印视图）
+// 标准英语本格式：4 条横线构成等高 3 格（上格/中格/下格）。
+// 单词基线精确压在第 3 线上：小写字母主体占满中格，b/d/f/h/k/l/t 升入上格，
+// g/j/p/q/y 降入下格。每词一组（示例+描红×2+空白×2），组内不跨页断开。
+const BAND = 26;            // 每格高度(px)
+const ROW_H = BAND * 3;     // 行高 = 三格
+const BASELINE_Y = BAND * 2; // 基线 = 第 3 条线（自顶部数第 2 格底部）
+// Times New Roman: x-height ≈ 0.448em。让小写主体恰好占满中格：
+const WORD_FONT = Math.round(BAND / 0.448); // ≈ 58px
+
 function openPrint(ctx, unit) {
-  const fourWords = unit.words.filter((w) => w.tier === 'four');
-  const lines = [];
-  fourWords.forEach((w) => {
-    // 每词：示例 1 遍 + 描红 2 遍 + 空白 2 遍
-    lines.push({ word: w.w, mode: 'solid' });
-    lines.push({ word: w.w, mode: 'trace' });
-    lines.push({ word: w.w, mode: 'trace' });
-    lines.push({ word: '', mode: 'blank' });
-    lines.push({ word: '', mode: 'blank' });
-  });
-
-  const sheet = h('div', { id: 'print-sheet' }, [
-    h('h2', { style: 'text-align:center', text: 'Unit 5 四会词字帖（四线三格）' }),
-    h('p', { style: 'text-align:center;font-size:12px;color:#666', text: '姓名：________　日期：________' }),
-    ...lines.map((l) => fourLineRow(l)),
-  ]);
-
-  const style = h('style', { html: `
-    #print-sheet { font-family: "Times New Roman", serif; }
-    .fw-row { position: relative; height: 64px; margin: 6px 0;
-      border-top: 2px solid #333; border-bottom: 2px solid #333;
-      background: linear-gradient(to bottom, transparent 50%, #ccc 50%, #ccc calc(50% + 1px), transparent calc(50% + 1px)); }
-    .fw-word { position: absolute; left: 40px; top: 2px; font-size: 44px; line-height: 60px; letter-spacing: 8px; }
-    .fw-solid { color: #222; }
-    .fw-trace { color: rgba(0,0,0,.18); }
-    .fw-label { position: absolute; left: 0; top: 18px; font-size: 14px; color: #999; width: 36px; text-align: right; }
-    @media print {
-      body * { visibility: hidden; }
-      #print-sheet, #print-sheet * { visibility: visible; }
-      #print-sheet { position: absolute; left: 0; top: 0; width: 100%; }
-    }
-  ` });
-
+  const { style, sheet } = buildPrintSheet(unit);
   document.body.appendChild(style);
   document.body.appendChild(sheet);
   toast('正在打开打印…', 1500);
@@ -116,11 +93,74 @@ function openPrint(ctx, unit) {
   }, 300);
 }
 
-function fourLineRow({ word, mode }) {
-  const cls = mode === 'solid' ? 'fw-solid' : 'fw-trace';
-  const label = mode === 'solid' ? '示例' : (mode === 'trace' ? '描红' : '自己写');
-  return h('div', { class: 'fw-row' }, [
-    h('span', { class: 'fw-label', text: label }),
-    h('span', { class: `fw-word ${cls}`, text: word }),
+// 构建字帖（独立导出便于测试格式）：标题 + 每词一组（示例+描红×2+空白×2）
+export function buildPrintSheet(unit) {
+  const fourWords = unit.words.filter((w) => w.tier === 'four');
+  const groups = fourWords.map((w) => h('div', { class: 'fw-group' }, [
+    h('p', { class: 'fw-wordname', text: `${w.img} ${w.w}　${w.zh}` }),
+    // 每词：示例 1 遍 + 描红 2 遍 + 空白 2 遍
+    fourLineRow(w.w, 'solid'),
+    fourLineRow(w.w, 'trace'),
+    fourLineRow(w.w, 'trace'),
+    fourLineRow('', 'blank'),
+    fourLineRow('', 'blank'),
+  ]));
+
+  const sheet = h('div', { id: 'print-sheet' }, [
+    h('h2', { style: 'text-align:center', text: 'Unit 5 四会词字帖（四线三格）' }),
+    h('p', { style: 'text-align:center;font-size:12px;color:#666', text: '姓名：________　日期：________' }),
+    ...groups,
   ]);
+
+  const style = h('style', { html: `
+    #print-sheet { font-family: "Times New Roman", serif; }
+    .fw-group { break-inside: avoid; page-break-inside: avoid; margin-bottom: 10px; }
+    .fw-wordname { font-size: 14px; color: #333; margin: 4px 0 2px; font-family: -apple-system, "PingFang SC", sans-serif; }
+    .fw-row { position: relative; height: ${ROW_H}px; margin: 8px 0 8px 56px; }
+    .fw-line { position: absolute; left: 0; right: 0; height: 0; border-top: 1px solid #9db3c8; }
+    .fw-line.baseline { border-top: 1.5px solid #5a7186; }
+    .fw-word { position: absolute; left: 0; top: 0; overflow: visible; }
+    .fw-solid { fill: #2b2b2b; }
+    .fw-trace { fill: rgba(0,0,0,.16); }
+    .fw-label { position: absolute; left: -52px; top: 50%; transform: translateY(-50%); font-size: 13px; color: #999; width: 44px; text-align: right; font-family: -apple-system, "PingFang SC", sans-serif; }
+    @media print {
+      body * { visibility: hidden; }
+      #print-sheet, #print-sheet * { visibility: visible; }
+      #print-sheet { position: absolute; left: 0; top: 0; width: 100%; }
+    }
+  ` });
+
+  return { style, sheet };
+}
+
+// 一行四线三格：全宽 4 条线 + 词（SVG 精确控制基线位置）
+function fourLineRow(word, mode) {
+  const label = mode === 'solid' ? '示例' : (mode === 'trace' ? '描红' : '自己写');
+  const row = h('div', { class: 'fw-row' }, [
+    h('span', { class: 'fw-label', text: label }),
+    h('div', { class: 'fw-line', style: 'top:0' }),
+    h('div', { class: 'fw-line', style: `top:${BAND}px` }),
+    h('div', { class: 'fw-line baseline', style: `top:${BASELINE_Y}px` }),
+    h('div', { class: 'fw-line', style: `top:${ROW_H}px` }),
+  ]);
+  if (word) {
+    // SVG 让基线精确压在第 3 条线上；宽度假定足够，overflow 可见
+    const svgW = word.length * (WORD_FONT * 0.55) + 40;
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('class', `fw-word fw-${mode}`);
+    svg.setAttribute('width', String(svgW));
+    svg.setAttribute('height', String(ROW_H));
+    svg.style.overflow = 'visible';
+    const t = document.createElementNS(ns, 'text');
+    t.setAttribute('x', '4');
+    t.setAttribute('y', String(BASELINE_Y)); // 基线 = 第 3 条线
+    t.setAttribute('font-size', String(WORD_FONT));
+    t.setAttribute('font-family', '"Times New Roman", serif');
+    t.setAttribute('letter-spacing', '6');
+    t.textContent = word;
+    svg.appendChild(t);
+    row.appendChild(svg);
+  }
+  return row;
 }

@@ -4,6 +4,45 @@ import assert from 'node:assert/strict';
 import {
   freshApp, buttons, clickButton, navigate, mainText, persisted, UNIT,
 } from './e2e-helper.mjs';
+import { buildPrintSheet } from '../js/ui/handwriting.js';
+
+test('E2E-23 字帖打印版格式：标准四线三格（4 线 3 等格、基线压第 3 线、每词一组不跨页）', async () => {
+  const { window, cleanup } = await freshApp(); // 借 jsdom 全局 document
+  try {
+    const { style, sheet } = buildPrintSheet(UNIT);
+    window.document.body.appendChild(sheet);
+    const four = UNIT.words.filter((w) => w.tier === 'four');
+    const groups = sheet.querySelectorAll('.fw-group');
+    assert.equal(groups.length, four.length, '每个四会词一组');
+    const BAND = 26, ROW_H = 78, BASE = 52;
+    groups.forEach((g, gi) => {
+      const rows = g.querySelectorAll('.fw-row');
+      assert.equal(rows.length, 5, `词组 ${gi} 应有 5 行（示例+描红×2+空白×2）`);
+      rows.forEach((row) => {
+        const lines = row.querySelectorAll('.fw-line');
+        assert.equal(lines.length, 4, '每行 4 条线');
+        const tops = [...lines].map((l) => l.style.top);
+        assert.deepEqual(tops, ['0px', `${BAND}px`, `${BASE}px`, `${ROW_H}px`],
+          '四线位置应为 0/26/52/78（三等格），第 3 线为基线');
+        assert.ok(lines[2].classList.contains('baseline'), '第 3 线应是基线（加深）');
+      });
+      // 前三行有词：SVG 文本基线必须精确压在 BASE 上
+      [...rows].slice(0, 3).forEach((row) => {
+        const t = row.querySelector('svg text');
+        assert.ok(t, '词行应含 SVG 单词');
+        assert.equal(t.getAttribute('y'), String(BASE), '单词基线应压在第 3 线上');
+        assert.equal(t.getAttribute('font-size'), '58', '字号应使小写主体占满中格');
+        assert.equal(t.textContent, four[gi].w, '行内单词正确');
+      });
+      // 后两行空白：不出现单词
+      [...rows].slice(3).forEach((row) => {
+        assert.equal(row.querySelector('svg text'), null, '空白行不应有单词');
+      });
+    });
+    // 组内不跨页断开
+    assert.match(style.textContent, /break-inside:\s*avoid/);
+  } finally { cleanup(); }
+});
 
 test('E2E-1 首页渲染：8 张单元卡，仅 U5 可进', async () => {
   const { window, cleanup } = await freshApp();
