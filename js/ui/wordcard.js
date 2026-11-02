@@ -68,12 +68,11 @@ export function renderWordCard(ctx, unit) {
         class: 'btn sky', text: '🎤 我来读',
         onclick: () => doRecord(w),
       }));
-      if (!speech.isRecognitionSupported() || !recorder.isSupported()) {
-        actions.appendChild(h('button', {
-          class: 'btn', text: '✅ 我读好了（手动点亮）',
-          onclick: () => finishWord(w, { score: 60, level: 'ok', matched: true, reason: 'manual' }),
-        }));
-      }
+      // 兜底按钮永远显示：识别不可用/失败时，学习绝不被技术卡死
+      actions.appendChild(h('button', {
+        class: 'btn ghost', text: '✅ 我读好了（手动点亮）',
+        onclick: () => finishWord(w, { score: 60, level: 'ok', matched: true, reason: 'manual' }),
+      }));
     } else {
       actions.appendChild(h('button', {
         class: 'btn leaf', text: '➡️ 下一个单词',
@@ -108,7 +107,7 @@ export function renderWordCard(ctx, unit) {
     await recorder.stop();
     const rec = await speech.recognizeOnce('en-US', 4000);
     if (!rec.ok || !rec.transcript) {
-      toast(scoreFeedback({ reason: 'no-speech' }), 2600);
+      toast('没听清哦～可以再试一次，或点"我读好了"继续', 3200);
       return;
     }
     const result = scorePronunciation(w.tts || w.w, rec.transcript);

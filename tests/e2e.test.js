@@ -184,3 +184,28 @@ test('E2E-11 TTS 不可用时不崩溃，步骤照常推进', async () => {
     assert.equal(steps[1].className.includes('is-current'), true, '应推进到②认形');
   } finally { cleanup(); }
 });
+
+
+test('E2E-12 识别失败不卡死：兜底按钮永远显示，可点亮进入下一个', async () => {
+  const { window, app, cleanup } = await freshApp({ stubAudio: true });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0');
+    // ①② 走完进入 ③跟读
+    await clickButton(window, '听一听');
+    await clickButton(window, '我会认这个词');
+    // 兜底按钮在识别可用时也必须显示
+    assert.ok(buttons(window).some((b) => b.textContent.includes('手动点亮')), '兜底按钮应永远显示');
+    // 模拟识别服务故障：识别返回空转写
+    window.__nextTranscript = '';
+    await clickButton(window, '我来读');
+    await new Promise((r) => setTimeout(r, 3000));
+    assert.equal(persisted(window)?.progress?.u5?.wordsDone?.includes('may') || false, false,
+      '识别失败时不应点亮');
+    // 用兜底按钮点亮，学习继续
+    await clickButton(window, '我读好了（手动点亮）');
+    const p = persisted(window);
+    assert.ok(p.progress.u5.wordsDone.includes('may'), '兜底路径应点亮');
+    // 点亮后出现"下一个单词"入口
+    assert.ok(buttons(window).some((b) => b.textContent.includes('下一个单词')), '应出现下一词入口');
+  } finally { cleanup(); }
+});
