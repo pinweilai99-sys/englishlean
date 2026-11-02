@@ -1,5 +1,5 @@
 // 字帖屋（1.5）：四会词书写——屏上描红 + 可打印四线三格字帖
-// 描红：浅灰大字，孩子用手指/鼠标在屏上描，描完点亮 handwritingDone（发星，不卡通关）。
+// 描红：标准四线三格 + 浅灰范字，孩子用手指在屏上描（描红画布），描完点亮 handwritingDone（发星，不卡通关）。
 // 打印：四线三格，每词一行 = 示例 + 描红×2 + 空白×2，家长打印后孩子在纸上写。
 import { h, toast, starFly } from './dom.js';
 
@@ -13,7 +13,7 @@ export function renderHandwriting(ctx, unit) {
     const hwDone = new Set(p?.handwritingDone || []);
 
     wrap.appendChild(h('div', { class: 'card-title', text: '✍️ 字帖屋' }));
-    wrap.appendChild(h('p', { class: 'card-sub', text: `四会词要会写！用手指照着灰字描，描完点亮（${hwDone.size}/${fourWords.length}）` }));
+    wrap.appendChild(h('p', { class: 'card-sub', text: `四会词要会写！在四线三格里用手指照着灰字描，描完点亮（${hwDone.size}/${fourWords.length}）` }));
 
     // 屏上描红
     fourWords.forEach((w) => {
@@ -40,12 +40,8 @@ export function renderHandwriting(ctx, unit) {
             },
           }),
         ]),
-        // 描红字（浅灰大字，手指可描）
-        h('div', {
-          class: 'trace-word',
-          style: 'font-size:64px;font-weight:900;text-align:center;color:rgba(47,59,52,.14);letter-spacing:10px;user-select:none;margin-top:8px;text-transform:lowercase',
-          text: w.w,
-        }),
+        // 屏上描红：四线三格 + 浅灰范字，手指在灰字上描
+        traceBox(w.w),
       ]);
       wrap.appendChild(row);
     });
@@ -117,11 +113,6 @@ export function buildPrintSheet(unit) {
     .fw-group { break-inside: avoid; page-break-inside: avoid; margin-bottom: 10px; }
     .fw-wordname { font-size: 14px; color: #333; margin: 4px 0 2px; font-family: -apple-system, "PingFang SC", sans-serif; }
     .fw-row { position: relative; height: ${ROW_H}px; margin: 8px 0 8px 56px; }
-    .fw-line { position: absolute; left: 0; right: 0; height: 0; border-top: 1px solid #9db3c8; }
-    .fw-line.baseline { border-top: 1.5px solid #5a7186; }
-    .fw-word { position: absolute; left: 0; top: 0; overflow: visible; }
-    .fw-solid { fill: #2b2b2b; }
-    .fw-trace { fill: rgba(0,0,0,.16); }
     .fw-label { position: absolute; left: -52px; top: 50%; transform: translateY(-50%); font-size: 13px; color: #999; width: 44px; text-align: right; font-family: -apple-system, "PingFang SC", sans-serif; }
     @media print {
       body * { visibility: hidden; }
@@ -143,24 +134,85 @@ function fourLineRow(word, mode) {
     h('div', { class: 'fw-line baseline', style: `top:${BASELINE_Y}px` }),
     h('div', { class: 'fw-line', style: `top:${ROW_H}px` }),
   ]);
-  if (word) {
-    // SVG 让基线精确压在第 3 条线上；宽度假定足够，overflow 可见
-    const svgW = word.length * (WORD_FONT * 0.55) + 40;
-    const ns = 'http://www.w3.org/2000/svg';
-    const svg = document.createElementNS(ns, 'svg');
-    svg.setAttribute('class', `fw-word fw-${mode}`);
-    svg.setAttribute('width', String(svgW));
-    svg.setAttribute('height', String(ROW_H));
-    svg.style.overflow = 'visible';
-    const t = document.createElementNS(ns, 'text');
-    t.setAttribute('x', '4');
-    t.setAttribute('y', String(BASELINE_Y)); // 基线 = 第 3 条线
-    t.setAttribute('font-size', String(WORD_FONT));
-    t.setAttribute('font-family', '"Times New Roman", serif');
-    t.setAttribute('letter-spacing', '6');
-    t.textContent = word;
-    svg.appendChild(t);
-    row.appendChild(svg);
-  }
+  if (word) row.appendChild(wordSvg(word, mode));
   return row;
 }
+
+// 四线三格内的单词 SVG：基线精确压在第 3 条线上（屏上描红与打印共用，格式一致）
+function wordSvg(word, mode) {
+  const svgW = word.length * (WORD_FONT * 0.55) + 40;
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('class', `fw-word fw-${mode}`);
+  svg.setAttribute('width', String(svgW));
+  svg.setAttribute('height', String(ROW_H));
+  svg.style.overflow = 'visible';
+  const t = document.createElementNS(ns, 'text');
+  t.setAttribute('x', '4');
+  t.setAttribute('y', String(BASELINE_Y)); // 基线 = 第 3 条线
+  t.setAttribute('font-size', String(WORD_FONT));
+  t.setAttribute('font-family', '"Times New Roman", serif');
+  t.setAttribute('letter-spacing', '6');
+  t.textContent = word;
+  svg.appendChild(t);
+  return svg;
+}
+
+// 屏上描红盒：四线三格 + 浅灰范字 + 手指/鼠标描红画布（描的笔迹显示在灰字上）
+function traceBox(word) {
+  const box = h('div', { class: 'trace-box', style: 'position:relative;width:fit-content;margin:12px auto 0;user-select:none' });
+  const grid = h('div', { style: `position:relative;width:${wordSvgW(word)}px;height:${ROW_H}px` }, [
+    h('div', { class: 'fw-line', style: 'top:0' }),
+    h('div', { class: 'fw-line', style: `top:${BAND}px` }),
+    h('div', { class: 'fw-line baseline', style: `top:${BASELINE_Y}px` }),
+    h('div', { class: 'fw-line', style: `top:${ROW_H}px` }),
+    wordSvg(word, 'trace'),
+  ]);
+  box.appendChild(grid);
+
+  // 描红画布（2x 分辨率保证清晰）
+  const canvas = document.createElement('canvas');
+  const W = wordSvgW(word), H = ROW_H;
+  canvas.width = W * 2; canvas.height = H * 2;
+  canvas.setAttribute('aria-label', `描红 ${word}`);
+  canvas.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;touch-action:none;cursor:pointer;border-radius:6px';
+  grid.appendChild(canvas);
+  const c = canvas.getContext && canvas.getContext('2d'); // jsdom 等环境可能无 2d 上下文
+  let drawing = false;
+  const pt = (e) => {
+    const r = canvas.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * (canvas.width / r.width), y: (e.clientY - r.top) * (canvas.height / r.height) };
+  };
+  if (c) {
+    c.lineWidth = 13; c.lineCap = 'round'; c.lineJoin = 'round';
+    c.strokeStyle = '#2f7d5b';
+    canvas.addEventListener('pointerdown', (e) => {
+      drawing = true;
+      try { canvas.setPointerCapture(e.pointerId); } catch { /* 部分浏览器不支持 */ }
+      const { x, y } = pt(e);
+      c.beginPath(); c.moveTo(x, y); c.lineTo(x + 0.1, y + 0.1); c.stroke();
+      e.preventDefault();
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      if (!drawing) return;
+      const { x, y } = pt(e);
+      c.lineTo(x, y); c.stroke();
+      e.preventDefault();
+    });
+    const stop = () => { drawing = false; };
+    canvas.addEventListener('pointerup', stop);
+    canvas.addEventListener('pointercancel', stop);
+    canvas.addEventListener('pointerleave', stop);
+  }
+
+  // 擦掉重描
+  box.appendChild(h('div', { style: 'text-align:center;margin-top:6px' }, [
+    h('button', {
+      class: 'btn ghost', style: 'font-size:13px;padding:4px 12px', text: '🧽 擦掉重描',
+      onclick: () => { if (c) c.clearRect(0, 0, canvas.width, canvas.height); },
+    }),
+  ]));
+  return box;
+}
+
+function wordSvgW(word) { return word.length * (WORD_FONT * 0.55) + 40; }

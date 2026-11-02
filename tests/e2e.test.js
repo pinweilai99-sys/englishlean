@@ -44,6 +44,35 @@ test('E2E-23 字帖打印版格式：标准四线三格（4 线 3 等格、基�
   } finally { cleanup(); }
 });
 
+test('E2E-24 屏上描红格式：四线三格 + 基线压第 3 线的浅灰范字 + 可描红画布', async () => {
+  const { window, app, cleanup } = await freshApp();
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0/handwriting');
+    const four = UNIT.words.filter((w) => w.tier === 'four');
+    const boxes = window.document.querySelectorAll('.trace-box');
+    assert.equal(boxes.length, four.length, '每个四会词一个描红盒');
+    boxes.forEach((box, i) => {
+      const lines = box.querySelectorAll('.fw-line');
+      assert.equal(lines.length, 4, `词 ${four[i].w} 描红盒应有 4 条线`);
+      const tops = [...lines].map((l) => l.style.top);
+      assert.deepEqual(tops, ['0px', '26px', '52px', '78px'], '四线三格三等格');
+      assert.ok(lines[2].classList.contains('baseline'), '第 3 线为基线');
+      const t = box.querySelector('svg text');
+      assert.ok(t, '应有浅灰范字');
+      assert.equal(t.getAttribute('y'), '52', '范字基线压第 3 线');
+      assert.equal(t.getAttribute('font-size'), '58', '小写主体占满中格');
+      assert.equal(t.textContent, four[i].w);
+      assert.ok(box.querySelector('svg.fw-trace'), '范字应为描红浅灰样式');
+      assert.ok(box.querySelector('canvas'), '应有描红画布（手指可描）');
+    });
+    assert.ok(buttons(window).some((b) => b.textContent.includes('擦掉重描')), '应有擦掉重描');
+    // 描红点亮功能保持可用
+    await clickButton(window, '我描好了');
+    const p = persisted(window);
+    assert.equal(p.progress.u5.handwritingDone.length, 1, '描红点亮落盘不受影响');
+  } finally { cleanup(); }
+});
+
 test('E2E-1 首页渲染：8 张单元卡，仅 U5 可进', async () => {
   const { window, cleanup } = await freshApp();
   try {

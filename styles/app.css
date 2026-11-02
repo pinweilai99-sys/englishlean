@@ -222,3 +222,10 @@ textarea.text-input { min-height: 140px; resize: vertical; }
 @media (min-width: 1024px) {
   .unit-grid { grid-template-columns: repeat(4, 1fr); }
 }
+
+/* ============ 字帖屋：四线三格（屏上描红 + 打印共用） ============ */
+.fw-line { position: absolute; left: 0; right: 0; height: 0; border-top: 1px solid #9db3c8; }
+.fw-line.baseline { border-top: 1.5px solid #5a7186; }
+.fw-word { position: absolute; left: 0; top: 0; overflow: visible; }
+.fw-solid { fill: #2b2b2b; }
+.fw-trace { fill: rgba(0,0,0,.16); }
