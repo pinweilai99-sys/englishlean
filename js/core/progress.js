@@ -11,6 +11,7 @@ export function defaultUnitProgress() {
     listenScore: null,
     quizBest: null,
     spellingDone: [],
+    spellingWrong: [],
     handwritingDone: [],
     reviewCount: {},
     learnRound: 1,

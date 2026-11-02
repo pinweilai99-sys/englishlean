@@ -639,3 +639,37 @@ test('E2E-26 拼写屋队列规则：12 词全覆盖每词 2 次；拼错的词�
     assert.notEqual(app.state.session.spellQueue[0], firstWord, '下一题应是别的词');
   } finally { cleanup(); }
 });
+
+test('E2E-27 拼写屋完成页复习区：本轮拼错的词+中文意思展示在完成页下方并落盘', async () => {
+  const { window, app, cleanup } = await freshApp();
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0/spelling');
+    const firstWord = UNIT.words[0].w;
+    const firstMeta = UNIT.words[0];
+    // 故意点错 1 个字母，再拼对当前题
+    const wrongCh = firstWord[1].toLowerCase() !== firstWord[0].toLowerCase()
+      ? firstWord[1].toLowerCase() : firstWord[2].toLowerCase();
+    const wrongBlock = buttons(window).find(
+      (b) => b.classList.contains('option') && b.textContent.trim() === wrongCh);
+    assert.ok(wrongBlock, `应能点错字母 ${wrongCh}`);
+    wrongBlock.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 20));
+    await spellOneCurrent(window);
+    // 拼完剩余全部题（含错词加练）
+    for (let k = 0; k < 40; k++) {
+      if (mainText(window).includes('单词全部拼完啦')) break;
+      await spellOneCurrent(window);
+    }
+    assert.match(mainText(window), /单词全部拼完啦/, '应完成整轮');
+    // 复习区：显示拼错的词 + 中文意思
+    assert.match(mainText(window), /本轮拼错的词，复习一下/, '完成页应有复习区标题');
+    assert.match(mainText(window), new RegExp(firstWord), '复习区应含拼错单词');
+    assert.match(mainText(window), new RegExp(firstMeta.zh.slice(0, 2)), '复习区应含中文意思');
+    // 点击复习项可发音（不抛错）
+    const item = window.document.querySelector('.spell-wrong-item');
+    assert.ok(item, '复习项应存在且可点击');
+    // 错词清单落盘
+    const p = persisted(window);
+    assert.deepEqual(p.progress.u5.spellingWrong, [firstWord], 'spellingWrong 应落盘');
+  } finally { cleanup(); }
+});

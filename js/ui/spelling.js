@@ -70,6 +70,28 @@ export function renderSpelling(ctx, unit) {
       wrap.appendChild(h('div', { class: 'emoji-xl', style: 'text-align:center', text: '🏆' }));
       wrap.appendChild(h('p', { style: 'text-align:center;font-weight:800;font-size:var(--fs-lg)', text: '单词全部拼完啦！' }));
       wrap.appendChild(h('p', { class: 'hint', style: 'text-align:center', text: '下次可以再来重拼，越拼越熟～' }));
+      // 复习区：本轮拼错的单词 + 中文意思（供孩子复习；无错词则给鼓励语）
+      const wrong = session.spellWrong || [];
+      if (wrong.length > 0) {
+        const box = h('div', { id: 'spell-wrong-review', style: 'margin:14px auto 0;max-width:360px;border-top:2px dashed var(--line,#ddd);padding-top:12px' });
+        box.appendChild(h('p', { style: 'font-weight:800;text-align:center;margin-bottom:8px', text: '📝 本轮拼错的词，复习一下：' }));
+        wrong.forEach((wordStr) => {
+          const meta = allWords.find((x) => x.w === wordStr);
+          if (!meta) return;
+          box.appendChild(h('div', {
+            class: 'spell-wrong-item',
+            style: 'display:flex;align-items:center;justify-content:space-between;background:var(--bg,#f7f7f7);border-radius:12px;padding:8px 14px;margin-bottom:6px;cursor:pointer',
+            onclick: () => tts.speak(meta.w),
+          }, [
+            h('span', { style: 'font-size:var(--fs-lg);font-weight:900;letter-spacing:2px', text: meta.w }),
+            h('span', { style: 'color:#666;font-size:var(--fs-sm)', text: `${meta.zh}　🔊` }),
+          ]));
+        });
+        box.appendChild(h('p', { class: 'hint', style: 'text-align:center;margin-top:6px', text: '点一点单词可以再听读音' }));
+        wrap.appendChild(box);
+      } else {
+        wrap.appendChild(h('p', { class: 'hint', style: 'text-align:center', text: '本轮全部拼对，太棒了！' }));
+      }
       wrap.appendChild(h('div', { class: 'btn-row', style: 'justify-content:center;margin-top:12px' }, [
         h('button', {
           class: 'btn ghost', text: '🔁 重新拼一遍',
@@ -148,6 +170,11 @@ export function renderSpelling(ctx, unit) {
               if (session.spellQueue.length === 0) {
                 toast('🎉 拼写通关！', 3000);
                 confetti();
+                // 本轮错词清单落盘（供完成页复习区与家长查看）
+                ctx.updateUnitProgress(unit.id, (up) => ({
+                  ...up,
+                  spellingWrong: [...(session.spellWrong || [])],
+                }));
                 ctx.checkStage1(unit.id);
               } else {
                 toast('拼对啦！', 1800);
