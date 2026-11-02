@@ -1,10 +1,29 @@
-// 字帖屋（1.5）：四会词书写——屏上描红 + 下载 PDF 四线三格字帖
+// 字帖屋（1.5）：单词书写——屏上描红 + 下载 PDF 四线三格字帖
 // 描红：标准四线三格 + 浅灰范字，孩子用手指在屏上描（描红画布），描完点亮 handwritingDone（发星，不卡通关）。
 // 打印：四线三格，每词一行 = 示例 + 描红×2 + 空白×2，家长打印后孩子在纸上写。
-import { h, toast, starFly } from './dom.js?v=1793659532';
+// 词集：本单元全部单词（四会在前、认读在后）；后续 U1-4 有内容后，由调用方把未掌握/需复习词追加进 units。
+import { h, toast, starFly } from './dom.js?v=1793660121';
+
+// 字帖词序（纯函数，可测试）：每个单元四会词在前、认读词在后，跨单元按 w 去重。
+// 现在只传 [unit]（U5 全部 12 词）；等 U1-4 内容就位，调用方把「未掌握/需复习」的词
+// 组装成后续单元传入即可，自动排在 U5 词后面，无需改动本模块。
+export function buildHandwritingWords(units) {
+  const seen = new Set();
+  const out = [];
+  units.forEach((u) => {
+    const four = u.words.filter((w) => w.tier === 'four');
+    const rest = u.words.filter((w) => w.tier !== 'four');
+    [...four, ...rest].forEach((w) => {
+      if (seen.has(w.w)) return;
+      seen.add(w.w);
+      out.push(w);
+    });
+  });
+  return out;
+}
 
 export function renderHandwriting(ctx, unit) {
-  const fourWords = unit.words.filter((w) => w.tier === 'four');
+  const words = buildHandwritingWords([unit]);
   const wrap = h('div', { class: 'card' });
 
   function render() {
@@ -13,10 +32,10 @@ export function renderHandwriting(ctx, unit) {
     const hwDone = new Set(p?.handwritingDone || []);
 
     wrap.appendChild(h('div', { class: 'card-title', text: '✍️ 字帖屋' }));
-    wrap.appendChild(h('p', { class: 'card-sub', text: `四会词要会写！在四线三格里用手指照着灰字描，描完点亮（${hwDone.size}/${fourWords.length}）` }));
+    wrap.appendChild(h('p', { class: 'card-sub', text: `单词都要会写！在四线三格里用手指照着灰字描，描完点亮（${hwDone.size}/${words.length}）` }));
 
     // 屏上描红
-    fourWords.forEach((w) => {
+    words.forEach((w) => {
       const done = hwDone.has(w.w);
       const row = h('div', { class: 'card soft', style: 'margin-bottom:12px;padding:14px' }, [
         h('div', { style: 'display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap' }, [
@@ -46,7 +65,7 @@ export function renderHandwriting(ctx, unit) {
       wrap.appendChild(row);
     });
 
-    if (hwDone.size === fourWords.length) {
+    if (hwDone.size === words.length) {
       wrap.appendChild(h('p', { style: 'text-align:center;font-weight:800;color:var(--ok);font-size:var(--fs-md)', text: '🏆 屏上描红全部完成！记得用下面的字帖在纸上也写一写～' }));
     }
 
@@ -88,13 +107,13 @@ const GRID_C = [157, 179, 200], BASE_C = [90, 113, 134], INK_C = [43, 43, 43], T
 // 生成 PDF 绘制指令（纯几何，无副作用，可完整测试格式）
 // 指令：{t:'page'} 换页 | {t:'line',x1,x2,y,w,c} 横线 | {t:'text',x,y,s,color} 单词(y=基线) | {t:'img',kind,text,x,y,w,h} 中文图
 export function computePdfLayout(unit) {
-  const fourWords = unit.words.filter((w) => w.tier === 'four');
+  const words = buildHandwritingWords([unit]);
   const cmds = [];
   const pageEnd = PAGE_H - MB;
   let y = MT + HEADER_H; // 首页从页眉下开始
   const groupStarts = [];
 
-  fourWords.forEach((w) => {
+  words.forEach((w) => {
     if (y + GROUP_H > pageEnd) { cmds.push({ t: 'page' }); groupStarts.push(null); y = MT; }
     groupStarts.push(y);
     // 词名（中文，渲染为图片）
@@ -122,7 +141,7 @@ export function computePdfLayout(unit) {
 
   // 首页页眉插在最前
   cmds.unshift(
-    { t: 'img', kind: 'title', text: 'Unit 5 四会词字帖（四线三格）', x: (PAGE_W - 120) / 2, y: MT, w: 120, h: 10 },
+    { t: 'img', kind: 'title', text: 'Unit 5 单词字帖（四线三格）', x: (PAGE_W - 120) / 2, y: MT, w: 120, h: 10 },
     { t: 'img', kind: 'namecard', text: '姓名：____________　日期：____________', x: ML, y: MT + 13, w: 92, h: 6 },
   );
   return cmds;
@@ -154,7 +173,7 @@ export function downloadHandwritingPdf(unit) {
       doc.addImage(imgCache[key], 'PNG', cmd.x, cmd.y, cmd.w, cmd.h);
     }
   });
-  doc.save('Unit5-四线三格字帖.pdf');
+  doc.save('Unit5-单词字帖-四线三格.pdf');
   toast('PDF 已生成，正在下载…', 1800);
 }
 

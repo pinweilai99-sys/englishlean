@@ -30,7 +30,7 @@ export function renderParent(ctx, unit) {
   const stats = h('div', { class: 'stat-row' }, [
     h('span', { class: 'stat', text: `🔤 单词 ${wordsDone}/${wordTotal}` }),
     h('span', { class: 'stat', text: `🔤 拼写 ${spellingDone}/${fourTotal}` }),
-    h('span', { class: 'stat', text: `✍️ 描红 ${handwritingDone}/${fourTotal}` }),
+    h('span', { class: 'stat', text: `✍️ 描红 ${handwritingDone}/${wordTotal}` }),
     h('span', { class: 'stat', text: `🔁 累计学习 ${reviewTotal} 遍` }),
     h('span', { class: 'stat', text: `📚 学习轮次 第 ${p?.learnRound || 1} 轮` }),
     h('span', { class: 'stat', text: `⭐ 总星星 ${state.stars || 0}` }),

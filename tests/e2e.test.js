@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {
   freshApp, buttons, clickButton, navigate, mainText, persisted, UNIT,
 } from './e2e-helper.mjs';
-import { computePdfLayout } from '../js/ui/handwriting.js';
+import { computePdfLayout, buildHandwritingWords } from '../js/ui/handwriting.js';
 import { buildSpellQueue, SPELL_TIMES_PER_WORD, SPELL_WRONG_RETRY } from '../js/ui/spelling.js';
 
 // 拼写屋驱动助手：读当前题的中文提示 → 找到对应单词 → 逐字母点击正确字母块。
@@ -34,17 +34,21 @@ test('E2E-23 PDF 字帖布局：标准四线三格（4 线 3 等格、基线压�
     assert.equal(cmds[0].kind, 'title');
     assert.equal(cmds[1].kind, 'namecard');
     const BAND = 4.2, ROW_H = 12.6, NAME_H = 7, ROW_GAP = 3;
-    const four = UNIT.words.filter((w) => w.tier === 'four');
+    // 新规格：字帖 = 本单元全部单词（12 词），四会在前、认读在后（旧口径只排 5 个四会词）
+    const words = buildHandwritingWords([UNIT]);
+    assert.equal(words.length, 12, '字帖应包含 U5 全部 12 词（不再只排四会词）');
+    assert.deepEqual(words.slice(0, 5).map((w) => w.tier), Array(5).fill('four'), '四会词排在最前');
+    assert.deepEqual(words.slice(5).map((w) => w.tier), Array(7).fill('read'), '认读词跟在四会词后');
     // 按换页拆分各页
     const pages = cmds.reduce((acc, c) => {
       if (c.t === 'page') acc.push([]);
       else acc[acc.length - 1].push(c);
       return acc;
     }, [[]]);
-    assert.equal(pages.length, 2, '5 词应排 2 页');
+    assert.equal(pages.length, 5, '12 词应排 5 页（首页 2 词 + 后续每页 3 词 + 末页 1 词）');
     // 逐词验证 5 行 × 4 线 + 基线
     let idx = 2; // 跳过页眉两条
-    four.forEach((w) => {
+    words.forEach((w) => {
       // 词组之间可能有换页指令（组内绝不跨页 → 只会出现在组边界）
       if (cmds[idx].t === 'page') idx += 1;
       // 词名图（每组开头）
@@ -99,12 +103,12 @@ test('E2E-24 屏上描红格式：四线三格 + 基线压第 3 线的浅灰范�
   const { window, app, cleanup } = await freshApp();
   try {
     await navigate(window, app, '#/unit/u5/stage/0/handwriting');
-    const four = UNIT.words.filter((w) => w.tier === 'four');
+    const words = buildHandwritingWords([UNIT]);
     const boxes = window.document.querySelectorAll('.trace-box');
-    assert.equal(boxes.length, four.length, '每个四会词一个描红盒');
+    assert.equal(boxes.length, 12, 'U5 全部 12 词各一个描红盒（四会+认读）');
     boxes.forEach((box, i) => {
       const lines = box.querySelectorAll('.fw-line');
-      assert.equal(lines.length, 4, `词 ${four[i].w} 描红盒应有 4 条线`);
+      assert.equal(lines.length, 4, `词 ${words[i].w} 描红盒应有 4 条线`);
       const tops = [...lines].map((l) => l.style.top);
       assert.deepEqual(tops, ['0px', '26px', '52px', '78px'], '四线三格三等格');
       assert.ok(lines[2].classList.contains('baseline'), '第 3 线为基线');
@@ -112,15 +116,38 @@ test('E2E-24 屏上描红格式：四线三格 + 基线压第 3 线的浅灰范�
       assert.ok(t, '应有浅灰范字');
       assert.equal(t.getAttribute('y'), '52', '范字基线压第 3 线');
       assert.equal(t.getAttribute('font-size'), '58', '小写主体占满中格');
-      assert.equal(t.textContent, four[i].w);
+      assert.equal(t.textContent, words[i].w);
       assert.ok(box.querySelector('svg.fw-trace'), '范字应为描红浅灰样式');
       assert.ok(box.querySelector('canvas'), '应有描红画布（手指可描）');
     });
     assert.ok(buttons(window).some((b) => b.textContent.includes('擦掉重描')), '应有擦掉重描');
+    // 计数文案显示 0/12
+    assert.match(mainText(window), /0\/12/, '描红计数应为 0/12');
     // 描红点亮功能保持可用
     await clickButton(window, '我描好了');
     const p = persisted(window);
     assert.equal(p.progress.u5.handwritingDone.length, 1, '描红点亮落盘不受影响');
+  } finally { cleanup(); }
+});
+
+test('E2E-28 字帖词序纯函数：单元内四会在前、跨单元追加去重（预留 U1-4 未掌握词混入）', async () => {
+  const { cleanup } = await freshApp(); // 借 jsdom 环境
+  try {
+    // 单元内：四会在前、认读在后
+    const words = buildHandwritingWords([UNIT]);
+    assert.equal(words.length, UNIT.words.length, '不丢词');
+    assert.equal(words[0].w, 'may', '第一个词应为四会词 may');
+    assert.equal(words[4].w, 'hold', '第 5 个词应为最后一个四会词 hold');
+    assert.equal(words[5].w, 'Mrs', '四会词之后紧接认读词 Mrs');
+    assert.equal(words[11].w, 'back', '最后一个词为认读词 back');
+    // 跨单元：后续单元（U1-4 未掌握/需复习词）追加在 U5 词之后，按词去重
+    const u1 = { id: 'u1', words: [{ w: 'old', tier: 'four', zh: '老的' }, { w: 'tall', tier: 'read', zh: '高的' }] };
+    const mixed = buildHandwritingWords([UNIT, u1]);
+    assert.equal(mixed.length, 14, 'U5 12 词 + U1 2 词');
+    assert.equal(mixed[12].w, 'old', '后续单元四会词追加在末尾');
+    assert.equal(mixed[13].w, 'tall');
+    const dup = buildHandwritingWords([UNIT, { id: 'u1', words: [{ w: 'pet', tier: 'four', zh: '宠物' }] }]);
+    assert.equal(dup.length, 12, '与 U5 重复的词应去重');
   } finally { cleanup(); }
 });
 

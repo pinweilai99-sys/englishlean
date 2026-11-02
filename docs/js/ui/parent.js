@@ -1,6 +1,6 @@
 // 家长中心：语法参考卡 / 学习报告 / 错题本 / 导出恢复重置
-import { h, clear, toast, confirmDialog, modal } from './dom.js?v=1793659532';
-import { exportState, importState, resetState } from '../core/storage.js?v=1793659532';
+import { h, clear, toast, confirmDialog, modal } from './dom.js?v=1793660121';
+import { exportState, importState, resetState } from '../core/storage.js?v=1793660121';
 
 export function renderParent(ctx, unit) {
   const state = ctx.state;
@@ -30,7 +30,7 @@ export function renderParent(ctx, unit) {
   const stats = h('div', { class: 'stat-row' }, [
     h('span', { class: 'stat', text: `🔤 单词 ${wordsDone}/${wordTotal}` }),
     h('span', { class: 'stat', text: `🔤 拼写 ${spellingDone}/${fourTotal}` }),
-    h('span', { class: 'stat', text: `✍️ 描红 ${handwritingDone}/${fourTotal}` }),
+    h('span', { class: 'stat', text: `✍️ 描红 ${handwritingDone}/${wordTotal}` }),
     h('span', { class: 'stat', text: `🔁 累计学习 ${reviewTotal} 遍` }),
     h('span', { class: 'stat', text: `📚 学习轮次 第 ${p?.learnRound || 1} 轮` }),
     h('span', { class: 'stat', text: `⭐ 总星星 ${state.stars || 0}` }),
@@ -58,11 +58,11 @@ export function renderParent(ctx, unit) {
   }
 
   // 本地识别模型状态
-  import('../services/local-asr.js?v=1793659532').then(() => {}).catch(() => {});
+  import('../services/local-asr.js?v=1793660121').then(() => {}).catch(() => {});
   wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:22px', text: '🎙️ 发音识别（本地模型）' }));
   const laWrap = h('div', {});
   wrap.appendChild(laWrap);
-  import('../services/local-asr.js?v=1793659532').then((localAsr) => {
+  import('../services/local-asr.js?v=1793660121').then((localAsr) => {
     const st = localAsr.getStatus();
     const desc = st.status === 'ready' ? '✅ 已就绪——跟读自动打分（离线可用）'
       : st.status === 'loading' ? `⏳ 后台下载中 ${st.progress}%（下载完成后自动启用，不影响学习）`
