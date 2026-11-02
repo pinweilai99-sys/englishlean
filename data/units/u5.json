@@ -28,12 +28,18 @@
     "chant": "I see a big mouse, sneaking into the house. My mum sees it and shouts, Get out, mouse!"
   },
   "listenPairs": [
-    ["pet", "get"],
     ["may", "my"],
-    ["house", "hold"],
-    ["mouth", "mouse"],
-    ["feed", "fly"],
-    ["Mrs", "Miss"]
+    ["pet", "get"],
+    ["rabbit", "ribbon"],
+    ["feed", "food"],
+    ["hold", "house"],
+    ["Mrs", "Miss"],
+    ["lovely", "lonely"],
+    ["goldfish", "fish"],
+    ["clever", "never"],
+    ["shop", "ship"],
+    ["parrot", "carrot"],
+    ["back", "black"]
   ],
   "sentences": {
     "pattern": "May I have a ___?",

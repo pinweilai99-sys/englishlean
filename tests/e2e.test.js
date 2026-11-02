@@ -433,3 +433,28 @@ test('E2E-21 回忆卡中心：答对一张 → 记录结果并得星', async ()
     assert.equal(app.state.session.recallResults[cardId], true, '应记录该卡答对');
   } finally { cleanup(); }
 });
+
+test('E2E-22 听音选词收尾：12 题全做完 → 出完成页并停止自动出题，点"再来一轮"才重新开始', async () => {
+  const { window, app, cleanup } = await freshApp();
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0/listen');
+    // 逐题答对（从 session 读正确答案），共 12 题
+    for (let k = 0; k < UNIT.listenPairs.length; k++) {
+      const ans = app.state.session.listenAnswer;
+      const btn = buttons(window).find((b) => b.classList.contains('option') && b.textContent.trim() === ans);
+      assert.ok(btn, '第 ' + (k + 1) + ' 题找不到正确选项 ' + ans);
+      btn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+      await new Promise((r) => setTimeout(r, 1350));
+    }
+    // 一轮做完：出现完成页，且不再有新的选择题
+    assert.match(mainText(window), /本轮听音选词完成/, '应出现完成页');
+    assert.equal(app.state.session.roundTotal, 0, '本轮计数应复位');
+    assert.equal(buttons(window).filter((b) => b.classList.contains('option')).length, 0,
+      '完成后不应再出现待选选项（不自动循环）');
+    const p = persisted(window);
+    assert.equal(p.progress.u5.listenScore, 1, 'listenScore 应落盘');
+    // 点"再来一轮"才重新开始新一轮
+    await clickButton(window, '再来一轮');
+    assert.match(mainText(window), /本轮第 1 \/ 12 题/, '应重新从第 1 题开始');
+  } finally { cleanup(); }
+});

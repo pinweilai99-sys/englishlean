@@ -42,6 +42,16 @@ test('微测题目 answer 全部在 options 范围内', () => {
   });
 });
 
+test('听音选词：12 个单元单词逐词出现（每词都是一题的目标词）', () => {
+  const targets = raw.listenPairs.map((p) => p[0]);
+  assert.equal(raw.listenPairs.length, raw.words.length, '题数应等于单词数');
+  raw.words.forEach((w) => {
+    assert.ok(targets.includes(w.w), `单词 ${w.w} 未出现在听音选词中`);
+  });
+  // 干扰词不能与目标词相同（否则二选一无意义）
+  raw.listenPairs.forEach(([t, d]) => assert.notEqual(t, d, `${t} 的干扰词不能是自身`));
+});
+
 test('缺少 words 字段 → 报错并指明字段', () => {
   const bad = { ...raw };
   delete bad.words;
