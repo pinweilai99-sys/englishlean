@@ -31,8 +31,12 @@ export function startBackgroundDownload() {
   state.loadingPromise = (async () => {
     try {
       const { pipeline, env } = await import('../vendor/transformers.min.js');
-      // 模型走国内可达镜像；禁用本地路径，统一远程加载（浏览器 HTTP 缓存会留存）
-      env.allowLocalModels = false;
+      // 模型加载两级 fallback：
+      // 1) 同源 ./models/（跟网页同一个域名——家长能打开网页就能下模型，中国直连无依赖）
+      // 2) 失败自动回落 hf-mirror.com 镜像
+      env.allowLocalModels = true;
+      env.localModelPath = './models/';
+      env.allowRemoteModels = true;
       env.remoteHost = 'https://hf-mirror.com';
       state.asr = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en', {
         quantized: true,
