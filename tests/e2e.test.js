@@ -311,3 +311,31 @@ test('E2E-15 字帖屋：描红点亮落盘 + 打印按钮存在', async () => {
     assert.equal(p.progress.u5.handwritingDone.length, 1, '描红应落盘');
   } finally { cleanup(); }
 });
+
+
+test('E2E-16 识别不可用时按音量诚实反馈：有声音→"收到你的声音"，静音→"没听到声音"', async () => {
+  const { window, app, cleanup } = await freshApp({ stubAudio: true });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0');
+    await clickButton(window, '听一听');
+    await clickButton(window, '我会认这个词');
+    // 模拟识别服务连不上（空转写）但麦克风有声音
+    window.__nextTranscript = '';
+    window.__micLevel = 0.5;
+    await clickButton(window, '我来读');
+    await new Promise((r) => setTimeout(r, 3000));
+    const toastText = window.document.getElementById('toast').textContent;
+    assert.match(toastText, /收到你的声音啦/, '有声音时应明确确认收到');
+    assert.match(toastText, /秒/, '应告知读了多久');
+    assert.equal(persisted(window)?.progress?.u5?.wordsDone?.includes('may') || false, false,
+      '识别失败不点亮');
+    // 静音场景：提示"没听到声音"
+    window.__micLevel = 0;
+    await clickButton(window, '我来读');
+    await new Promise((r) => setTimeout(r, 3000));
+    assert.match(window.document.getElementById('toast').textContent, /没听到声音/, '静音时应提示没听到声音');
+    // 兜底点亮仍然可用
+    await clickButton(window, '我读好了（手动点亮）');
+    assert.ok(persisted(window).progress.u5.wordsDone.includes('may'), '兜底路径点亮');
+  } finally { cleanup(); }
+});

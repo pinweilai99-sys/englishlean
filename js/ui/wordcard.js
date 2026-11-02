@@ -119,13 +119,22 @@ export function renderWordCard(ctx, unit) {
     }
     toast('🎤 正在录音，请大声读出来！');
     await new Promise((r) => setTimeout(r, 2600));
-    await recorder.stop();
+    const rec2 = await recorder.stop();
     const rec = await speech.recognizeOnce('en-US', 4000);
     if (!rec.ok || !rec.transcript) {
       // 孩子可能已手动点亮（竞态）：已点亮就不再报"没听清"，避免自相矛盾的提示
       if (doneSet.has(w.w)) return;
       session.recognizeFailed = true;
-      toast('没听清哦～点绿色按钮"我读好了"继续', 3600);
+      // 诚实反馈：本地检测音量/时长，确认孩子的声音收到了（不依赖云端识别）
+      const sec = rec2 ? (rec2.durationMs / 1000).toFixed(1) : null;
+      const heard = rec2 && rec2.maxRms !== null && rec2.maxRms > 0.01 && rec2.durationMs > 500;
+      if (heard) {
+        toast(`🎤 收到你的声音啦（读了 ${sec} 秒）！今天识别服务连不上，点绿色按钮点亮～`, 4600);
+      } else if (rec2 && rec2.maxRms !== null) {
+        toast('没听到声音哦～凑近一点、大声一点，或点绿色按钮继续', 3600);
+      } else {
+        toast('没听清哦～点绿色按钮"我读好了"继续', 3600);
+      }
       renderCard();
       return;
     }

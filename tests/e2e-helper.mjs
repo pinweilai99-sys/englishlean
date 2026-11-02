@@ -59,6 +59,18 @@ export async function freshApp({ seed = null, stubAudio = true } = {}) {
       value: { getUserMedia: async () => ({ getTracks: () => [] }) },
       configurable: true,
     });
+    // AudioContext 桩：音量监测用；__micLevel>0 表示"有声音"
+    window.__micLevel = 0;
+    window.AudioContext = class {
+      createMediaStreamSource() { return { connect() {} }; }
+      createAnalyser() {
+        return {
+          fftSize: 1024,
+          getFloatTimeDomainData(buf) { if (window.__micLevel > 0) buf.fill(window.__micLevel); },
+        };
+      }
+      close() {}
+    };
   } else {
     // 不注入任何音频能力 → 走降级路径
     delete window.speechSynthesis;
@@ -116,6 +128,9 @@ export async function clickButton(window, text, { within = null } = {}) {
 export async function navigate(window, app, hash) {
   app.navigate(hash);
   await new Promise((r) => setTimeout(r, 40));
+  // 兜底：jsdom 的 hashchange 事件偶发延迟，render 幂等，重绘一次保证路由生效
+  app.render();
+  await new Promise((r) => setTimeout(r, 20));
 }
 
 export function mainText(window) {
