@@ -79,6 +79,24 @@ test('本地数据有导出/恢复/重置三件套', () => {
   assert.match(parent, /确认恢复|确认清空/);
 });
 
+test('本地 Whisper 后台渐进加载 + 就绪自动启用（降级链不变）', () => {
+  assert.ok(existsSync(join(root, 'js/services/local-asr.js')), 'local-asr 服务存在');
+  assert.ok(existsSync(join(root, 'js/vendor/transformers.min.js')), 'transformers.js 已 vendor');
+  const la = read('js/services/local-asr.js');
+  assert.match(la, /startBackgroundDownload/);
+  assert.match(la, /hf-mirror\.com/, '模型走国内可达镜像');
+  assert.match(la, /Xenova\/whisper-tiny\.en/);
+  const app = read('js/app.js');
+  assert.match(app, /__disableLocalAsr/, 'E2E 可禁用后台加载');
+  const wc = read('js/ui/wordcard.js');
+  // 就绪优先本地转写；未就绪走浏览器识别/诚实反馈链
+  assert.match(wc, /localAsr\.isReady\(\)/);
+  assert.match(wc, /speech\.recognizeOnce/);
+  assert.match(wc, /收到你的声音啦/, '音量诚实反馈保留');
+  const parent = read('js/ui/parent.js');
+  assert.match(parent, /本地识别模型|发音识别（本地模型）/);
+});
+
 test('复习计划按第 1/3/7 天生成并可到期推送', () => {
   const app = read('js/app.js');
   assert.match(app, /buildReviewPlan/);

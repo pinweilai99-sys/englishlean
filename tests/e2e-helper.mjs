@@ -28,6 +28,7 @@ export async function freshApp({ seed = null, stubAudio = true } = {}) {
   globalThis.Node = window.Node;
   globalThis.Blob = window.Blob;
 
+  window.__disableLocalAsr = true; // jsdom 无法执行 wasm，E2E 一律禁用本地模型后台加载
   window.localStorage.clear();
   if (seed) window.localStorage.setItem('englishlean_v1', JSON.stringify(seed));
 

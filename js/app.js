@@ -291,6 +291,16 @@ async function boot() {
 
   window.addEventListener('hashchange', render);
   render();
+
+  // 后台渐进加载本地识别模型（Whisper WASM）：不阻塞学习；就绪后"我来读"自动升级为离线打分。
+  // E2E 测试通过 __disableLocalAsr 禁用（jsdom 无法执行 wasm）。
+  if (window.__disableLocalAsr !== true) {
+    setTimeout(() => {
+      import('./services/local-asr.js')
+        .then((m) => m.startBackgroundDownload())
+        .catch(() => { /* 静默：降级链已在 */ });
+    }, 5000);
+  }
 }
 
 boot();

@@ -7,6 +7,7 @@ import * as recorder from '../services/recorder.js';
 import * as speech from '../services/speech-match.js';
 import { scorePronunciation, scoreFeedback } from '../core/scoring.js';
 import { getRecognitionInfo } from '../services/speech-match.js';
+import * as localAsr from '../services/local-asr.js';
 
 export function renderWordCard(ctx, unit) {
   const p = ctx.getUnitProgress(unit.id);
@@ -75,11 +76,19 @@ export function renderWordCard(ctx, unit) {
       }));
     } else if (step === 2) {
       const info = getRecognitionInfo();
-      const micNote = !info.supported
-        ? '🎙️ 本浏览器不支持语音识别，读完点绿色按钮点亮（用 Safari 打开可体验自动打分）'
-        : (info.local
-          ? '🎙️ 本设备支持本地识别（无需联网），跟读可以自动打分！'
-          : '🎙️ 本浏览器识别需联网（国内常不可用），读完点绿色按钮点亮；用 Safari 可本地打分');
+      const la = localAsr.getStatus();
+      let micNote;
+      if (la.status === 'ready') {
+        micNote = '🎙️ 本地识别已就绪（离线可用），跟读可以自动打分！';
+      } else if (la.status === 'loading') {
+        micNote = `🎙️ 本地识别模型后台下载中（${la.progress}%），完成后跟读可自动打分；现在读完点绿色按钮点亮`;
+      } else if (info.local) {
+        micNote = '🎙️ 本设备支持本地识别（无需联网），跟读可以自动打分！';
+      } else if (info.supported) {
+        micNote = '🎙️ 本浏览器识别需联网（国内常不可用），读完点绿色按钮点亮；用 Safari 可本地打分';
+      } else {
+        micNote = '🎙️ 本浏览器不支持语音识别，读完点绿色按钮点亮（用 Safari 打开可体验自动打分）';
+      }
       wrap.appendChild(h('p', { class: 'hint', style: 'text-align:center', text: micNote }));
       actions.appendChild(h('button', {
         class: 'btn ghost', text: '🔊 听标准音',
@@ -159,6 +168,26 @@ export function renderWordCard(ctx, unit) {
     toast('🎤 正在录音，请大声读出来！');
     await new Promise((r) => setTimeout(r, 2600));
     const rec2 = await recorder.stop();
+
+    // 优先级 1：本地 Whisper 已就绪 → 离线转写打分（任何浏览器可用）
+    if (rec2?.blob && localAsr.isReady()) {
+      const t = await localAsr.transcribe(rec2.blob);
+      if (t && t.ok) {
+        if (doneSet.has(w.w)) return; // 竞态防护
+        const result = scorePronunciation(w.tts || w.w, t.text);
+        if (result.level === 'good') {
+          finishWord(w, result);
+        } else {
+          toast(scoreFeedback(result), 2600);
+          session.step = 2;
+          renderCard();
+        }
+        return;
+      }
+      // 本地转写失败 → 落到下面的浏览器识别/诚实反馈链
+    }
+
+    // 优先级 2：浏览器自带识别（Safari 本地 / Chrome 云）
     const rec = await speech.recognizeOnce('en-US', 4000);
     if (!rec.ok || !rec.transcript) {
       // 孩子可能已手动点亮（竞态）：已点亮就不再报"没听清"，避免自相矛盾的提示

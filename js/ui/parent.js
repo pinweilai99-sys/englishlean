@@ -1,5 +1,5 @@
 // 家长中心：语法参考卡 / 学习报告 / 错题本 / 导出恢复重置
-import { h, toast, confirmDialog, modal } from './dom.js';
+import { h, clear, toast, confirmDialog, modal } from './dom.js';
 import { exportState, importState, resetState } from '../core/storage.js';
 
 export function renderParent(ctx, unit) {
@@ -56,6 +56,31 @@ export function renderParent(ctx, unit) {
       ]));
     });
   }
+
+  // 本地识别模型状态
+  import('../services/local-asr.js').then(() => {}).catch(() => {});
+  wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:22px', text: '🎙️ 发音识别（本地模型）' }));
+  const laWrap = h('div', {});
+  wrap.appendChild(laWrap);
+  import('../services/local-asr.js').then((localAsr) => {
+    const st = localAsr.getStatus();
+    const desc = st.status === 'ready' ? '✅ 已就绪——跟读自动打分（离线可用）'
+      : st.status === 'loading' ? `⏳ 后台下载中 ${st.progress}%（下载完成后自动启用，不影响学习）`
+      : st.status === 'failed' ? `❌ 下载失败：${st.error || '网络问题'}（可重试）`
+      : '💤 未启动（打开网页片刻后会自动在后台下载，约 40MB，仅下载一次）';
+    clear(laWrap);
+    laWrap.appendChild(h('p', { class: 'hint', text: desc }));
+    laWrap.appendChild(h('div', { class: 'btn-row', style: 'margin-top:8px' }, [
+      h('button', {
+        class: 'btn ghost', text: st.status === 'failed' ? '🔄 重试下载' : '⏬ 立即开始后台下载',
+        onclick: async () => {
+          await localAsr.startBackgroundDownload();
+          toast(localAsr.isReady() ? '✅ 本地识别已就绪！' : '⏳ 正在后台下载，可离开页面');
+          ctx.render();
+        },
+      }),
+    ]));
+  }).catch(() => {});
 
   // 数据管理
   wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:22px', text: '💾 数据备份与恢复' }));
