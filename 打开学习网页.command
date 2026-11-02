@@ -3,9 +3,9 @@
 # 作用：在本地起一个静态服务器并自动打开学习页面
 # 用法：双击本文件即可；关闭时在弹出的终端窗口按 Ctrl+C 或直接关窗
 
-# 优先使用带缓存版本的构建产物 dist/（与线上完全一致）；不存在则回退项目根
-if [ -d "$(dirname "$0")/dist" ]; then
-  cd "$(dirname "$0")/dist" || exit 1
+# 优先使用带缓存版本的构建产物 docs/（与线上完全一致）；不存在则回退项目根
+if [ -d "$(dirname "$0")/docs" ]; then
+  cd "$(dirname "$0")/docs" || exit 1
 else
   cd "$(dirname "$0")" || exit 1
 fi

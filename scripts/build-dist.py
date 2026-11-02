@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-# 构建部署产物 dist/（带缓存版本号）
+# 构建部署产物 docs/（带缓存版本号）
 # 每次发布前运行：python3 scripts/build-dist.py
 # 作用：
-#   1. 复制运行时文件到 dist/
+#   1. 复制运行时文件到 docs/
 #   2. 给 index.html 与所有内部模块引用注入 ?v=时间戳 —— URL 一变浏览器必定拉新，
 #      彻底解决"网页更新后刷新还是旧版"的缓存问题
 #   3. vendor（transformers.min.js / ort wasm）不加版本参数，让其长期缓存
 import re, shutil, time, os, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DIST = os.path.join(ROOT, 'dist')
+DIST = os.path.join(ROOT, 'docs')
 VER = str(int(time.time()))
 
 # 1) 清空并复制运行时文件

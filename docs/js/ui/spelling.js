@@ -1,8 +1,8 @@
 // 拼写屋（1.4）：四会词字母拼写考察
 // 规则：四会词必须"会读会写"，逐词用字母块拼出；支持提示与重试；
 //       认读词不要求拼写（零基础不卡死）；拼过落盘 spellingDone 并参与 Stage1 通关判定。
-import { h, toast, starFly, confetti } from './dom.js?v=1793627245';
-import * as tts from '../services/tts.js?v=1793627245';
+import { h, toast, starFly, confetti } from './dom.js?v=1793627992';
+import * as tts from '../services/tts.js?v=1793627992';
 
 export function renderSpelling(ctx, unit) {
   const fourWords = unit.words.filter((w) => w.tier === 'four');

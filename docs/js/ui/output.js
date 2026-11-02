@@ -1,7 +1,7 @@
 // Stage3 真实输出：角色扮演 / Let's Write / 思维导图
-import { h, toast, starFly, confetti } from './dom.js?v=1793627245';
-import * as tts from '../services/tts.js?v=1793627245';
-import * as recorder from '../services/recorder.js?v=1793627245';
+import { h, toast, starFly, confetti } from './dom.js?v=1793627992';
+import * as tts from '../services/tts.js?v=1793627992';
+import * as recorder from '../services/recorder.js?v=1793627992';
 
 export function renderOutput(ctx, unit) {
   const session = ctx.session;
