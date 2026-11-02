@@ -1,11 +1,38 @@
-// 拼写屋（1.4）：四会词字母拼写考察
-// 规则：四会词必须"会读会写"，逐词用字母块拼出；支持提示与重试；
-//       认读词不要求拼写（零基础不卡死）；拼过落盘 spellingDone 并参与 Stage1 通关判定。
+// 拼写屋（1.4）：单词字母拼写考察
+// 规则（2026-11-03 家长定版）：单元全部单词（含认读词）都进拼写队列，每个单词拼 2 次；
+//   拼错的单词（本轮首次拼错时）追加 3 次再练；队列拼空才算本轮完成。
+//   拼对仍落盘 spellingDone 并参与 Stage1 通关判定（通关仍只看四会词，认读词多练不卡人）。
+// 队列生成抽成纯函数 buildSpellQueue：接受多个单元的数据，后续 U1-4 内容就位后，
+//   把未掌握/需复习的单词作为附加来源传入即可自动混入（见函数注释）。
 import { h, toast, starFly, confetti } from './dom.js';
 import * as tts from '../services/tts.js';
 
+export const SPELL_TIMES_PER_WORD = 2;   // 每个单词拼 2 次
+export const SPELL_WRONG_RETRY = 3;      // 拼错的单词追加 3 次
+
+// 构建本轮拼写队列（纯函数，可测）。
+// units: [{ id, words }] —— 单元数据数组；wordSource 可选，指定该单元进队列的单词
+//   （默认该单元全部单词）。后续 U1-4 有内容后，把"未掌握/需复习"的词通过 wordSource
+//   传入即可与本单元单词混合排队，无需改本函数。
+// 返回：单词字符串数组，每词 SPELL_TIMES_PER_WORD 遍；各单元依次追加，同一词不相邻。
+export function buildSpellQueue(units, { timesPerWord = SPELL_TIMES_PER_WORD } = {}) {
+  const queue = [];
+  for (const u of units) {
+    const ws = (u.wordSource || u.words).map((w) => w.w);
+    for (let t = 0; t < timesPerWord; t++) queue.push(...ws);
+  }
+  // 让相邻两项不同（若相邻重复，与后面最近的异项交换）
+  for (let i = 1; i < queue.length; i++) {
+    if (queue[i] === queue[i - 1]) {
+      const j = queue.findIndex((x, k) => k > i && x !== queue[i]);
+      if (j > 0) [queue[i], queue[j]] = [queue[j], queue[i]];
+    }
+  }
+  return queue;
+}
+
 export function renderSpelling(ctx, unit) {
-  const fourWords = unit.words.filter((w) => w.tier === 'four');
+  const allWords = unit.words;
   const session = ctx.session;
 
   const p = ctx.getUnitProgress(unit.id);
@@ -23,11 +50,14 @@ export function renderSpelling(ctx, unit) {
   }
 
   // 本轮拼写队列（session 级）：完成判定 = 队列拼空，与落盘 spellingDone 解耦。
-  // 首次进入（或点"重新拼一遍"后 spellQueue=null）时按四会词顺序重建。
+  // 首次进入（或点"重新拼一遍"后 spellQueue=null）时重建。
+  // TODO(U1-4)：内容就位后在此把未掌握/需复习词作为附加 unit 传入 buildSpellQueue。
   function ensureQueue() {
     if (!Array.isArray(session.spellQueue)) {
-      session.spellQueue = fourWords.map((w) => w.w);
-      session.spellRoundOk = new Set(); // 本轮已拼对过的词（避免重复得星）
+      session.spellQueue = buildSpellQueue([{ id: unit.id, words: allWords }]);
+      session.spellRoundOk = new Set();   // 本轮已拼对过的词（避免重复得星）
+      session.spellRetried = new Set();   // 本轮已追加过再练的错词（防无限追加）
+      session.spellWrong = [];            // 本轮拼错的词（完成页复习区用）
     }
   }
 
@@ -38,7 +68,7 @@ export function renderSpelling(ctx, unit) {
     if (session.spellQueue.length === 0) {
       wrap.appendChild(h('div', { class: 'card-title', text: '🔤 拼写屋' }));
       wrap.appendChild(h('div', { class: 'emoji-xl', style: 'text-align:center', text: '🏆' }));
-      wrap.appendChild(h('p', { style: 'text-align:center;font-weight:800;font-size:var(--fs-lg)', text: '四会词全部会拼啦！' }));
+      wrap.appendChild(h('p', { style: 'text-align:center;font-weight:800;font-size:var(--fs-lg)', text: '单词全部拼完啦！' }));
       wrap.appendChild(h('p', { class: 'hint', style: 'text-align:center', text: '下次可以再来重拼，越拼越熟～' }));
       wrap.appendChild(h('div', { class: 'btn-row', style: 'justify-content:center;margin-top:12px' }, [
         h('button', {
@@ -55,7 +85,7 @@ export function renderSpelling(ctx, unit) {
     }
 
     // 队列头的词就是当前题
-    const w = fourWords.find((x) => x.w === session.spellQueue[0]);
+    const w = allWords.find((x) => x.w === session.spellQueue[0]);
     if (!session.spellProgress || session.spellWord !== w.w) {
       session.spellWord = w.w;
       session.spellProgress = '';
@@ -65,8 +95,8 @@ export function renderSpelling(ctx, unit) {
     }
 
     const typed = session.spellProgress;
-    wrap.appendChild(h('div', { class: 'card-title', text: `🔤 拼写屋　${spellingDone.size} / ${fourWords.length}` }));
-    wrap.appendChild(h('p', { class: 'card-sub', text: '听一听，把这个词用字母拼出来' }));
+    wrap.appendChild(h('div', { class: 'card-title', text: `🔤 拼写屋　已拼对 ${spellingDone.size} / ${allWords.length}` }));
+    wrap.appendChild(h('p', { class: 'card-sub', text: `听一听，把这个词用字母拼出来（还剩 ${session.spellQueue.length} 题）` }));
 
     wrap.appendChild(h('div', { style: 'text-align:center;font-size:72px', text: w.img }));
     wrap.appendChild(h('div', { style: 'text-align:center;font-size:var(--fs-lg);font-weight:800', text: w.zh }));
@@ -107,6 +137,13 @@ export function renderSpelling(ctx, unit) {
                 starFly(2);
               }
               tts.speak(w.w);
+              // 拼错的单词（本轮首次拼错时）：追加 3 次再练，不无限追加
+              if (session.spellMiss > 0 && !session.spellRetried.has(w.w)) {
+                session.spellRetried.add(w.w);
+                session.spellWrong.push(w.w);
+                for (let r = 0; r < SPELL_WRONG_RETRY; r++) session.spellQueue.push(w.w);
+                toast(`${w.w} 刚才拼错过，待会儿再练 ${SPELL_WRONG_RETRY} 次～`, 2400);
+              }
               render();
               if (session.spellQueue.length === 0) {
                 toast('🎉 拼写通关！', 3000);
@@ -151,6 +188,6 @@ export function renderSpelling(ctx, unit) {
   return h('div', {}, [
     h('button', { class: 'back-btn', text: '← 返回学习路径', onclick: () => ctx.navigate(`#/unit/${unit.id}`) }),
     wrap,
-    h('p', { class: 'hint', text: '小贴士：四会词要"会读也会写"。拼错了没关系，多拼几遍就记住啦。' }),
+    h('p', { class: 'hint', text: '小贴士：每个单词要拼 2 遍，拼错的单词会再多练 3 遍。拼错了没关系，多拼几遍就记住啦。' }),
   ]);
 }

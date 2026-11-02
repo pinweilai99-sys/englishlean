@@ -5,6 +5,25 @@ import {
   freshApp, buttons, clickButton, navigate, mainText, persisted, UNIT,
 } from './e2e-helper.mjs';
 import { computePdfLayout } from '../js/ui/handwriting.js';
+import { buildSpellQueue, SPELL_TIMES_PER_WORD, SPELL_WRONG_RETRY } from '../js/ui/spelling.js';
+
+// 拼写屋驱动助手：读当前题的中文提示 → 找到对应单词 → 逐字母点击正确字母块。
+// 每调用一次拼完当前题（队列前进一题）。返回拼的单词。
+async function spellOneCurrent(window) {
+  const text = mainText(window);
+  const w = UNIT.words
+    .filter((x) => text.includes(x.zh))
+    .sort((a, b) => b.zh.length - a.zh.length)[0];
+  assert.ok(w, `页面应显示当前词中文提示（got: ${text.slice(0, 60)}…）`);
+  for (const ch of w.w.toLowerCase()) {
+    const block = buttons(window).find(
+      (b) => b.classList.contains('option') && b.textContent.trim() === ch);
+    assert.ok(block, `找不到字母块 ${ch}（拼 ${w.w}）`);
+    block.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 20));
+  }
+  return w.w;
+}
 
 test('E2E-23 PDF 字帖布局：标准四线三格（4 线 3 等格、基线压第 3 线、每词一组不跨页、不再直接打印）', async () => {
   const { window, cleanup } = await freshApp(); // 借 jsdom 环境
@@ -337,22 +356,19 @@ test('E2E-13 黄金链路：12词点亮+拼写5词+听辨全对 → Stage1 自�
     // Stage2 此时仍锁（缺拼写+听辨）
     await navigate(window, app, '#/unit/u5/stage/1');
     assert.match(mainText(window), /这一关还没解锁/);
-    // 拼写屋：逐词拼出 5 个四会词
+    // 拼写屋：12 词全进队列；拼到 5 个四会词都落盘即可（通关只看四会词）
     await navigate(window, app, '#/unit/u5/stage/0/spelling');
     const fourWords = UNIT.words.filter((w) => w.tier === 'four');
-    for (const w of fourWords) {
-      // 每个字母块按目标词顺序点击（重复字母点任意一个匹配块）
-      for (const ch of w.w.toLowerCase()) {
-        const block = buttons(window).find(
-          (b) => b.classList.contains('option') && b.textContent.trim() === ch);
-        assert.ok(block, `找不到字母块 ${ch}（拼 ${w.w}）`);
-        block.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
-        await new Promise((r) => setTimeout(r, 20));
-      }
+    const fourSet = new Set(fourWords.map((w) => w.w));
+    for (let k = 0; k < 40; k++) {
+      const pNow = persisted(window);
+      const done = new Set(pNow.progress.u5.spellingDone || []);
+      if (fourWords.every((w) => fourSet.has(w.w) && done.has(w.w))) break;
+      await spellOneCurrent(window);
     }
     let p = persisted(window);
-    assert.deepEqual([...p.progress.u5.spellingDone].sort(), fourWords.map((w) => w.w).sort(),
-      '5 个四会词都应落盘');
+    assert.deepEqual(fourWords.filter((w) => p.progress.u5.spellingDone.includes(w.w)).map((w) => w.w),
+      [...fourSet], '5 个四会词都应落盘');
     // 听辨游戏：6 题全对（从 session 读正确答案）
     await navigate(window, app, '#/unit/u5/stage/0/listen');
     for (let k = 0; k < UNIT.listenPairs.length; k++) {
@@ -563,25 +579,63 @@ test('E2E-25 拼写屋"重新拼一遍"：拼完出完成页，点击后真正�
   const { window, app, cleanup } = await freshApp();
   try {
     await navigate(window, app, '#/unit/u5/stage/0/spelling');
-    const fourWords = UNIT.words.filter((w) => w.tier === 'four');
-    // 逐词拼对，拼空队列
-    for (const w of fourWords) {
-      assert.match(mainText(window), new RegExp(w.zh), `当前题应为 ${w.w}`);
-      for (const ch of w.w.toLowerCase()) {
-        const block = buttons(window).find(
-          (b) => b.classList.contains('option') && b.textContent.trim() === ch);
-        assert.ok(block, `找不到字母块 ${ch}（拼 ${w.w}）`);
-        block.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
-        await new Promise((r) => setTimeout(r, 20));
-      }
-    }
+    // 12 词 × 2 = 24 题，全部拼对拼空队列
+    const expectLen = SPELL_TIMES_PER_WORD * UNIT.words.length;
+    assert.equal(app.state.session.spellQueue.length, expectLen, '队列应为 12 词 × 2');
+    for (let k = 0; k < expectLen; k++) await spellOneCurrent(window);
     // 队列拼空 → 完成页
-    assert.match(mainText(window), /四会词全部会拼啦/, '应出现完成页');
+    assert.match(mainText(window), /单词全部拼完啦/, '应出现完成页');
     // 点"重新拼一遍" → 队列重建，回到第一题（修复前点击无反应）
     await clickButton(window, '重新拼一遍');
     assert.match(mainText(window), /把这个词用字母拼出来/, '应重新出题');
-    assert.match(mainText(window), new RegExp(fourWords[0].zh), '应回到第一个四会词');
-    // 队列长度恢复 = 四会词数
-    assert.equal(app.state.session.spellQueue.length, fourWords.length, '队列应重建');
+    assert.equal(app.state.session.spellQueue.length, expectLen, '队列应重建');
+  } finally { cleanup(); }
+});
+
+test('E2E-26 拼写屋队列规则：12 词全覆盖每词 2 次；拼错的词追加 3 次再练且不无限追加', async () => {
+  // 纯函数：buildSpellQueue 多单元聚合（为 U1-4 混入预留）
+  const q = buildSpellQueue([
+    { id: 'u5', words: UNIT.words },
+    { id: 'u1', wordSource: [{ w: 'pen' }, { w: 'ruler' }] }, // 模拟未来 U1 未掌握词
+  ]);
+  assert.equal(q.length, UNIT.words.length * 2 + 4, 'U5 12词×2 + U1 2词×2');
+  UNIT.words.forEach((w) => assert.equal(q.filter((x) => x === w.w).length, 2, `${w.w} 应出现 2 次`));
+  assert.equal(q.filter((x) => x === 'pen').length, 2, '外来词也出现 2 次');
+  for (let i = 1; i < q.length; i++) {
+    assert.notEqual(q[i], q[i - 1], `队列相邻项不应相同（位置 ${i}: ${q[i]}）`);
+  }
+
+  // E2E：拼错一个词 → 该词追加 3 次；再错也不追加（不无限）
+  const { window, app, cleanup } = await freshApp();
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0/spelling');
+    const firstWord = UNIT.words[0].w;
+    // 当前题应为第一个词：故意点错字母 1 次，再拼对
+    assert.equal(app.state.session.spellWord, firstWord, '当前题应为队列头单词');
+    const wrongCh = firstWord.toLowerCase().split('').find((c) => {
+      return !buttons(window).some((b) => b.classList.contains('option') && b.textContent.trim() === c) ? false
+        : c !== firstWord[0].toLowerCase();
+    });
+    const wrongBlock = buttons(window).find(
+      (b) => b.classList.contains('option') && b.textContent.trim() === wrongCh);
+    assert.ok(wrongBlock, `应能点错字母 ${wrongCh}`);
+    wrongBlock.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 20));
+    // 正确拼完当前题
+    for (const ch of firstWord.toLowerCase()) {
+      const block = buttons(window).find(
+        (b) => b.classList.contains('option') && b.textContent.trim() === ch);
+      block.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+      await new Promise((r) => setTimeout(r, 20));
+    }
+    // 该词被记为拼错，队列追加 3 次再练（其余额 = 本轮第 2 次排期 1 + 加练 3 = 4）
+    assert.deepEqual(app.state.session.spellWrong, [firstWord], '拼错词应入复习清单');
+    const remain = app.state.session.spellQueue.filter((x) => x === firstWord).length;
+    assert.equal(remain, 1 + SPELL_WRONG_RETRY, '错词余额应为 第2次排期1 + 加练3 = 4');
+    assert.equal(app.state.session.spellQueue.length, UNIT.words.length * 2 - 1 + SPELL_WRONG_RETRY,
+      '总队列 = 24 - 已拼1 + 加练3');
+    assert.ok(app.state.session.spellRetried.has(firstWord), '错词应标记已追加');
+    // 再错一次也不会追加（防无限）
+    assert.notEqual(app.state.session.spellQueue[0], firstWord, '下一题应是别的词');
   } finally { cleanup(); }
 });
