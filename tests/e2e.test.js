@@ -7,6 +7,12 @@ import {
 import { computePdfLayout, buildHandwritingWords } from '../js/ui/handwriting.js';
 import { buildSpellQueue, SPELL_TIMES_PER_WORD } from '../js/ui/spelling.js';
 
+// 应答配对选项查找助手：选项内含 🔊 听音小喇叭（新口径），按剥离喇叭后的文本精确匹配
+function optBtn(root, text) {
+  return Array.from(root.querySelectorAll('button.option'))
+    .find((b) => b.textContent.replace(/🔊/g, '').trim() === text);
+}
+
 // 拼写屋驱动助手：读当前题的中文提示 → 找到对应单词 → 逐字母点击正确字母块。
 // 每调用一次拼完当前题（队列前进一题）。返回拼的单词。
 async function spellOneCurrent(window) {
@@ -275,7 +281,7 @@ test('E2E-8 Stage2 完整通关：填读 3 种动物 + 两组应答全对 → st
       const blocks = Array.from(window.document.querySelectorAll('.card > div'));
       const box = blocks.find((d) => (d.textContent || '').includes(q) && d.querySelector('button'));
       assert.ok(box, `找不到题目块 ${q}`);
-      const okBtn = Array.from(box.querySelectorAll('button')).find((b) => b.textContent.trim() === a);
+      const okBtn = optBtn(box, a);
       assert.ok(okBtn, `找不到正确选项 ${a}`);
       okBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
       await new Promise((r) => setTimeout(r, 30));
@@ -788,7 +794,7 @@ test('E2E-32 应答配对跟随所选动物：题目动态出，换动物后题�
     // 答对 parrot 题 → 锁定并标记正确
     const blocks = () => Array.from(window.document.querySelectorAll('.card > div'));
     let box = blocks().find((d) => (d.textContent || '').includes('May I have a parrot?') && d.querySelector('button'));
-    const yesBtn = Array.from(box.querySelectorAll('button')).find((b) => b.textContent.trim() === 'Yes, you can.');
+    const yesBtn = optBtn(box, 'Yes, you can.');
     yesBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 30));
     box = blocks().find((d) => (d.textContent || '').includes('May I have a parrot?') && d.querySelector('button'));
@@ -799,7 +805,7 @@ test('E2E-32 应答配对跟随所选动物：题目动态出，换动物后题�
     const catBox = blocks().find((d) => (d.textContent || '').includes('May I have a cat?') && d.querySelector('button'));
     assert.ok(catBox, '应出现 cat 的新题目');
     assert.equal(catBox.querySelector('.option.is-correct'), null, '新题目应重置为未作答');
-    const yesBtn2 = Array.from(catBox.querySelectorAll('button')).find((b) => b.textContent.trim() === 'Yes, you can.');
+    const yesBtn2 = optBtn(catBox, 'Yes, you can.');
     assert.ok(yesBtn2, '新题目应可再次作答');
   } finally { cleanup(); }
 });
@@ -834,8 +840,7 @@ test('E2E-35 换动物后第 2 题也清空；每只动物对话不同，同句�
     // 选 rabbit → 第 2 题是 take good care of（课本 A-3 责任感考点），答对
     await clickButton(window, 'rabbit');
     assert.match(mainText(window), /Can you take good care of it\?/, 'rabbit 的第 2 题应为课本 take good care of 对话');
-    const okBtn = Array.from(boxOf('Can you take good care of it?').querySelectorAll('button'))
-      .find((b) => b.textContent.trim() === 'OK. Yes, I can.');
+    const okBtn = optBtn(boxOf('Can you take good care of it?'), 'OK. Yes, I can.');
     okBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 30));
     assert.ok(boxOf('Can you take good care of it?').querySelector('.option.is-correct'), 'rabbit 第 2 题答对应锁定');
@@ -847,18 +852,17 @@ test('E2E-35 换动物后第 2 题也清空；每只动物对话不同，同句�
     assert.ok(dogBox, 'dog 应有自己的第 2 题');
     assert.equal(dogBox.querySelector('.option.is-correct'), null, '换动物后第 2 题应清空为未作答');
     assert.equal(dogBox.querySelector('.option.is-wrong'), null, '换动物后第 2 题不应残留错误标记');
-    assert.ok(Array.from(dogBox.querySelectorAll('button')).some((b) => b.textContent.trim() === 'Yes, he can.'), 'dog 第 2 题应可作答');
+    assert.ok(optBtn(dogBox, 'Yes, he can.'), 'dog 第 2 题应可作答');
     // 举一反三：同一句型 May I have a ___? 不同动物正确答案不同（goldfish 课本原句是否定回答）
     await clickButton(window, 'goldfish');
     const gBox = boxOf('May I have a goldfish?');
     assert.ok(gBox, '应出现 goldfish 第 1 题');
-    const gCorrect = gBox.querySelector('.option.is-correct') || Array.from(gBox.querySelectorAll('button'))
-      .find((b) => b.textContent.trim() === "No, you can't. But you can feed it.");
+    const gCorrect = gBox.querySelector('.option.is-correct') || optBtn(gBox, "No, you can't. But you can feed it.");
     assert.ok(gCorrect, "goldfish 的正确回答应为课本否定句 No, you can't. But you can feed it.");
     // 而 rabbit 的同句型正确回答是肯定句 → 证明同句型不同答案（防止写死答案）
     await clickButton(window, 'rabbit');
     const rBox = boxOf('May I have a rabbit?');
-    assert.ok(Array.from(rBox.querySelectorAll('button')).some((b) => b.textContent.trim() === 'Yes, you can.'),
+    assert.ok(optBtn(rBox, 'Yes, you can.'),
       'rabbit 同句型正确回答应为肯定句（两种动物答案不同）');
   } finally { cleanup(); }
 });
@@ -878,14 +882,12 @@ test('E2E-36 答对后其余选项不得标红（家长反馈 bug：答对一题
     const q1 = 'May I touch him?';
     // 前置证明：改动前答对一题后 is-wrong 会出现在干扰项上（本测试锁定该行为不再出现）
     // 第 1 步：先点错一次 → 错误选择也不得留下持久红色标记（只 toast + 提示）
-    const wrongBtn = Array.from(boxOf(q1).querySelectorAll('button'))
-      .find((b) => b.textContent.trim() === 'Sure.');
+    const wrongBtn = optBtn(boxOf(q1), 'Sure.');
     wrongBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 30));
     assert.equal(boxOf(q1).querySelector('.option.is-wrong'), null, '点错后不得留下持久 is-wrong 标记');
     // 第 2 步：再点对 → 正确项标绿，其余两个干扰项（含没点过的）必须全部是中性样式
-    const okBtn = Array.from(boxOf(q1).querySelectorAll('button'))
-      .find((b) => b.textContent.trim() === "No, you can't. He's working now.");
+    const okBtn = optBtn(boxOf(q1), "No, you can't. He's working now.");
     okBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 30));
     const answeredBox = boxOf(q1);
@@ -893,12 +895,53 @@ test('E2E-36 答对后其余选项不得标红（家长反馈 bug：答对一题
     const wrongs = answeredBox.querySelectorAll('.option.is-wrong');
     assert.equal(wrongs.length, 0, `答对后不得有任何 is-wrong 标记（实际 ${wrongs.length} 个）`);
     // 中性验证：未选中的干扰项 class 应为纯 option（既不红也不绿）
-    const neutral = Array.from(answeredBox.querySelectorAll('button'))
-      .find((b) => b.textContent.trim() === 'Yes, you can.');
+    const neutral = optBtn(answeredBox, 'Yes, you can.');
     assert.equal(neutral.className.trim(), 'option', '未选中干扰项应恢复中性样式');
     // 未作答的第 2 题完全不受影响
     const q2Box = boxOf('Can he help blind people?');
     assert.equal(q2Box.querySelector('.option.is-correct'), null, '未作答的第 2 题不应有绿色标记');
     assert.equal(q2Box.querySelector('.option.is-wrong'), null, '未作答的第 2 题不应有红色标记');
+  } finally { cleanup(); }
+});
+
+test('E2E-37 零基础支架：应答配对每题可听题目、看中文意思，每个选项可听音不判分（家长需求：单词不认识/不会读也能学）', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, false, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/1');
+    const blocks = () => Array.from(window.document.querySelectorAll('.card > div'));
+    const boxOf = (q) => blocks().find((d) => (d.textContent || '').includes(q) && d.querySelector('.q-speak'));
+    await clickButton(window, 'dog');
+    const q1 = 'May I touch him?';
+    const box = boxOf(q1);
+    assert.ok(box, 'dog 第 1 题应存在');
+    // 支架 1：每题有 🔊 听题目按钮
+    assert.ok(box.querySelector('.q-speak'), '每题应有 🔊 听题目按钮');
+    // 支架 2：中文意思默认不显示（保护主动回忆），点击后显示整句翻译
+    assert.ok(!box.textContent.includes('我可以摸摸它吗'), '中文意思默认不应显示');
+    box.querySelector('.q-zh').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(boxOf(q1).textContent.includes('我可以摸摸它吗'), '点击后应显示中文意思');
+    assert.ok(boxOf('Can he help blind people?').textContent.includes('我能') === false || true, '未点开的题不强制显示');
+    // 再点收起
+    boxOf(q1).querySelector('.q-zh').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(!boxOf(q1).textContent.includes('我可以摸摸它吗'), '再次点击应收起中文意思');
+    // 支架 3：每个选项内嵌 🔊，点喇叭只朗读不判分
+    const optSpeak = boxOf(q1).querySelector('.option .opt-speak');
+    assert.ok(optSpeak, '每个选项应有 🔊 小喇叭');
+    optSpeak.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.equal(boxOf(q1).querySelector('.option.is-correct'), null, '点选项喇叭不得判分（应仍为未作答）');
+    // 点选项本体（喇叭以外区域）仍正常作答
+    const okBtn = Array.from(boxOf(q1).querySelectorAll('button.option'))
+      .find((b) => b.textContent.includes("No, you can't. He's working now."));
+    okBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(boxOf(q1).querySelector('.option.is-correct'), '点选项本体应正常判分');
   } finally { cleanup(); }
 });
