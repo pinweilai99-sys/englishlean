@@ -12,25 +12,40 @@ export function renderSentence(ctx, unit) {
     wrap.appendChild(h('div', { class: 'card-title', text: '💬 核心句型' }));
     wrap.appendChild(h('p', { class: 'card-sub', text: '你已经会读单词啦，现在把它们放进句子！' }));
 
-    // 1. 句型块
-    const slot = session.slot || s.slots[0];
-    const sentence = s.pattern.replace('___', slot);
-    const patternBox = h('div', { class: 'story-text', style: 'text-align:center;font-size:var(--fs-xl);font-weight:900' }, [
-      s.pattern.replace('___', h('span', { style: 'color:var(--brand-strong)', text: slot })),
-    ]);
+    // 1. 句型填空：句型挖空展示，点动物把单词填进空格（不能把 DOM 元素传给 replace！）
+    const slot = session.slot || null;
+    const sentence = slot ? s.pattern.replace('___', slot) : null;
+    const patternBox = h('div', { class: 'story-text', style: 'text-align:center;font-size:var(--fs-xl);font-weight:900' });
+    const patternParts = s.pattern.split('___');
+    patternBox.appendChild(document.createTextNode(patternParts[0]));
+    patternBox.appendChild(h('span', {
+      class: `blank-slot ${slot ? 'is-filled' : 'is-empty'}`,
+      text: slot || '＿＿＿＿',
+    }));
+    patternBox.appendChild(document.createTextNode(patternParts[1] || ''));
     wrap.appendChild(patternBox);
     wrap.appendChild(h('div', { class: 'btn-row', style: 'margin:12px 0' }, [
-      h('button', { class: 'btn', text: '🔊 听整句', onclick: () => tts.speak(sentence) }),
+      h('button', {
+        class: 'btn', text: '🔊 听整句',
+        onclick: () => {
+          if (!sentence) { toast('先在下面选一个动物填进空格里吧！'); return; }
+          tts.speak(sentence);
+        },
+      }),
     ]));
 
-    // 2. 替换操练
-    wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:16px', text: '🔁 换一换：点动物换进句子里' }));
+    // 2. 填空操练：点动物填空 + 跟读确认
+    wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:16px', text: '🖊️ 填空：点一个动物填进空格里' }));
     const slotRow = h('div', { class: 'word-bank', style: 'margin-top:10px' });
     s.slots.forEach((w) => {
       slotRow.appendChild(h('button', {
         class: `word-bank-item ${w === slot ? 'is-done' : ''}`,
         text: w,
-        onclick: () => { session.slot = w; render(); },
+        onclick: () => {
+          session.slot = w;
+          render();
+          tts.speak(s.pattern.replace('___', w));
+        },
       }));
     });
     wrap.appendChild(slotRow);
@@ -40,6 +55,7 @@ export function renderSentence(ctx, unit) {
       h('button', {
         class: 'btn leaf', text: '🎤 我读出来了',
         onclick: () => {
+          if (!slot) { toast('先选一个动物填进空格里！'); return; }
           used.add(slot);
           session.usedSlots = Array.from(used);
           ctx.addStars(1);
@@ -50,7 +66,7 @@ export function renderSentence(ctx, unit) {
         },
       }),
     ]));
-    wrap.appendChild(h('p', { class: 'hint', text: `已成功替换 ${used.size} / 3 种动物（达到 3 种即完成）` }));
+    wrap.appendChild(h('p', { class: 'hint', text: `已填读过 ${used.size} / 3 种动物（达到 3 种即完成）` }));
 
     // 3. 应答配对
     wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:22px', text: '↔️ 应答配对' }));

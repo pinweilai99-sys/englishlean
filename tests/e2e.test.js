@@ -723,3 +723,28 @@ test('E2E-29 单词卡记词分块：分块按钮可点读 + 记忆提示展示'
     assert.ok(window.speechSynthesis.__spoken.includes('cle'), '点分块应朗读该块');
   } finally { cleanup(); }
 });
+
+test('E2E-30 句型填空：初始为虚线空格（无 [object] 渲染 bug），点动物后填入空格并高亮', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, false, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/1');
+    const text = mainText(window);
+    assert.ok(!text.includes('[object'), '不得再出现 [object HTMLSpanElement] 渲染 bug（旧口径直接把 span 传给 replace）');
+    // 前置：旧口径下空格位置会预填第一个动物；新口径初始应为空
+    const blank = window.document.querySelector('.blank-slot');
+    assert.ok(blank, '句型里应有填空空格');
+    assert.ok(blank.classList.contains('is-empty'), '初始空格应为空');
+    assert.ok(!blank.textContent.includes('rabbit'), '初始空格不应预填动物');
+    // 点 rabbit → 填入空格并高亮
+    await clickButton(window, 'rabbit');
+    const filled = window.document.querySelector('.blank-slot');
+    assert.equal(filled.textContent.trim(), 'rabbit', '点动物后应把该动物填入空格');
+    assert.ok(filled.classList.contains('is-filled'), '填入后应高亮');
+    assert.equal(window.document.querySelectorAll('.blank-slot.is-empty').length, 0, '填入后不应再有空格占位');
+  } finally { cleanup(); }
+});
