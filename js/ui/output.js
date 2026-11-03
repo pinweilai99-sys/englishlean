@@ -1,7 +1,7 @@
 // Stage3 真实输出：角色扮演 / Let's Write / 思维导图
-import { h, toast, starFly, confetti } from './dom.js?v=1793704406';
-import * as tts from '../services/tts.js?v=1793704406';
-import * as recorder from '../services/recorder.js?v=1793704406';
+import { h, toast, starFly, confetti } from './dom.js?v=1793705814';
+import * as tts from '../services/tts.js?v=1793705814';
+import * as recorder from '../services/recorder.js?v=1793705814';
 
 export function renderOutput(ctx, unit) {
   const session = ctx.session;
@@ -28,20 +28,36 @@ export function renderOutput(ctx, unit) {
     wrap.appendChild(grid);
 
     const kidLine = rp.child.replace('___', session.rpSlot || 'pet');
+    const kidZh = (rp.childZh || '').replace('___', session.rpSlot || '小宠物');
     const dialog = h('div', { class: 'story-text', style: 'margin-top:12px' }, [
       h('div', { style: 'margin-bottom:10px' }, [h('strong', { text: '🧒 孩子：' }), kidLine]),
+      kidZh ? h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${kidZh}` }) : null,
       h('div', { style: 'margin-bottom:10px' }, [h('strong', { text: '👨‍👩‍👦 家长：' }), session.rpParent || '（请家长选一句）']),
     ]);
     wrap.appendChild(dialog);
 
+    // 家长支架：看中文意思 → 点 🔊 听发音 → 照着说出这句英语（家长也不一定认识英文）
+    wrap.appendChild(h('p', { class: 'hint', style: 'margin-top:8px', text: '👨‍👩‍👦 家长照着说：看中文 → 点 🔊 听发音 → 大声说出这句话' }));
+
     const parentRow = h('div', { class: 'btn-row', style: 'margin-top:10px' });
     rp.parent.forEach((a) => {
+      const zh = rp.parentZh && rp.parentZh[a];
       parentRow.appendChild(h('button', {
         class: `option ${session.rpParent === a ? 'is-correct' : ''}`,
-        style: 'width:auto;min-width:140px;margin-bottom:0',
-        text: a,
+        style: 'width:auto;min-width:150px;margin-bottom:0',
         onclick: () => { session.rpParent = a; tts.speak(a); render(); },
-      }));
+      }, [
+        // 🔊 听发音：点喇叭只朗读不选中
+        h('span', {
+          class: 'rp-speak', text: '🔊', title: '听这句怎么说',
+          style: 'margin-right:6px;cursor:pointer',
+          onclick: (e) => { e.stopPropagation(); tts.speak(a); },
+        }),
+        h('span', { style: 'display:flex;flex-direction:column;align-items:center;line-height:1.35' }, [
+          document.createTextNode(a),
+          zh ? h('span', { class: 'rp-zh', text: zh, style: 'font-size:0.72em;font-weight:600;color:var(--muted,#888)' }) : null,
+        ]),
+      ]));
     });
     wrap.appendChild(parentRow);
 
