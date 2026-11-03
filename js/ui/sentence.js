@@ -1,18 +1,24 @@
-// Stage2 核心句型：句型块呈现 → 替换操练 → 应答配对
+// Stage2 核心句型：① 句型填空（选动物填空+跟读） → ② 应答配对
+// 结构：两张独立卡片，层级清晰（填空是第一步，配对是第二步）
 import { h, toast, starFly, confetti } from './dom.js';
 import * as tts from '../services/tts.js';
 
 export function renderSentence(ctx, unit) {
   const s = unit.sentences;
   const session = ctx.session;
-  const wrap = h('div', { class: 'card' });
+  const wrap = h('div');
 
   function render() {
     wrap.innerHTML = '';
-    wrap.appendChild(h('div', { class: 'card-title', text: '💬 核心句型' }));
-    wrap.appendChild(h('p', { class: 'card-sub', text: '你已经会读单词啦，现在把它们放进句子！' }));
 
-    // 1. 句型填空：句型挖空展示，点动物把单词填进空格（不能把 DOM 元素传给 replace！）
+    // 模块总标题（层级：核心句型 → 第 1 步 → 第 2 步）
+    wrap.appendChild(h('div', { class: 'card-title', style: 'font-size:var(--fs-xl);margin:4px 0 12px', text: '💬 核心句型' }));
+
+    // ───────── 卡片 1：句型填空 ─────────
+    const cardFill = h('div', { class: 'card' });
+    cardFill.appendChild(h('div', { class: 'card-title', text: '💬 第 1 步 · 句型填空' }));
+    cardFill.appendChild(h('p', { class: 'card-sub', text: '选一个动物填进空格，再把整句读出来！' }));
+
     const slot = session.slot || null;
     const sentence = slot ? s.pattern.replace('___', slot) : null;
     const patternBox = h('div', { class: 'story-text', style: 'text-align:center;font-size:var(--fs-xl);font-weight:900' });
@@ -23,8 +29,8 @@ export function renderSentence(ctx, unit) {
       text: slot || '＿＿＿＿',
     }));
     patternBox.appendChild(document.createTextNode(patternParts[1] || ''));
-    wrap.appendChild(patternBox);
-    wrap.appendChild(h('div', { class: 'btn-row', style: 'margin:12px 0' }, [
+    cardFill.appendChild(patternBox);
+    cardFill.appendChild(h('div', { class: 'btn-row', style: 'margin:12px 0' }, [
       h('button', {
         class: 'btn', text: '🔊 听整句',
         onclick: () => {
@@ -34,8 +40,8 @@ export function renderSentence(ctx, unit) {
       }),
     ]));
 
-    // 2. 填空操练：点动物填空 + 跟读确认
-    wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:16px', text: '🖊️ 填空：点一个动物填进空格里' }));
+    // 填空操练：点动物填空 + 跟读确认
+    cardFill.appendChild(h('div', { class: 'card-title', style: 'margin-top:16px', text: '🖊️ 填空：点一个动物填进空格里' }));
     const slotRow = h('div', { class: 'word-bank', style: 'margin-top:10px' });
     s.slots.forEach((w) => {
       slotRow.appendChild(h('button', {
@@ -48,10 +54,10 @@ export function renderSentence(ctx, unit) {
         },
       }));
     });
-    wrap.appendChild(slotRow);
+    cardFill.appendChild(slotRow);
 
     const used = new Set(session.usedSlots || []);
-    wrap.appendChild(h('div', { class: 'btn-row', style: 'margin-top:12px' }, [
+    cardFill.appendChild(h('div', { class: 'btn-row', style: 'margin-top:12px' }, [
       h('button', {
         class: 'btn leaf', text: '🎤 我读出来了',
         onclick: () => {
@@ -66,10 +72,13 @@ export function renderSentence(ctx, unit) {
         },
       }),
     ]));
-    wrap.appendChild(h('p', { class: 'hint', text: `已填读过 ${used.size} / 3 种动物（达到 3 种即完成）` }));
+    cardFill.appendChild(h('p', { class: 'hint', text: `已填读过 ${used.size} / 3 种动物（达到 3 种即完成）` }));
+    wrap.appendChild(cardFill);
 
-    // 3. 应答配对
-    wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:22px', text: '↔️ 应答配对' }));
+    // ───────── 卡片 2：应答配对 ─────────
+    const cardPair = h('div', { class: 'card' });
+    cardPair.appendChild(h('div', { class: 'card-title', text: '↔️ 第 2 步 · 应答配对' }));
+    cardPair.appendChild(h('p', { class: 'card-sub', text: '听问题，选出正确的回答。' }));
     const pairs = [
       { q: 'May I have a pet?', a: 'Yes, you can.' },
       { q: 'May I have a rabbit?', a: 'No, you can\'t.' },
@@ -108,11 +117,11 @@ export function renderSentence(ctx, unit) {
         }));
       });
       box.appendChild(row);
-      wrap.appendChild(box);
+      cardPair.appendChild(box);
     });
 
     const done = session.usedSlots?.length >= 3;
-    wrap.appendChild(h('div', { class: 'btn-row', style: 'margin-top:18px' }, [
+    cardPair.appendChild(h('div', { class: 'btn-row', style: 'margin-top:18px' }, [
       h('button', {
         class: 'btn', text: done ? '✅ 完成句型阶段' : '🔒 完成替换 3 种动物后解锁',
         onclick: () => {
@@ -123,6 +132,7 @@ export function renderSentence(ctx, unit) {
         },
       }),
     ]));
+    wrap.appendChild(cardPair);
   }
 
   render();

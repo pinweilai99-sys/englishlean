@@ -748,3 +748,26 @@ test('E2E-30 句型填空：初始为虚线空格（无 [object] 渲染 bug）�
     assert.equal(window.document.querySelectorAll('.blank-slot.is-empty').length, 0, '填入后不应再有空格占位');
   } finally { cleanup(); }
 });
+
+test('E2E-31 核心句型页结构层级：句型填空与应答配对拆成两张独立卡片，带步骤编号（旧口径挤在一张卡）', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, false, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/1');
+    const cards = Array.from(window.document.querySelectorAll('.card'));
+    const fillCard = cards.find((c) => (c.textContent || '').includes('第 1 步 · 句型填空'));
+    const pairCard = cards.find((c) => (c.textContent || '').includes('第 2 步 · 应答配对'));
+    assert.ok(fillCard && pairCard, '应有两张带步骤编号的独立卡片');
+    assert.notEqual(fillCard, pairCard, '两张卡不能是同一张（旧口径全部挤在一张卡里）');
+    // 填空卡：含空格与动物词库，不含应答配对题目
+    assert.ok(fillCard.querySelector('.blank-slot'), '填空卡应含空格');
+    assert.ok(!fillCard.textContent.includes('May I hold it?'), '填空卡不应混入配对题目');
+    // 配对卡：含配对题目与选项，不含填空空格
+    assert.ok(pairCard.textContent.includes('May I have a pet?'), '配对卡应含题目');
+    assert.ok(!pairCard.querySelector('.blank-slot'), '配对卡不应混入填空空格');
+  } finally { cleanup(); }
+});
