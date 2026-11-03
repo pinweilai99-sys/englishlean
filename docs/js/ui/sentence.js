@@ -1,6 +1,6 @@
 // Stage2 核心句型：句型块呈现 → 替换操练 → 应答配对
-import { h, toast, starFly, confetti } from './dom.js?v=1793670759';
-import * as tts from '../services/tts.js?v=1793670759';
+import { h, toast, starFly, confetti } from './dom.js?v=1793673594';
+import * as tts from '../services/tts.js?v=1793673594';
 
 export function renderSentence(ctx, unit) {
   const s = unit.sentences;

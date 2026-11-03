@@ -1,13 +1,13 @@
 // 单词图卡：三步学习流（听音 → 认形 → 跟读），跟读达标才点亮
 // 已点亮的词可"🔁 再学一遍"：清空本词星标、从头重学，学完重新点亮；
 // 每词学习遍数（learnCount，存于 reviewCount）落盘并展示。
-import { h, toast, starFly } from './dom.js?v=1793670759';
-import * as tts from '../services/tts.js?v=1793670759';
-import * as recorder from '../services/recorder.js?v=1793670759';
-import * as speech from '../services/speech-match.js?v=1793670759';
-import { scorePronunciation, scoreFeedback } from '../core/scoring.js?v=1793670759';
-import { getRecognitionInfo } from '../services/speech-match.js?v=1793670759';
-import * as localAsr from '../services/local-asr.js?v=1793670759';
+import { h, toast, starFly } from './dom.js?v=1793673594';
+import * as tts from '../services/tts.js?v=1793673594';
+import * as recorder from '../services/recorder.js?v=1793673594';
+import * as speech from '../services/speech-match.js?v=1793673594';
+import { scorePronunciation, scoreFeedback } from '../core/scoring.js?v=1793673594';
+import { getRecognitionInfo } from '../services/speech-match.js?v=1793673594';
+import * as localAsr from '../services/local-asr.js?v=1793673594';
 
 export function renderWordCard(ctx, unit) {
   const p = ctx.getUnitProgress(unit.id);
@@ -175,6 +175,11 @@ export function renderWordCard(ctx, unit) {
   }
 
   async function doRecord(w) {
+    // 按需加载本地识别模型：用户真的要用麦克风了才开始下载（手机端不自动下 41MB）。
+    // 后台进行、不等待——本次跟读照常走降级链（浏览器识别 / 手动点亮）。
+    if (localAsr.getStatus().status === 'idle') {
+      try { localAsr.startBackgroundDownload(); } catch (e) { /* 静默 */ }
+    }
     const started = await recorder.start();
     if (!started.ok) {
       toast('没有麦克风也没关系～点"我读好了"继续');
