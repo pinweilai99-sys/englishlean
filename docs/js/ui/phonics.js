@@ -1,6 +1,6 @@
 // ou 自然拼读小站：听音、跟读、归类
-import { h, toast, starFly } from './dom.js?v=1793668920';
-import * as tts from '../services/tts.js?v=1793668920';
+import { h, toast, starFly } from './dom.js?v=1793669598';
+import * as tts from '../services/tts.js?v=1793669598';
 
 export function renderPhonics(ctx, unit) {
   const ph = unit.phonics;

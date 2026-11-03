@@ -1,7 +1,7 @@
 // 存储层：localStorage 读写、默认值合并、版本校验、导入导出、重置
 // 纯逻辑，不依赖 DOM，可被 node --test 直接引入。
 
-import { defaultUnitProgress } from './progress.js?v=1793668920';
+import { defaultUnitProgress } from './progress.js?v=1793669598';
 
 export const STORAGE_KEY = 'englishlean_v1';
 export const CURRENT_VERSION = 1;

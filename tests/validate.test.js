@@ -68,19 +68,21 @@ test('记词分块：每词都有 chunks（分块字母拼合=单词本身）与
   }
 });
 
-test('音标必须为美音口径（本项目定版，与教材配套录音一致）：不得混入英音记法', () => {
-  const UK_MARKS = [/əʊ/, /ɒ/, /ˈ[^/]*ə\(r\)/, /eə/, /ɪə/]; // 英音特有记法
-  raw.words.forEach((w) => {
-    UK_MARKS.forEach((re) => {
-      assert.ok(!re.test(w.ipa), `${w.w} 的音标 ${w.ipa} 含英音记法（应为美音）`);
-    });
-  });
-  // 关键词的美音读音逐一锁定（防止回退）
-  const us = Object.fromEntries(raw.words.map((w) => [w.w, w.ipa]));
-  assert.equal(us.hold, '/hoʊld/', 'hold 美音 /oʊld/（英音为 /həʊld/）');
-  assert.equal(us.goldfish, '/ˈgoʊldfɪʃ/', 'goldfish 美音 /oʊ/');
-  assert.equal(us.shop, '/ʃɑːp/', 'shop 美音 /ɑː/（英音为 /ʃɒp/）');
-  assert.equal(us.clever, '/ˈklevər/', 'clever 美音卷舌 /ər/（英音为 /ˈklevə(r)/）');
+test('音标必须与课本词表逐词一致（2026-11-03 家长定版：以课本英式音标为准）', () => {
+  // 课本 Unit 5 词表逐词音标（2026-11-03 家长拍照核对，勿改动）
+  const BOOK = {
+    may: '/meɪ/', pet: '/pet/', Mrs: '/ˈmɪsɪz/', rabbit: '/ˈræbɪt/',
+    lovely: '/ˈlʌvli/', hold: '/həʊld/', goldfish: '/ˈgəʊldfɪʃ/', feed: '/fiːd/',
+    clever: '/ˈklevə(r)/', shop: '/ʃɒp/', parrot: '/ˈpærət/', back: '/bæk/',
+  };
+  const ipa = Object.fromEntries(raw.words.map((w) => [w.w, w.ipa]));
+  for (const [w, want] of Object.entries(BOOK)) {
+    assert.equal(ipa[w], want, `${w} 的音标必须与课本一致（课本 ${want}）`);
+  }
+  // 反向对照：昨天误改的美音记法必须不存在（证明口径确实已切回课本）
+  assert.notEqual(ipa.hold, '/hoʊld/', '不得使用美音 /oʊ/ 记法');
+  assert.notEqual(ipa.shop, '/ʃɑːp/', '不得使用美音 /ɑː/ 记法');
+  assert.notEqual(ipa.clever, '/ˈklevər/', '不得使用美音卷舌 /ər/ 记法');
 });
 
 test('缺少 words 字段 → 报错并指明字段', () => {

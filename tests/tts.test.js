@@ -24,31 +24,37 @@ test('TTS-2 特效音黑名单覆盖 macOS 常见 novelty voices', () => {
   }
 });
 
-test('TTS-3 优先命中自然音清单（Google/Microsoft/Samantha 等）', () => {
+test('TTS-3 优先命中自然音清单（Google/Microsoft/Samantha 等）且英音自然音优先于美音自然音', () => {
   const voices = [
     { lang: 'en-US', name: 'Alex' },
     { lang: 'en-US', name: 'Microsoft Aria Online (Natural) - English (United States)' },
     { lang: 'en-GB', name: 'Sonia' },
   ];
   const v = chooseVoice(voices);
-  assert.match(v.name, /Aria/, '应优先选自然清单中的 Aria');
+  assert.match(v.name, /Sonia/, '英音自然音 Sonia 应优先（课本音标为英式）');
+  // 只有美音时仍能选中自然清单里的 Aria（而非普通 Alex）
+  const usOnly = [
+    { lang: 'en-US', name: 'Alex' },
+    { lang: 'en-US', name: 'Microsoft Aria Online (Natural) - English (United States)' },
+  ];
+  assert.match(chooseVoice(usOnly).name, /Aria/, '无英音时应在美音里选自然音 Aria');
 });
 
-test('TTS-6 美音标准（本项目定版）：英音自然音在列时，仍必须优先选美音', () => {
-  // 旧口径会选英音 Daniel（自然音优先于普通美音）；新口径锁死美音优先
+test('TTS-6 课本音标标准（2026-11-03 定版：与课本英式音标一致）：美音在列时仍必须优先选英音', () => {
+  // 旧美音口径会选 Alex；新口径锁死英音优先（课本音标为英式 /həʊld/ /ʃɒp/ 等）
   const voices = [
     { lang: 'en-GB', name: 'Daniel' },   // 英音自然音
     { lang: 'en-US', name: 'Alex' },     // 普通美音
   ];
   const v = chooseVoice(voices);
-  assert.equal(v.lang, 'en-US', '有美音可用时不得选英音（教材配套录音为美音）');
-  // 只有英音自然音 + 特效音美音时：选普通美音也优先于英音? 特效音被过滤后无美音 → 才退英音
+  assert.equal(v.lang, 'en-GB', '有英音可用时不得选美音（课本音标为英式）');
+  // 只有美音自然音 + 特效音英音时：特效英音被过滤 → 无英音 → 才退美音
   const voices2 = [
-    { lang: 'en-GB', name: 'Daniel' },
-    { lang: 'en-US', name: 'Zarvox' },   // 美音特效音
+    { lang: 'en-GB', name: 'Bells' },    // 英音特效音
+    { lang: 'en-US', name: 'Alex' },
   ];
   const v2 = chooseVoice(voices2);
-  assert.equal(v2.lang, 'en-GB', '美音只剩特效音时才允许退到英音自然音');
+  assert.equal(v2.lang, 'en-US', '英音只剩特效音时才允许退到美音自然音');
 });
 
 test('TTS-4 全是特效音也不返回 null（降级到第一个英语音，不能没声音）', () => {

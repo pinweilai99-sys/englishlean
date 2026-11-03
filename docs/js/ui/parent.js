@@ -1,6 +1,6 @@
 // 家长中心：语法参考卡 / 学习报告 / 错题本 / 导出恢复重置
-import { h, clear, toast, confirmDialog, modal } from './dom.js?v=1793668920';
-import { exportState, importState, resetState } from '../core/storage.js?v=1793668920';
+import { h, clear, toast, confirmDialog, modal } from './dom.js?v=1793669598';
+import { exportState, importState, resetState } from '../core/storage.js?v=1793669598';
 
 export function renderParent(ctx, unit) {
   const state = ctx.state;
@@ -58,11 +58,11 @@ export function renderParent(ctx, unit) {
   }
 
   // 本地识别模型状态
-  import('../services/local-asr.js?v=1793668920').then(() => {}).catch(() => {});
+  import('../services/local-asr.js?v=1793669598').then(() => {}).catch(() => {});
   wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:22px', text: '🎙️ 发音识别（本地模型）' }));
   const laWrap = h('div', {});
   wrap.appendChild(laWrap);
-  import('../services/local-asr.js?v=1793668920').then((localAsr) => {
+  import('../services/local-asr.js?v=1793669598').then((localAsr) => {
     const st = localAsr.getStatus();
     const desc = st.status === 'ready' ? '✅ 已就绪——跟读自动打分（离线可用）'
       : st.status === 'loading' ? `⏳ 后台下载中 ${st.progress}%（下载完成后自动启用，不影响学习）`
