@@ -24,6 +24,11 @@ for item in ['index.html', 'styles', 'js', 'data', 'models']:
     else:
         shutil.copy2(src, dst)
 
+# 1.5) 写 .nojekyll：本项目是纯静态站（含二进制 .onnx 模型 + 大量 JS 模块），
+#      不使用 Jekyll。缺此文件时 GitHub Pages 默认跑 Jekyll，可能漏发/改动资源。
+#      加空 .nojekyll 让 Pages 原样托管 docs/ 全部文件。
+open(os.path.join(DIST, '.nojekyll'), 'w').close()
+
 # 2) index.html：css/js 引用加版本（vendor 除外）
 idx_path = os.path.join(DIST, 'index.html')
 idx = open(idx_path, encoding='utf-8').read()

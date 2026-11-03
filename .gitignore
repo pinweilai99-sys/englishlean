@@ -2,3 +2,7 @@ node_modules/
 .DS_Store
 *.log
 .workbuddy/
+
+# 本地构建产物 / 测试输出（部署产物是 docs/，由 build-dist.py 生成并提交）
+dist/
+.e2e/
