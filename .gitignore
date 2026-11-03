@@ -6,3 +6,6 @@ node_modules/
 # 本地构建产物 / 测试输出（部署产物是 docs/，由 build-dist.py 生成并提交）
 dist/
 .e2e/
+
+# 41MB 自托管 Whisper 语音模型（部署用，由 build-dist.py 从本地拷进 docs/models；不进 git）
+models/
