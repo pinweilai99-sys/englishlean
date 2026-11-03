@@ -297,12 +297,14 @@ async function boot() {
   // 拉取失败不阻塞（全部退回 speechSynthesis）。
   initAudio();
 
-  // 后台渐进加载本地识别模型（Whisper WASM）：不阻塞学习；就绪后"我来读"自动升级为离线打分。
+  // 后台渐进加载本地识别模型（Whisper WASM，约 41MB）：不阻塞学习。
+  // 仅桌面端 + 非省流量 + 网络尚可才自动下载；手机/弱网不下载（否则会占满带宽，
+  // 页面表现像卡死/打不开），改为用户点"🎤 我来读"时按需加载。
   // E2E 测试通过 __disableLocalAsr 禁用（jsdom 无法执行 wasm）。
   if (window.__disableLocalAsr !== true) {
     setTimeout(() => {
       import('./services/local-asr.js')
-        .then((m) => m.startBackgroundDownload())
+        .then((m) => m.maybeAutoLoad())
         .catch(() => { /* 静默：降级链已在 */ });
     }, 5000);
   }

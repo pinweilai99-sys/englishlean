@@ -175,6 +175,11 @@ export function renderWordCard(ctx, unit) {
   }
 
   async function doRecord(w) {
+    // 按需加载本地识别模型：用户真的要用麦克风了才开始下载（手机端不自动下 41MB）。
+    // 后台进行、不等待——本次跟读照常走降级链（浏览器识别 / 手动点亮）。
+    if (localAsr.getStatus().status === 'idle') {
+      try { localAsr.startBackgroundDownload(); } catch (e) { /* 静默 */ }
+    }
     const started = await recorder.start();
     if (!started.ok) {
       toast('没有麦克风也没关系～点"我读好了"继续');
