@@ -56,6 +56,14 @@ ul { margin: 0; padding: 0; list-style: none; }
 .card-title { font-size: var(--fs-lg); font-weight: 800; margin-bottom: var(--sp-1); display: flex; align-items: center; gap: 8px; }
 .card-sub { color: var(--ink-soft); font-size: var(--fs-sm); }
 
+/* 句型填空空格：虚线空格，填入后高亮 */
+.blank-slot {
+  display: inline-block; min-width: 110px; padding: 0 8px; text-align: center;
+  border-bottom: 4px dashed var(--brand-strong); margin: 0 4px;
+}
+.blank-slot.is-empty { color: var(--ink-mute); }
+.blank-slot.is-filled { color: var(--brand-strong); font-weight: 900; }
+
 /* ============ 按钮 ============ */
 .btn {
   min-height: var(--tap); padding: 0 var(--sp-4); border-radius: var(--r-pill);
