@@ -88,7 +88,14 @@
   "roleplay": {
     "scene": "宠物店：你想要一只小宠物",
     "child": "May I have a ___?",
-    "parent": ["Yes, you can.", "No, you can't.", "Sure.", "OK. Yes, I can."]
+    "childZh": "我想要一只___，可以吗？",
+    "parent": ["Yes, you can.", "No, you can't.", "Sure.", "OK. Yes, I can."],
+    "parentZh": {
+      "Yes, you can.": "可以哦，给你。",
+      "No, you can't.": "不行哦，不可以。",
+      "Sure.": "当然可以！",
+      "OK. Yes, I can.": "好呀，可以的。"
+    }
   },
   "writing": {
     "prompt": "Haohao 不喜欢鹦鹉，Xiaoxiao 该怎么做？请写三句话。",

@@ -12,15 +12,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(ROOT, 'docs')
 VER = str(int(time.time()))
 
-# 1) 清空并复制运行时文件
-if os.path.exists(DIST):
-    shutil.rmtree(DIST)
-os.makedirs(DIST)
+# 1) 复制运行时文件（原地覆盖，不整目录删除——受保护目录里 rmtree 会被拦截，
+#    且本项目从不删除运行时文件，覆盖复制即可；如确有改名/删除的旧文件残留，
+#    用 git status docs 对比后手工清理，不放进构建流程）
+os.makedirs(DIST, exist_ok=True)
 for item in ['index.html', 'styles', 'js', 'data', 'models', 'assets']:
     src = os.path.join(ROOT, item)
     dst = os.path.join(DIST, item)
     if os.path.isdir(src):
-        shutil.copytree(src, dst)
+        shutil.copytree(src, dst, dirs_exist_ok=True)
     else:
         shutil.copy2(src, dst)
 
