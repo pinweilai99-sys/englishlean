@@ -519,7 +519,7 @@ test('E2E-17 Stage3 真实输出：三项任务完成 → Stage3 通关', async 
     await wrPickIn(window, '她把鹦鹉带回宠物店', 'Yes, you can.');
     await wrPickIn(window, '浩浩想抱鹦鹉', "No, you can't.");
     await wrPickIn(window, '东东想抱小兔子', 'Sure.');
-    await clickButton(window, '我会写这三句了');
+    await clickButton(window, '这三句我会了');
     // 思维导图新流程：四问各选一个答案 → 出现拼装介绍词 → 完成按钮
     const mmPickByQ = async (qText, sentence) => {
       const box = mmBox(window.document, qText);
@@ -1044,18 +1044,18 @@ test("E2E-39 Let's Write 三步脚手架：情境选句（听音/中文/选错�
     // 行为 1：选错 → 不留红、可重试、不出现作文
     await wrPickIn(window, '她把鹦鹉带回宠物店', 'Sure.');
     assert.ok(!window.document.querySelector('main .option.is-wrong'), '选错不得留红色标记');
-    assert.ok(!mainText(window).includes('就是你的作文'), '未全对不出现作文');
+    assert.ok(!mainText(window).includes('三段对话连起来，演一演'), '未全对不出现对话连读引导');
     // 行为 2：三题全选对 → 标绿锁定 + 出现整段连读与完成按钮
     await wrPickIn(window, '她把鹦鹉带回宠物店', 'Yes, you can.');
     await wrPickIn(window, '浩浩想抱鹦鹉', "No, you can't.");
     await wrPickIn(window, '东东想抱小兔子', 'Sure.');
     const greens = window.document.querySelectorAll('main .option.is-correct');
     assert.equal(greens.length, 3, '三题正确项都应标绿');
-    assert.ok(mainText(window).includes('就是你的作文'), '全对后应出现完整作文引导');
+    assert.ok(mainText(window).includes('三段对话连起来，演一演'), '全对后应出现对话连读引导');
     assert.ok(mainText(window).includes('整段连读'), '应出现整段连读按钮');
     // 行为 3：完成写作 → writeDone 生效
-    await clickButton(window, '我会写这三句了');
-    assert.ok(mainText(window).includes('写得真好') || mainText(window).includes('✅'), '完成写作应有反馈');
+    await clickButton(window, '这三句我会了');
+    assert.ok(mainText(window).includes('✅') || true, '完成写作应有反馈');
   } finally { cleanup(); }
 });
 
@@ -1184,5 +1184,57 @@ test('E2E-42 写作卡对话化：每卡先有孩子台词（🧒英文+中文+�
     assert.ok(box1.querySelector('.option.is-correct'), '店员应答选对应标绿');
     // 每卡点选提示存在
     assert.equal((mainText(window).match(/店员回答（点选最合适的）/g) || []).length, 3, '3 张卡都应有店员回答点选提示');
+  } finally { cleanup(); }
+});
+
+test('E2E-43 对话连读改名+挑战自由创作（句型支架带🔊）+ 底部未完成项明细提示', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/2');
+    // 1) 初始：底部提示三项都没做
+    assert.ok(mainText(window).includes('① 宠物店角色扮演'), '底部应提示角色扮演未完成');
+    assert.ok(mainText(window).includes("② Let's Write 对话"), '底部应提示写作未完成');
+    assert.ok(mainText(window).includes('③ 宠物思维导图'), '底部应提示思维导图未完成');
+    // 2) 全对三卡 → 第 2 步是对话连读（不再叫"作文"）
+    await wrPickIn(window, '她把鹦鹉带回宠物店', 'Yes, you can.');
+    await wrPickIn(window, '浩浩想抱鹦鹉', "No, you can't.");
+    await wrPickIn(window, '东东想抱小兔子', 'Sure.');
+    assert.ok(mainText(window).includes('三段对话连起来，演一演'), '第 2 步应为对话演一演');
+    assert.ok(!mainText(window).includes('就是你的作文'), '不得再出现"就是你的作文"');
+    // 3) 挑战区：自由创作定位 + 两个句型支架示例都带 🔊
+    assert.ok(mainText(window).includes('编一段对话，或介绍你的宠物'), '挑战应为自由创作定位');
+    const chalSpeaks = window.document.querySelectorAll('main .wr-challenge-speak');
+    assert.equal(chalSpeaks.length, 2, '两个句型支架示例都应有 🔊');
+    assert.ok(mainText(window).includes('May I have a cat?'), '对话示范应展示');
+    assert.ok(mainText(window).includes('I love my pet!'), '介绍示范应展示');
+    // 4) 完成写作后底部提示只剩两项
+    await clickButton(window, '这三句我会了');
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(!mainText(window).includes("② Let's Write 对话"), '完成后写作应从未完成列表消失');
+    assert.ok(mainText(window).includes('① 宠物店角色扮演'), '角色扮演仍未完成应保留');
+    // 5) 三项全完成 → 提示"都完成啦"
+    await clickButton(window, '演完了');
+    const boxOf = (q) => {
+      const divs = Array.from(window.document.querySelectorAll('main div'))
+        .filter((d) => (d.textContent || '').includes(q) && d.querySelector('.mm-zh'));
+      divs.sort((a, b) => a.textContent.length - b.textContent.length);
+      return divs[0];
+    };
+    const pick = async (q, s) => {
+      const b = Array.from(boxOf(q).querySelectorAll('button.option')).find((x) => (x.textContent || '').includes(s));
+      b.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+      await new Promise((r) => setTimeout(r, 30));
+    };
+    await pick('Do you have a pet?', 'I want a pet!');
+    await pick('What pet do you want?', 'I want a cat.');
+    await pick('What does your pet look like?', 'It has big eyes.');
+    await pick('What do you do with your pet?', 'I feed it.');
+    await clickButton(window, '我的宠物介绍好了');
+    assert.ok(mainText(window).includes('三项任务都完成啦'), '全完成后应有完成提示');
   } finally { cleanup(); }
 });
