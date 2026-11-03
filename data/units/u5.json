@@ -107,6 +107,25 @@
       "Sure.": "当然可以！",
       "Yes, he can.": "是的，它可以。"
     },
+    "sampleDialogue": {
+      "scene": "🐰 在宠物店",
+      "lines": [
+        { "who": "🧒 Haohao", "t": "May I come in?", "zh": "我可以进来吗？" },
+        { "who": "👩 店员", "t": "Sure. Come in, please!", "zh": "当然可以，快进来吧！" },
+        { "who": "🧒 Haohao", "t": "The rabbit is lovely! May I hold it?", "zh": "这兔子真可爱！我可以抱抱它吗？" },
+        { "who": "👩 店员", "t": "Yes, you can. Here you are.", "zh": "可以哦，给你。" },
+        { "who": "🧒 Haohao", "t": "It has long ears. It is cute!", "zh": "它有长长的耳朵，真讨人喜欢！" },
+        { "who": "👩 店员", "t": "Have some carrots.", "zh": "吃点胡萝卜吧。" },
+        { "who": "🧒 Haohao", "t": "May I feed it a carrot?", "zh": "我可以喂它一根胡萝卜吗？" },
+        { "who": "👩 店员", "t": "OK. Here you are.", "zh": "好的，给你。" },
+        { "who": "🧒 Haohao", "t": "Can I touch it?", "zh": "我可以摸摸它吗？" },
+        { "who": "👩 店员", "t": "Sure.", "zh": "当然可以！" },
+        { "who": "🧒 Haohao", "t": "I like it very much! May I take it home?", "zh": "我太喜欢它了！我可以带它回家吗？" },
+        { "who": "👩 店员", "t": "OK. Yes, you can.", "zh": "好的，可以哦。" },
+        { "who": "🧒 Haohao", "t": "Thank you!", "zh": "谢谢您！" },
+        { "who": "👩 店员", "t": "You're welcome.", "zh": "不客气。" }
+      ]
+    },
     "items": [
       {
         "ctx": "She takes the parrot to the pet shop. She says:",

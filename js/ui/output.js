@@ -1,7 +1,7 @@
 // Stage3 真实输出：角色扮演 / Let's Write / 思维导图
-import { h, toast, starFly, confetti } from './dom.js?v=1793712794';
-import * as tts from '../services/tts.js?v=1793712794';
-import * as recorder from '../services/recorder.js?v=1793712794';
+import { h, toast, starFly, confetti } from './dom.js?v=1793713418';
+import * as tts from '../services/tts.js?v=1793713418';
+import * as recorder from '../services/recorder.js?v=1793713418';
 
 export function renderOutput(ctx, unit) {
   const session = ctx.session;
@@ -196,6 +196,35 @@ export function renderOutput(ctx, unit) {
       ]));
     });
     wrap.appendChild(chalBox);
+
+    // 范文对话：课文范围内的完整示范对话（标准对话格式：说话人+英文+中文，每句 🔊，整段连读）
+    const sd = wr.sampleDialogue;
+    if (sd && (sd.lines || []).length) {
+      wrap.appendChild(h('p', { class: 'hint', style: 'margin-top:12px;font-weight:700', text: `📖 范文对话（点一句听一句）｜${sd.scene}` }));
+      const sdLines = sd.lines;
+      sdLines.forEach((l) => {
+        wrap.appendChild(h('div', { class: 'story-text', style: 'margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap' }, [
+          h('strong', { text: `${l.who}：` }),
+          h('span', {
+            text: l.t, style: 'cursor:pointer', title: '点一句听一句',
+            onclick: () => tts.speak(l.t),
+          }),
+          h('span', { text: `（${l.zh}）`, style: 'font-size:0.78em;font-weight:600;color:var(--muted,#888)' }),
+          h('button', {
+            class: 'sd-speak', title: '听这句', text: '🔊',
+            style: 'border:none;background:none;cursor:pointer;font-size:inherit',
+            onclick: (e) => { e.stopPropagation(); tts.speak(l.t); },
+          }),
+        ]));
+      });
+      wrap.appendChild(h('div', { class: 'btn-row', style: 'margin-top:6px' }, [
+        h('button', {
+          class: 'btn ghost', text: '🔊 范文整段连读',
+          onclick: () => tts.speakSequence(sdLines.map((l) => l.t)),
+        }),
+      ]));
+    }
+
     const ta = h('textarea', {
       class: 'text-input',
       placeholder: '选做：把你自己编的对话或介绍写在这里～',
