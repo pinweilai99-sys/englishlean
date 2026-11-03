@@ -862,3 +862,43 @@ test('E2E-35 换动物后第 2 题也清空；每只动物对话不同，同句�
       'rabbit 同句型正确回答应为肯定句（两种动物答案不同）');
   } finally { cleanup(); }
 });
+
+test('E2E-36 答对后其余选项不得标红（家长反馈 bug：答对一题后两个没点过的干扰项也被标 is-wrong 红色，孩子会以为点错过）', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, false, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/1');
+    const blocks = () => Array.from(window.document.querySelectorAll('.card > div'));
+    const boxOf = (q) => blocks().find((d) => (d.textContent || '').includes(q) && d.querySelector('button'));
+    await clickButton(window, 'dog');
+    const q1 = 'May I touch him?';
+    // 前置证明：改动前答对一题后 is-wrong 会出现在干扰项上（本测试锁定该行为不再出现）
+    // 第 1 步：先点错一次 → 错误选择也不得留下持久红色标记（只 toast + 提示）
+    const wrongBtn = Array.from(boxOf(q1).querySelectorAll('button'))
+      .find((b) => b.textContent.trim() === 'Sure.');
+    wrongBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.equal(boxOf(q1).querySelector('.option.is-wrong'), null, '点错后不得留下持久 is-wrong 标记');
+    // 第 2 步：再点对 → 正确项标绿，其余两个干扰项（含没点过的）必须全部是中性样式
+    const okBtn = Array.from(boxOf(q1).querySelectorAll('button'))
+      .find((b) => b.textContent.trim() === "No, you can't. He's working now.");
+    okBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    const answeredBox = boxOf(q1);
+    assert.ok(answeredBox.querySelector('.option.is-correct'), '答对应只给正确项标 is-correct');
+    const wrongs = answeredBox.querySelectorAll('.option.is-wrong');
+    assert.equal(wrongs.length, 0, `答对后不得有任何 is-wrong 标记（实际 ${wrongs.length} 个）`);
+    // 中性验证：未选中的干扰项 class 应为纯 option（既不红也不绿）
+    const neutral = Array.from(answeredBox.querySelectorAll('button'))
+      .find((b) => b.textContent.trim() === 'Yes, you can.');
+    assert.equal(neutral.className.trim(), 'option', '未选中干扰项应恢复中性样式');
+    // 未作答的第 2 题完全不受影响
+    const q2Box = boxOf('Can he help blind people?');
+    assert.equal(q2Box.querySelector('.option.is-correct'), null, '未作答的第 2 题不应有绿色标记');
+    assert.equal(q2Box.querySelector('.option.is-wrong'), null, '未作答的第 2 题不应有红色标记');
+  } finally { cleanup(); }
+});
