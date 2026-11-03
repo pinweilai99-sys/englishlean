@@ -109,20 +109,29 @@
     },
     "items": [
       {
-        "ctx": "She takes the parrot to the pet shop. She says to the shopkeeper:",
-        "ctxZh": "她把鹦鹉带回宠物店，对店员说：",
-        "a": "May I have a pet?",
-        "opts": ["May I have a pet?", "Yes, you can.", "No, you can't."]
+        "ctx": "She takes the parrot to the pet shop. She says:",
+        "ctxZh": "她把鹦鹉带回宠物店，她说：",
+        "askWho": "Xiaoxiao",
+        "ask": "May I have a pet?",
+        "askZh": "我想要一只宠物，可以吗？",
+        "a": "Yes, you can.",
+        "opts": ["Yes, you can.", "No, you can't.", "Sure."]
       },
       {
         "ctx": "Haohao wants to hold the parrot. The shopkeeper says no.",
-        "ctxZh": "浩浩想抱鹦鹉，店员摇摇头。她对浩浩说：",
+        "ctxZh": "浩浩想抱鹦鹉，店员摇摇头。",
+        "askWho": "Haohao",
+        "ask": "May I hold the parrot?",
+        "askZh": "我可以抱抱这只鹦鹉吗？",
         "a": "No, you can't.",
         "opts": ["No, you can't.", "Yes, you can.", "Sure."]
       },
       {
         "ctx": "Dongdong asks to hold the rabbit. The shopkeeper agrees.",
-        "ctxZh": "东东想抱小兔子，店员点头同意了。店员说：",
+        "ctxZh": "东东想抱小兔子，店员点头同意了。",
+        "askWho": "Dongdong",
+        "ask": "May I hold it?",
+        "askZh": "我可以抱抱它吗？",
         "a": "Sure.",
         "opts": ["Sure.", "No, you can't.", "Yes, he can."]
       }
