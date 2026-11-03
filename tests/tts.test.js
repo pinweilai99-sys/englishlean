@@ -34,6 +34,23 @@ test('TTS-3 优先命中自然音清单（Google/Microsoft/Samantha 等）', () 
   assert.match(v.name, /Aria/, '应优先选自然清单中的 Aria');
 });
 
+test('TTS-6 美音标准（本项目定版）：英音自然音在列时，仍必须优先选美音', () => {
+  // 旧口径会选英音 Daniel（自然音优先于普通美音）；新口径锁死美音优先
+  const voices = [
+    { lang: 'en-GB', name: 'Daniel' },   // 英音自然音
+    { lang: 'en-US', name: 'Alex' },     // 普通美音
+  ];
+  const v = chooseVoice(voices);
+  assert.equal(v.lang, 'en-US', '有美音可用时不得选英音（教材配套录音为美音）');
+  // 只有英音自然音 + 特效音美音时：选普通美音也优先于英音? 特效音被过滤后无美音 → 才退英音
+  const voices2 = [
+    { lang: 'en-GB', name: 'Daniel' },
+    { lang: 'en-US', name: 'Zarvox' },   // 美音特效音
+  ];
+  const v2 = chooseVoice(voices2);
+  assert.equal(v2.lang, 'en-GB', '美音只剩特效音时才允许退到英音自然音');
+});
+
 test('TTS-4 全是特效音也不返回 null（降级到第一个英语音，不能没声音）', () => {
   const voices = [
     { lang: 'en-US', name: 'Zarvox' },

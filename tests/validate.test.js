@@ -68,6 +68,21 @@ test('记词分块：每词都有 chunks（分块字母拼合=单词本身）与
   }
 });
 
+test('音标必须为美音口径（本项目定版，与教材配套录音一致）：不得混入英音记法', () => {
+  const UK_MARKS = [/əʊ/, /ɒ/, /ˈ[^/]*ə\(r\)/, /eə/, /ɪə/]; // 英音特有记法
+  raw.words.forEach((w) => {
+    UK_MARKS.forEach((re) => {
+      assert.ok(!re.test(w.ipa), `${w.w} 的音标 ${w.ipa} 含英音记法（应为美音）`);
+    });
+  });
+  // 关键词的美音读音逐一锁定（防止回退）
+  const us = Object.fromEntries(raw.words.map((w) => [w.w, w.ipa]));
+  assert.equal(us.hold, '/hoʊld/', 'hold 美音 /oʊld/（英音为 /həʊld/）');
+  assert.equal(us.goldfish, '/ˈgoʊldfɪʃ/', 'goldfish 美音 /oʊ/');
+  assert.equal(us.shop, '/ʃɑːp/', 'shop 美音 /ɑː/（英音为 /ʃɒp/）');
+  assert.equal(us.clever, '/ˈklevər/', 'clever 美音卷舌 /ər/（英音为 /ˈklevə(r)/）');
+});
+
 test('缺少 words 字段 → 报错并指明字段', () => {
   const bad = { ...raw };
   delete bad.words;
