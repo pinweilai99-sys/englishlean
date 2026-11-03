@@ -803,3 +803,19 @@ test('E2E-32 应答配对跟随所选动物：题目动态出，换动物后题�
     assert.ok(yesBtn2, '新题目应可再次作答');
   } finally { cleanup(); }
 });
+
+test('E2E-34 跟读步不显示技术提示文案（家长定版：浏览器识别/Safari 等字样不给孩子看）', async () => {
+  const { window, app, cleanup } = await freshApp({ stubAudio: true });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0');
+    await clickButton(window, '听一听');
+    await clickButton(window, '我会认这个词');
+    const text = mainText(window);
+    assert.ok(!text.includes('本浏览器'), '不应出现"本浏览器…"技术文案');
+    assert.ok(!text.includes('Safari'), '不应出现 Safari 等技术名词');
+    assert.ok(!text.includes('需联网'), '不应出现"需联网"等技术细节');
+    assert.ok(!text.includes('本地识别'), '不应出现"本地识别"等技术细节');
+    // 兜底按钮仍然必须显示（学习链路不能被技术卡死）
+    assert.ok(buttons(window).some((b) => b.textContent.includes('手动点亮')), '兜底按钮应保留');
+  } finally { cleanup(); }
+});
