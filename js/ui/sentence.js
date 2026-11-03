@@ -1,7 +1,7 @@
 // Stage2 核心句型：① 句型填空（选动物填空+跟读） → ② 应答配对
 // 结构：两张独立卡片，层级清晰（填空是第一步，配对是第二步）
-import { h, toast, starFly, confetti } from './dom.js?v=1793703062';
-import * as tts from '../services/tts.js?v=1793703062';
+import { h, toast, starFly, confetti } from './dom.js?v=1793704406';
+import * as tts from '../services/tts.js?v=1793704406';
 
 export function renderSentence(ctx, unit) {
   const s = unit.sentences;
@@ -82,25 +82,44 @@ export function renderSentence(ctx, unit) {
     // 动物 → 该动物的两组对话（全部取自课本：May I have/hold/touch/feed...、take good care of、导盲犬 Can he...）
     const animal = slot || 'pet';
     const dialogues = (s.dialogues && s.dialogues[animal]) || [
-      { q: `May I have a ${animal}?`, a: 'Yes, you can.', opts: ['Yes, you can.', "No, you can't.", 'Sure.'] },
-      { q: 'May I hold it?', a: 'Sure.', opts: ['Sure.', 'Yes, you can.', "No, you can't."] },
+      { q: `May I have a ${animal}?`, a: 'Yes, you can.', zh: `我可以养一只${animal}吗？——可以。`, opts: ['Yes, you can.', "No, you can't.", 'Sure.'] },
+      { q: 'May I hold it?', a: 'Sure.', zh: '我可以抱抱它吗？——当然可以。', opts: ['Sure.', 'Yes, you can.', "No, you can't."] },
     ];
     // 答案按「动物|题干」记录：换动物后所有题目（含第 2 题）自动清空重练；
     // 星标按题干记录：同题干换动物不重复加星（防刷星）
     const keyOf = (q) => `${animal}|${q}`;
+    session.zhShown = session.zhShown || {};
     dialogues.forEach((pair) => {
       const answeredOk = !!session.answeredOk?.[keyOf(pair.q)];
       const chosen = session.answers?.[keyOf(pair.q)];
-      const box = h('div', { style: 'margin-bottom:12px' }, [
-        h('div', { class: 'story-text', style: 'font-weight:800', text: pair.q }),
+      // 题干行：题干 + 🔊 听题目 + 👀 中文意思（零基础支架：先自己试，卡住再扶）
+      const qRow = h('div', { class: 'story-text', style: 'font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap' }, [
+        h('span', { text: pair.q }),
+        h('button', {
+          class: 'q-speak', title: '听题目', text: '🔊',
+          style: 'border:none;background:none;cursor:pointer;font-size:inherit',
+          onclick: (e) => { e.stopPropagation(); tts.speak(pair.q); },
+        }),
+        h('button', {
+          class: 'q-zh', title: '看中文意思', text: session.zhShown[keyOf(pair.q)] ? '🙈 藏起来' : '👀 中文意思',
+          style: 'border:none;background:none;cursor:pointer;font-size:0.75em;color:var(--muted,#888)',
+          onclick: (e) => {
+            e.stopPropagation();
+            session.zhShown[keyOf(pair.q)] = !session.zhShown[keyOf(pair.q)];
+            render();
+          },
+        }),
       ]);
+      const box = h('div', { style: 'margin-bottom:12px' }, [qRow]);
+      if (session.zhShown[keyOf(pair.q)] && pair.zh) {
+        box.appendChild(h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${pair.zh}` }));
+      }
       const row = h('div', { class: 'btn-row', style: 'margin-top:8px' });
       (pair.opts || s.answers.concat(['Sure.'])).forEach((ans) => {
         row.appendChild(h('button', {
           // 答对后只标绿正确项，其余恢复中性——不给孩子看"红色错误"残留（成长型思维：不留失败痕迹）
           class: `option ${answeredOk && ans === pair.a ? 'is-correct' : ''}`,
           style: 'width:auto;min-width:150px;margin-bottom:0',
-          text: ans,
           onclick: () => {
             if (answeredOk) return; // 答对的题锁定；答错可重试
             if (ans === pair.a) {
@@ -126,7 +145,15 @@ export function renderSentence(ctx, unit) {
               ctx.completeStage(unit.id, 1);
             }
           },
-        }));
+        }, [
+          // 🔊 听选项：点喇叭只朗读不判分（零基础孩子先听清选项再决定）
+          h('span', {
+            class: 'opt-speak', text: '🔊', title: '听这个选项',
+            style: 'margin-right:6px;cursor:pointer',
+            onclick: (e) => { e.stopPropagation(); tts.speak(ans); },
+          }),
+          document.createTextNode(ans),
+        ]));
       });
       if (chosen && !answeredOk) box.querySelector('.story-text').appendChild(h('span', { class: 'hint', text: '（刚才选错了，再试一次）' }));
       box.appendChild(row);
