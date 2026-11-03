@@ -1,6 +1,6 @@
 // 回忆卡中心（模块⑥）：May I 秒答 / 听答反推 / 看图说词 / 复述 / ou 归类
-import { h, toast, starFly } from './dom.js?v=1793660121';
-import * as tts from '../services/tts.js?v=1793660121';
+import { h, toast, starFly } from './dom.js?v=1793665072';
+import * as tts from '../services/tts.js?v=1793665072';
 
 export function renderRecall(ctx, unit) {
   const cards = unit.reviewCards;

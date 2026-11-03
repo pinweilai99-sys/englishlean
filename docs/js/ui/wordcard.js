@@ -1,13 +1,13 @@
 // 单词图卡：三步学习流（听音 → 认形 → 跟读），跟读达标才点亮
 // 已点亮的词可"🔁 再学一遍"：清空本词星标、从头重学，学完重新点亮；
 // 每词学习遍数（learnCount，存于 reviewCount）落盘并展示。
-import { h, toast, starFly } from './dom.js?v=1793660121';
-import * as tts from '../services/tts.js?v=1793660121';
-import * as recorder from '../services/recorder.js?v=1793660121';
-import * as speech from '../services/speech-match.js?v=1793660121';
-import { scorePronunciation, scoreFeedback } from '../core/scoring.js?v=1793660121';
-import { getRecognitionInfo } from '../services/speech-match.js?v=1793660121';
-import * as localAsr from '../services/local-asr.js?v=1793660121';
+import { h, toast, starFly } from './dom.js?v=1793665072';
+import * as tts from '../services/tts.js?v=1793665072';
+import * as recorder from '../services/recorder.js?v=1793665072';
+import * as speech from '../services/speech-match.js?v=1793665072';
+import { scorePronunciation, scoreFeedback } from '../core/scoring.js?v=1793665072';
+import { getRecognitionInfo } from '../services/speech-match.js?v=1793665072';
+import * as localAsr from '../services/local-asr.js?v=1793665072';
 
 export function renderWordCard(ctx, unit) {
   const p = ctx.getUnitProgress(unit.id);
@@ -44,6 +44,24 @@ export function renderWordCard(ctx, unit) {
     wrap.appendChild(h('div', { class: 'word-ipa', text: w.ipa }));
     wrap.appendChild(h('div', { class: 'word-zh', text: w.zh }));
     wrap.appendChild(h('div', {}, [h('span', { class: `tier-tag ${w.tier}`, text: w.tier === 'four' ? '四会词（会读会写）' : '认读词（会读会认）' })]));
+
+    // 🧩 记词分块：读音分块（点击可分块发音）+ 一句记忆提示（音节/合成词/字母组合）
+    const chunks = Array.isArray(w.chunks) && w.chunks.length ? w.chunks : [w.w];
+    const chunkBtns = h('div', { class: 'chunk-row' });
+    chunks.forEach((c, ci) => {
+      if (ci > 0) chunkBtns.appendChild(h('span', { class: 'chunk-dot', text: '·' }));
+      chunkBtns.appendChild(h('button', {
+        class: 'chunk-btn',
+        text: c,
+        'aria-label': `读 ${c}`,
+        onclick: () => tts.speak(c.toLowerCase()),
+      }));
+    });
+    wrap.appendChild(h('div', { class: 'memo-box' }, [
+      h('p', { class: 'memo-title', text: '🧩 记词分块（点一块读一块）' }),
+      chunkBtns,
+      h('p', { class: 'memo-hint', text: `💡 ${w.memo || ''}` }),
+    ]));
 
     const steps = h('div', { class: 'steps' });
     ['① 听音', '② 认形', '③ 跟读'].forEach((label, si) => {
