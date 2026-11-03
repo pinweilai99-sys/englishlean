@@ -14,10 +14,38 @@ function synth() {
 
 function pickVoice(s) {
   const voices = (typeof s.getVoices === 'function' ? s.getVoices() : []) || [];
-  const en = voices.filter((v) => /^en(-|_|$)/i.test(v.lang || ''));
-  if (!en.length) return null;
-  // 优先英美口音，其次任意英语
-  return en.find((v) => /en-US/i.test(v.lang)) || en.find((v) => /en-GB/i.test(v.lang)) || en[0];
+  return chooseVoice(voices);
+}
+
+// 搞笑/特效音黑名单：macOS/iOS 自带大量 novelty voices（Albert、Zarvox、Bells 等），
+// 它们的 lang 也是 en-US，旧逻辑"取第一个 en-US"会抓到它们，把单词读成怪声。
+const NOVELTY_RE = new RegExp(
+  'albert|bad day|bad news|bahh|bells|bloat|boing|bubbles|cellos|deranged'
+  + '|good news|hysterical|jester|junior|kathy|organ|rocko|sandy|shelley'
+  + '|eddy|flo|grandma|grandpa|reed|ralph|trinoids|whisper|wobble|superstar|zarvox|fred',
+  'i',
+);
+// 已知发音自然、适合跟读的语音（命中者优先）
+const NATURAL_RE = new RegExp(
+  'google (us|uk) english|microsoft (aria|jenny|guy|emma|ava|andrew|brian|sonia|liz)'
+  + '|samantha|^ava$|allison|victoria|susan|zoe|daniel|karen|moira|tessa|serena|fiona|nicky',
+  'i',
+);
+
+// 选音（纯函数，可测试）：英语语音里先剔除特效音，再优先"自然音"，最后才退回任意英语。
+// 口径：en-US 优先 → 任意自然音 → en-GB → 第一个普通英语音；全是特效音也绝不返回 null。
+export function chooseVoice(voices) {
+  const list = (voices || []).filter((v) => /^en(-|_|$)/i.test(v.lang || ''));
+  if (!list.length) return null;
+  const normal = list.filter((v) => !NOVELTY_RE.test(v.name || ''));
+  const pool = normal.length ? normal : list;
+  return (
+    pool.find((v) => NATURAL_RE.test(v.name || '') && /en-US/i.test(v.lang || ''))
+    || pool.find((v) => NATURAL_RE.test(v.name || ''))
+    || pool.find((v) => /en-US/i.test(v.lang || ''))
+    || pool.find((v) => /en-GB/i.test(v.lang || ''))
+    || pool[0]
+  );
 }
 
 export function isAvailable() {
@@ -42,7 +70,7 @@ export function cancel() {
 
 // 朗读文本；返回 Promise，播放结束或失败时 resolve
 export function speak(text, opts = {}) {
-  const { rate = 0.85, pitch = 1.05, lang = 'en-US' } = opts;
+  const { rate = 0.85, pitch = 1.0, lang = 'en-US' } = opts;
   const s = synth();
   if (!s || !state.enabled || !text) {
     return Promise.resolve({ ok: false, reason: 'unavailable' });
