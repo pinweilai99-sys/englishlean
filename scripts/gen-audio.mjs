@@ -48,6 +48,16 @@ function collectTexts() {
       (s.slots || []).forEach((slot) => texts.add(rp.child.replace('___', slot)));
     }
     (rp.parent || []).forEach((a) => texts.add(a));
+    // 思维导图：问题句（🔊 听问题）+ 每问全部候选句 + 动物特征句 + 结尾句（拼装介绍词逐句朗读）
+    const mm = u.mindmap || {};
+    (mm.chain || []).forEach((q) => texts.add(q));
+    (mm.steps || []).forEach((st) => {
+      texts.add(st.q);
+      (st.opts || []).forEach((o) => texts.add(o.t));
+      Object.values(st.featureByAnimal || {}).forEach((o) => texts.add(o.t));
+      if (st.extra) texts.add(st.extra.t);
+    });
+    if (mm.ending) texts.add(mm.ending.t);
     // 主动回忆卡
     (u.reviewCards || []).forEach((c) => { if (c.speak) texts.add(c.speak); });
     // 故事 + 故事问题

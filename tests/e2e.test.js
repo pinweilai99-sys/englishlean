@@ -520,6 +520,20 @@ test('E2E-17 Stage3 真实输出：三项任务完成 → Stage3 通关', async 
     await wrPickIn(window, '店员摇摇头', "No, you can't.");
     await wrPickIn(window, '店员点头同意', 'Sure.');
     await clickButton(window, '我会写这三句了');
+    // 思维导图新流程：四问各选一个答案 → 出现拼装介绍词 → 完成按钮
+    const mmPickByQ = async (qText, sentence) => {
+      const box = mmBox(window.document, qText);
+      if (!box) throw new Error(`找不到问题卡「${qText}」`);
+      const b = Array.from(box.querySelectorAll('button.option'))
+        .find((x) => (x.textContent || '').includes(sentence));
+      if (!b) throw new Error(`在「${qText}」中找不到候选「${sentence}」`);
+      b.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+      await new Promise((r) => setTimeout(r, 30));
+    };
+    await mmPickByQ('Do you have a pet?', 'I want a pet!');
+    await mmPickByQ('What pet do you want?', 'I want a cat.');
+    await mmPickByQ('What does your pet look like?', 'It has big eyes.');
+    await mmPickByQ('What do you do with your pet?', 'I feed it.');
     await clickButton(window, '我的宠物介绍好了');
     await clickButton(window, '完成输出阶段');
     const p = persisted(window);
@@ -1042,5 +1056,75 @@ test("E2E-39 Let's Write 三步脚手架：情境选句（听音/中文/选错�
     // 行为 3：完成写作 → writeDone 生效
     await clickButton(window, '我会写这三句了');
     assert.ok(mainText(window).includes('写得真好') || mainText(window).includes('✅'), '完成写作应有反馈');
+  } finally { cleanup(); }
+});
+
+// 思维导图问题卡定位助手：按问题文本定位到所属卡（取内容最短的=卡片本体）
+function mmBox(root, qText) {
+  const divs = Array.from(root.querySelectorAll('main div'))
+    .filter((d) => (d.textContent || '').includes(qText) && d.querySelector('.mm-zh'));
+  divs.sort((a, b) => a.textContent.length - b.textContent.length);
+  return divs[0];
+}
+
+test('E2E-40 思维导图四问互动：听问题/点选答案（无对错）/Q3 特征句随 Q2 动物联动且换动物清空 → 拼装介绍词', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/2');
+    assert.match(mainText(window), /宠物思维导图/);
+    // 4 问互动卡：🔊 听问题 + 中文问题
+    assert.equal(window.document.querySelectorAll('main .mm-q-speak').length, 4, '4 个问题都应有 🔊 听问题');
+    assert.ok(mainText(window).includes('你养宠物吗'), '问题应有中文');
+    assert.ok(mainText(window).includes('它长什么样子'), '第 3 问应有中文');
+    // Q3 特征句默认跟随 cat
+    let q3 = mmBox(window.document, 'What does your pet look like?');
+    assert.ok(q3.textContent.includes('It has big eyes.'), '默认特征句应为 cat 的');
+    // Q2 选 rabbit → Q3 变 rabbit 特征句
+    const q2 = mmBox(window.document, 'What pet do you want?');
+    Array.from(q2.querySelectorAll('button.option')).find((b) => b.textContent.includes('I want a rabbit.'))
+      .dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    q3 = mmBox(window.document, 'What does your pet look like?');
+    assert.ok(q3.textContent.includes('It has long ears.'), '换 rabbit 后特征句应变为长耳朵');
+    // Q3 先选答案，再回 Q2 换 dog → Q3 已选必须清空且特征句变化
+    Array.from(q3.querySelectorAll('button.option')).find((b) => b.textContent.includes('It has long ears.'))
+      .dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    const q2b = mmBox(window.document, 'What pet do you want?');
+    Array.from(q2b.querySelectorAll('button.option')).find((b) => b.textContent.includes('I want a dog.'))
+      .dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    q3 = mmBox(window.document, 'What does your pet look like?');
+    assert.ok(q3.textContent.includes('It has short legs.'), '换 dog 后特征句应变为短腿');
+    assert.ok(!q3.querySelector('.option.is-correct'), '换动物后第 3 问已选答案应清空');
+    // 重新选第 3 问（dog 的特征句）
+    Array.from(q3.querySelectorAll('button.option')).find((b) => b.textContent.includes('It has short legs.'))
+      .dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    // 点候选喇叭只朗读不选中
+    const q1 = mmBox(window.document, 'Do you have a pet?');
+    q1.querySelector('.mm-speak').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    const q1Box = mmBox(window.document, 'Do you have a pet?');
+    assert.equal(q1Box.querySelectorAll('.option.is-correct').length, 0, '点喇叭不得选中');
+    // 4 问全选 → 拼装段 + 连读 + 完成按钮
+    Array.from(q1Box.querySelectorAll('button.option')).find((b) => b.textContent.includes('I want a pet!'))
+      .dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    const q4 = mmBox(window.document, 'What do you do with your pet?');
+    Array.from(q4.querySelectorAll('button.option')).find((b) => b.textContent.includes('I feed it.'))
+      .dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(mainText(window).includes('介绍词拼好啦'), '4 问全选应拼装介绍词');
+    assert.ok(mainText(window).includes('I love my pet!'), '拼装段应含固定结尾句');
+    assert.ok(mainText(window).includes('整段连读'), '应可整段连读');
+    // 完成思维导图（按钮名与旧版一致）
+    await clickButton(window, '我的宠物介绍好了');
+    assert.ok(true);
   } finally { cleanup(); }
 });
