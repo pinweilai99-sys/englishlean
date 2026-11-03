@@ -1146,9 +1146,11 @@ test('E2E-41 真实输出页铁律：只要是英语就必须有 🔊 播放（�
     await new Promise((r) => setTimeout(r, 30));
     assert.ok(!window.document.querySelector('main .option.is-correct'), '点情境喇叭不得判分');
     assert.ok(!window.document.querySelector('main .option.is-wrong'), '点情境喇叭不得留错误标记');
-    // 思维导图：课本示范句有 🔊 听示范（英语长句）
+    // 思维导图：课本示范句有 🔊 听示范 + 英文文字版（家长定版：语音下面加文字版）
     const sampleSpeak = window.document.querySelector('main .mm-sample-speak');
     assert.ok(sampleSpeak, '课本示范句应有 🔊 听示范');
+    assert.ok(mainText(window).includes('I have a cat. Her name is Mimi.'), '课本示范英文文字版应显示');
+    assert.ok(mainText(window).includes('I love my pet cat.'), '课本示范文字版应完整显示');
     // 汇总清点：本页所有英语朗读入口齐全（角色扮演台词/家长选项/写作情境/候选/作文/导图问题/候选/示范）
     assert.equal(window.document.querySelectorAll('main .mm-q-speak').length, 4, '4 个导图问题 🔊 齐全');
   } finally { cleanup(); }
