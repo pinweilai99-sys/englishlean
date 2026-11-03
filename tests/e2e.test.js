@@ -668,8 +668,7 @@ test('E2E-26 拼写屋队列规则：12 词每词只拼 1 次；拼错的词不�
   } finally { cleanup(); }
 });
 
-test('E2E-27 拼写屋完成页错词总结：本轮拼错的词+中文意思展示在完成页下方并落盘', async () => {
-  const { window, app, cleanup } = await freshApp();
+test('E2E-27 拼写屋完成页错词总结：本轮拼错的词+中文意思展示在完成页下方并落盘', async () => {  const { window, app, cleanup } = await freshApp();
   try {
     await navigate(window, app, '#/unit/u5/stage/0/spelling');
     const firstWord = UNIT.words[0].w;
@@ -699,5 +698,28 @@ test('E2E-27 拼写屋完成页错词总结：本轮拼错的词+中文意思展
     // 错词清单落盘
     const p = persisted(window);
     assert.deepEqual(p.progress.u5.spellingWrong, [firstWord], 'spellingWrong 应落盘');
+  } finally { cleanup(); }
+});
+
+test('E2E-29 单词卡记词分块：分块按钮可点读 + 记忆提示展示', async () => {
+  const { window, app, cleanup } = await freshApp();
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0');
+    // 默认第 1 词 may：应有分块区与记忆提示
+    assert.match(mainText(window), /记词分块/, '单词卡应展示记词分块区');
+    assert.match(mainText(window), /拼音 mei/, 'may 的记忆提示应展示');
+    // 跳到 clever（多音节拆分 cle·ver）
+    app.state.session.wordIndex = 8;
+    app.render();
+    await new Promise((r) => setTimeout(r, 20));
+    const text = mainText(window);
+    assert.match(text, /双音节 cle·ver/, 'clever 的记忆提示应展示');
+    const chunkBtns = buttons(window).filter((b) => b.classList.contains('chunk-btn'));
+    assert.deepEqual(chunkBtns.map((b) => b.textContent.trim()), ['cle', 'ver'], '应有 cle / ver 两个分块按钮');
+    // 点分块按钮 → 分块发音（旧口径无此功能）
+    window.speechSynthesis.__spoken.length = 0;
+    chunkBtns[0].dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(window.speechSynthesis.__spoken.includes('cle'), '点分块应朗读该块');
   } finally { cleanup(); }
 });

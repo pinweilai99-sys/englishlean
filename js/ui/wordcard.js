@@ -45,6 +45,24 @@ export function renderWordCard(ctx, unit) {
     wrap.appendChild(h('div', { class: 'word-zh', text: w.zh }));
     wrap.appendChild(h('div', {}, [h('span', { class: `tier-tag ${w.tier}`, text: w.tier === 'four' ? '四会词（会读会写）' : '认读词（会读会认）' })]));
 
+    // 🧩 记词分块：读音分块（点击可分块发音）+ 一句记忆提示（音节/合成词/字母组合）
+    const chunks = Array.isArray(w.chunks) && w.chunks.length ? w.chunks : [w.w];
+    const chunkBtns = h('div', { class: 'chunk-row' });
+    chunks.forEach((c, ci) => {
+      if (ci > 0) chunkBtns.appendChild(h('span', { class: 'chunk-dot', text: '·' }));
+      chunkBtns.appendChild(h('button', {
+        class: 'chunk-btn',
+        text: c,
+        'aria-label': `读 ${c}`,
+        onclick: () => tts.speak(c.toLowerCase()),
+      }));
+    });
+    wrap.appendChild(h('div', { class: 'memo-box' }, [
+      h('p', { class: 'memo-title', text: '🧩 记词分块（点一块读一块）' }),
+      chunkBtns,
+      h('p', { class: 'memo-hint', text: `💡 ${w.memo || ''}` }),
+    ]));
+
     const steps = h('div', { class: 'steps' });
     ['① 听音', '② 认形', '③ 跟读'].forEach((label, si) => {
       steps.appendChild(h('span', {

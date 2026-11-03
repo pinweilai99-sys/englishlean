@@ -229,3 +229,12 @@ textarea.text-input { min-height: 140px; resize: vertical; }
 .fw-word { position: absolute; left: 0; top: 0; overflow: visible; }
 .fw-solid { fill: #2b2b2b; }
 .fw-trace { fill: rgba(0,0,0,.16); }
+
+/* ============ 记词分块（单词卡：读音分块 + 记忆提示） ============ */
+.memo-box { background: var(--bg, #f7f3e8); border-radius: 14px; padding: 10px 14px; margin: 12px auto 0; max-width: 460px; }
+.memo-title { text-align: center; font-weight: 800; color: #8a6d1a; margin: 0; font-size: var(--fs-sm); }
+.chunk-row { display: flex; gap: 6px; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.chunk-btn { border: 2px solid #d9c68a; background: #fff; border-radius: 12px; padding: 6px 16px; font-weight: 900; font-size: var(--fs-md); letter-spacing: 1px; color: var(--ink, #2b2b2b); cursor: pointer; font-family: "Times New Roman", serif; }
+.chunk-btn:active { background: #f3e9c8; }
+.chunk-dot { color: #b58900; font-weight: 900; font-size: var(--fs-lg); }
+.memo-hint { text-align: center; margin: 8px 0 0; font-size: var(--fs-sm); color: #6b6b6b; }

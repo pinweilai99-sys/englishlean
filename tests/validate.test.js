@@ -52,6 +52,22 @@ test('听音选词：12 个单元单词逐词出现（每词都是一题的目�
   raw.listenPairs.forEach(([t, d]) => assert.notEqual(t, d, `${t} 的干扰词不能是自身`));
 });
 
+test('记词分块：每词都有 chunks（分块字母拼合=单词本身）与非空 memo 记忆提示', () => {
+  raw.words.forEach((w) => {
+    assert.ok(Array.isArray(w.chunks) && w.chunks.length >= 1, `${w.w} 缺少 chunks`);
+    const joined = w.chunks.join('').toLowerCase().replace(/[^a-z]/g, '');
+    assert.equal(joined, w.w.toLowerCase().replace(/[^a-z]/g, ''),
+      `${w.w} 的分块 ${JSON.stringify(w.chunks)} 拼合后应等于单词本身`);
+    assert.equal(typeof w.memo, 'string');
+    assert.ok(w.memo.trim().length >= 6, `${w.w} 的 memo 记忆提示不应为空`);
+  });
+  // 分块数>1 的词应覆盖多音节/合成词/后缀词
+  const multi = raw.words.filter((w) => w.chunks.length > 1).map((w) => w.w);
+  for (const need of ['rabbit', 'lovely', 'goldfish', 'clever', 'parrot']) {
+    assert.ok(multi.includes(need), `${need} 应有多块拆分`);
+  }
+});
+
 test('缺少 words 字段 → 报错并指明字段', () => {
   const bad = { ...raw };
   delete bad.words;
