@@ -3,7 +3,7 @@
 // 修复 = 播放优先音频文件（assets/audio/*.m4a），TTS 只作兜底。本文件锁死该行为。
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { audioSlug, hasAudio, initAudio, playAudio, _debugSetAvailable } from '../js/services/audio.js';
@@ -98,4 +98,21 @@ describe('音频清单与播放降级', () => {
     assert.equal(r.size, 0, '拉不到清单应为空集');
     assert.equal(hasAudio('pet'), false);
   });
+});
+
+test('AUD-8 浏览器端代码禁止 import Node 内置模块（node:crypto 曾致线上白屏）', () => {
+  const dirs = ['js/services', 'js/ui', 'js/core'];
+  let checked = 0;
+  for (const dir of dirs) {
+    for (const f of readdirSync(join(root, dir))) {
+      const p = join(root, dir, f);
+      if (statSync(p).isDirectory()) continue;
+      if (!f.endsWith('.js')) continue;
+      const code = readFileSync(p, 'utf8');
+      assert.ok(!/from\s+['"]node:/i.test(code) && !/import\(\s*['"]node:/i.test(code),
+        `${dir}/${f} 含 node: 导入——浏览器没有 Node 内置模块，会让整个应用白屏；必须改纯 JS`);
+      checked++;
+    }
+  }
+  assert.ok(checked >= 15, `应检查到足量浏览器端文件（实际 ${checked}）`);
 });
