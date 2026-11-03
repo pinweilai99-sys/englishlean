@@ -252,7 +252,7 @@ test('E2E-7 打卡：当天连点不重复计数，持久化', async () => {
   } finally { cleanup(); }
 });
 
-test('E2E-8 Stage2 完整通关：替换 3 种动物 + 三组应答全对 → stagePassed[1]=true', async () => {
+test('E2E-8 Stage2 完整通关：填读 3 种动物 + 两组应答全对 → stagePassed[1]=true', async () => {
   const seed = {
     version: 1, stars: 0, streak: 0, lastStudyDate: null,
     progress: { u5: { stagePassed: [true, false, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
@@ -261,15 +261,14 @@ test('E2E-8 Stage2 完整通关：替换 3 种动物 + 三组应答全对 → st
   const { window, app, cleanup } = await freshApp({ seed });
   try {
     await navigate(window, app, '#/unit/u5/stage/1');
-    // 替换 3 种动物并跟读确认
+    // 填读 3 种动物（每次点动物填空 + 跟读确认）
     for (const animal of ['rabbit', 'goldfish', 'dog']) {
       await clickButton(window, animal);
       await clickButton(window, '我读出来了');
     }
-    // 三组应答配对：按题目块内点正确选项
+    // 两组应答配对：题目 1 跟随最后所选动物 dog（新口径 2 题，旧口径 3 组固定题）
     const pairs = [
-      { q: 'May I have a pet?', a: 'Yes, you can.' },
-      { q: 'May I have a rabbit?', a: "No, you can't." },
+      { q: 'May I have a dog?', a: 'Yes, you can.' },
       { q: 'May I hold it?', a: 'Sure.' },
     ];
     for (const { q, a } of pairs) {
@@ -769,5 +768,38 @@ test('E2E-31 核心句型页结构层级：句型填空与应答配对拆成两�
     // 配对卡：含配对题目与选项，不含填空空格
     assert.ok(pairCard.textContent.includes('May I have a pet?'), '配对卡应含题目');
     assert.ok(!pairCard.querySelector('.blank-slot'), '配对卡不应混入填空空格');
+  } finally { cleanup(); }
+});
+
+test('E2E-32 应答配对跟随所选动物：题目动态出，换动物后题目重置（旧口径固定 3 组题不跟随）', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, false, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/1');
+    // 未选动物时退回课本原句
+    assert.match(mainText(window), /May I have a pet\?/, '未选动物应显示课本原句 pet');
+    // 选 parrot → 题目变为 May I have a parrot?（旧口径永远固定 rabbit）
+    await clickButton(window, 'parrot');
+    assert.match(mainText(window), /May I have a parrot\?/, '题目应跟随所选动物 parrot');
+    // 答对 parrot 题 → 锁定并标记正确
+    const blocks = () => Array.from(window.document.querySelectorAll('.card > div'));
+    let box = blocks().find((d) => (d.textContent || '').includes('May I have a parrot?') && d.querySelector('button'));
+    const yesBtn = Array.from(box.querySelectorAll('button')).find((b) => b.textContent.trim() === 'Yes, you can.');
+    yesBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    box = blocks().find((d) => (d.textContent || '').includes('May I have a parrot?') && d.querySelector('button'));
+    assert.ok(box.querySelector('.option.is-correct'), '答对应标记 is-correct');
+    // 换动物 cat → 题目换新并重置（不再锁定）
+    await clickButton(window, 'cat');
+    assert.match(mainText(window), /May I have a cat\?/, '换动物后题目应跟随变化');
+    const catBox = blocks().find((d) => (d.textContent || '').includes('May I have a cat?') && d.querySelector('button'));
+    assert.ok(catBox, '应出现 cat 的新题目');
+    assert.equal(catBox.querySelector('.option.is-correct'), null, '新题目应重置为未作答');
+    const yesBtn2 = Array.from(catBox.querySelectorAll('button')).find((b) => b.textContent.trim() === 'Yes, you can.');
+    assert.ok(yesBtn2, '新题目应可再次作答');
   } finally { cleanup(); }
 });

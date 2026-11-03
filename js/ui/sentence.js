@@ -75,40 +75,47 @@ export function renderSentence(ctx, unit) {
     cardFill.appendChild(h('p', { class: 'hint', text: `已填读过 ${used.size} / 3 种动物（达到 3 种即完成）` }));
     wrap.appendChild(cardFill);
 
-    // ───────── 卡片 2：应答配对 ─────────
+    // ───────── 卡片 2：应答配对（跟随所选动物出题） ─────────
     const cardPair = h('div', { class: 'card' });
     cardPair.appendChild(h('div', { class: 'card-title', text: '↔️ 第 2 步 · 应答配对' }));
-    cardPair.appendChild(h('p', { class: 'card-sub', text: '听问题，选出正确的回答。' }));
+    cardPair.appendChild(h('p', { class: 'card-sub', text: '用你选的动物提问，选出正确的回答。' }));
+    // 题干跟随当前所选动物（未选时退回课本原句 pet）；按题干文本记录答案，换动物后题目自动重置
     const pairs = [
-      { q: 'May I have a pet?', a: 'Yes, you can.' },
-      { q: 'May I have a rabbit?', a: 'No, you can\'t.' },
+      { q: `May I have a ${slot || 'pet'}?`, a: 'Yes, you can.' },
       { q: 'May I hold it?', a: 'Sure.' },
     ];
-    pairs.forEach((pair, i) => {
-      const answered = session.answers?.[i];
+    pairs.forEach((pair) => {
+      const answeredOk = !!session.answeredOk?.[pair.q];
+      const chosen = session.answers?.[pair.q];
       const box = h('div', { style: 'margin-bottom:12px' }, [
         h('div', { class: 'story-text', style: 'font-weight:800', text: pair.q }),
       ]);
       const row = h('div', { class: 'btn-row', style: 'margin-top:8px' });
       s.answers.concat(['Sure.']).forEach((ans) => {
         row.appendChild(h('button', {
-          class: `option ${answered ? (ans === pair.a ? 'is-correct' : 'is-wrong') : ''}`,
+          class: `option ${answeredOk ? (ans === pair.a ? 'is-correct' : 'is-wrong') : ''}`,
           style: 'width:auto;min-width:150px;margin-bottom:0',
           text: ans,
           onclick: () => {
-            if (answered !== undefined) return;
-            session.answers = session.answers || {};
-            session.answers[i] = ans;
+            if (answeredOk) return; // 答对的题锁定；答错可重试
             if (ans === pair.a) {
-              ctx.addStars(1); starFly(1);
+              session.answers = session.answers || {};
+              session.answeredOk = session.answeredOk || {};
+              session.answers[pair.q] = ans;
+              session.answeredOk[pair.q] = true;
+              if (!session.starredOk?.[pair.q]) {
+                session.starredOk = session.starredOk || {};
+                session.starredOk[pair.q] = true;
+                ctx.addStars(1); starFly(1);
+              }
               toast('配对正确！');
             } else {
               ctx.addWrong({ unit: unit.id, type: 'answer_match', q: pair.q, a: pair.a, chosen: ans });
               toast('再想想看～');
             }
             render();
-            const ok = Object.values(session.answers || {}).filter((v, idx) => v === pairs[idx].a).length;
-            if (ok === pairs.length) {
+            const ok = pairs.every((p) => session.answeredOk?.[p.q]);
+            if (ok) {
               toast('🎉 应答全部配对成功！', 3000);
               confetti();
               ctx.completeStage(unit.id, 1);
@@ -116,14 +123,15 @@ export function renderSentence(ctx, unit) {
           },
         }));
       });
+      if (chosen && !answeredOk) box.querySelector('.story-text').appendChild(h('span', { class: 'hint', text: '（刚才选错了，再试一次）' }));
       box.appendChild(row);
       cardPair.appendChild(box);
     });
 
-    const done = session.usedSlots?.length >= 3;
+    const done = session.usedSlots?.length >= 3 && pairs.every((p) => session.answeredOk?.[p.q]);
     cardPair.appendChild(h('div', { class: 'btn-row', style: 'margin-top:18px' }, [
       h('button', {
-        class: 'btn', text: done ? '✅ 完成句型阶段' : '🔒 完成替换 3 种动物后解锁',
+        class: 'btn', text: done ? '✅ 完成句型阶段' : '🔒 完成 3 种动物跟读和应答配对后解锁',
         onclick: () => {
           if (!done) { toast('再替换几种动物吧～'); return; }
           ctx.completeStage(unit.id, 1);
