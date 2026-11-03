@@ -57,7 +57,33 @@
     "pattern": "May I have a ___?",
     "slots": ["rabbit", "goldfish", "dog", "cat", "parrot"],
     "answers": ["Yes, you can.", "No, you can't."],
-    "extra": { "May I hold it?": "Sure." }
+    "extra": { "May I hold it?": "Sure." },
+    "dialogues": {
+      "pet": [
+        { "q": "May I have a pet?", "a": "Yes, you can.", "opts": ["Yes, you can.", "No, you can't.", "Sure."] },
+        { "q": "May I hold it?", "a": "Sure.", "opts": ["Sure.", "Yes, you can.", "No, you can't."] }
+      ],
+      "rabbit": [
+        { "q": "May I have a rabbit?", "a": "Yes, you can.", "opts": ["Yes, you can.", "No, you can't.", "Sure."] },
+        { "q": "Can you take good care of it?", "a": "OK. Yes, I can.", "opts": ["OK. Yes, I can.", "Yes, you can.", "No, you can't."] }
+      ],
+      "goldfish": [
+        { "q": "May I have a goldfish?", "a": "No, you can't. But you can feed it.", "opts": ["No, you can't. But you can feed it.", "Yes, you can.", "Sure."] },
+        { "q": "May I feed it?", "a": "Sure.", "opts": ["Sure.", "No, you can't.", "OK. Yes, I can."] }
+      ],
+      "dog": [
+        { "q": "May I touch him?", "a": "No, you can't. He's working now.", "opts": ["No, you can't. He's working now.", "Sure.", "Yes, you can."] },
+        { "q": "Can he help blind people?", "a": "Yes, he can.", "opts": ["Yes, he can.", "Yes, you can.", "Sure."] }
+      ],
+      "cat": [
+        { "q": "May I have a cat?", "a": "Yes, you can.", "opts": ["Yes, you can.", "No, you can't.", "Sure."] },
+        { "q": "May I hold it?", "a": "Sure.", "opts": ["Sure.", "No, you can't.", "Yes, you can."] }
+      ],
+      "parrot": [
+        { "q": "May I have a parrot?", "a": "Yes, you can.", "opts": ["Yes, you can.", "No, you can't.", "Sure."] },
+        { "q": "Can you take good care of it?", "a": "OK. Yes, I can.", "opts": ["OK. Yes, I can.", "Sure.", "No, you can't."] }
+      ]
+    }
   },
   "roleplay": {
     "scene": "宠物店：你想要一只小宠物",
