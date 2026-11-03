@@ -1,7 +1,7 @@
 // Stage3 真实输出：角色扮演 / Let's Write / 思维导图
-import { h, toast, starFly, confetti } from './dom.js?v=1793710775';
-import * as tts from '../services/tts.js?v=1793710775';
-import * as recorder from '../services/recorder.js?v=1793710775';
+import { h, toast, starFly, confetti } from './dom.js?v=1793711771';
+import * as tts from '../services/tts.js?v=1793711771';
+import * as recorder from '../services/recorder.js?v=1793711771';
 
 export function renderOutput(ctx, unit) {
   const session = ctx.session;
@@ -149,7 +149,8 @@ export function renderOutput(ctx, unit) {
     if (wrAllOk) {
       const lines = wrItems.map((it) => it.a);
       const doneBox = h('div', { style: 'margin-top:12px' }, [
-        h('p', { class: 'hint', style: 'font-weight:800', text: '🎉 第 2 步：三句话连起来，就是你的作文！读一读吧：' }),
+        // 是"三段对话"不是"作文"——对话逻辑：问→答→再问答，连起来演一演（家长的严谨反馈）
+        h('p', { class: 'hint', style: 'font-weight:800', text: '🎉 第 2 步：三段对话连起来，演一演吧：' }),
       ]);
       lines.forEach((ln) => {
         doneBox.appendChild(h('p', {
@@ -161,25 +162,43 @@ export function renderOutput(ctx, unit) {
       doneBox.appendChild(h('div', { class: 'btn-row', style: 'margin-top:8px' }, [
         h('button', { class: 'btn ghost', text: '🔊 整段连读', onclick: () => tts.speakSequence(lines) }),
         h('button', {
-          class: 'btn leaf', text: '✅ 我会写这三句了',
+          class: 'btn leaf', text: '✅ 这三句我会了',
           onclick: () => {
             session.writeDone = true;
             ctx.addStars(2); starFly(2);
-            toast('写得真好！');
+            toast('说得真好！');
             render();
           },
         }),
       ]));
       wrap.appendChild(doneBox);
     } else {
-      wrap.appendChild(h('p', { class: 'hint', style: 'margin-top:8px', text: '🔒 三句话都选对了，就能听到你的完整作文啦！' }));
+      wrap.appendChild(h('p', { class: 'hint', style: 'margin-top:8px', text: '🔒 三段对话都选对了，就能连起来演一遍啦！' }));
     }
 
-    // 3. 挑战层（选做）：把三句话打出来
-    wrap.appendChild(h('p', { class: 'hint', style: 'margin-top:14px;font-weight:700', text: '✏️ 挑战（选做）：把这三句话打出来' }));
+    // 挑战层（选做）：自由创作——孩子学会了对话，自己编一段对话或写一段介绍
+    // 句型支架示例全部用已生成音频的句子（英语必有播放铁律），点 🔊 听示范
+    wrap.appendChild(h('p', { class: 'hint', style: 'margin-top:14px;font-weight:700', text: '✏️ 挑战（选做）：学着自己写——编一段对话，或介绍你的宠物' }));
+    const chalBox = h('div', { style: 'margin-top:6px' });
+    const chalExamples = [
+      { label: '对话示范：', lines: ['May I have a cat?', 'Yes, you can.'] },
+      { label: '介绍示范：', lines: ['I want a dog.', 'It has short legs.', 'I love my pet!'] },
+    ];
+    chalExamples.forEach((ex) => {
+      chalBox.appendChild(h('div', { class: 'story-text', style: 'margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap' }, [
+        h('strong', { text: ex.label }),
+        h('span', { text: ex.lines.join(' ') }),
+        h('button', {
+          class: 'wr-challenge-speak', title: '听示范', text: '🔊',
+          style: 'border:none;background:none;cursor:pointer;font-size:inherit',
+          onclick: (e) => { e.stopPropagation(); tts.speakSequence(ex.lines); },
+        }),
+      ]));
+    });
+    wrap.appendChild(chalBox);
     const ta = h('textarea', {
       class: 'text-input',
-      placeholder: '选做：会打字的小朋友来挑战～',
+      placeholder: '选做：把你自己编的对话或介绍写在这里～',
       oninput: (e) => { session.writeText = e.target.value; },
     });
     if (session.writeText) ta.value = session.writeText;
@@ -293,12 +312,21 @@ export function renderOutput(ctx, unit) {
       }),
     ]));
 
-    const allDone = session.rpDone && session.writeDone && session.mmDone;
+    // 底部：明示还剩哪几项没做（家长建议：三项里没做的要在底部提示）
+    const missing = [];
+    if (!session.rpDone) missing.push('① 宠物店角色扮演');
+    if (!session.writeDone) missing.push("② Let's Write 对话");
+    if (!session.mmDone) missing.push('③ 宠物思维导图');
+    const allDone = missing.length === 0;
+    wrap.appendChild(h('p', {
+      class: 'hint', style: 'margin-top:16px;font-weight:700',
+      text: allDone ? '🎉 三项任务都完成啦，点下面收下你的成果！' : `📝 还没完成：${missing.join('、')}`,
+    }));
     wrap.appendChild(h('div', { class: 'btn-row', style: 'margin-top:20px' }, [
       h('button', {
         class: 'btn', text: allDone ? '🎉 完成输出阶段' : '🔒 完成三项后解锁',
         onclick: () => {
-          if (!allDone) { toast('三项任务都做一做吧～'); return; }
+          if (!allDone) { toast(`还差：${missing.join('、')}`); return; }
           ctx.completeStage(unit.id, 2);
           toast('🎉 真实输出完成！', 3000);
           confetti();
