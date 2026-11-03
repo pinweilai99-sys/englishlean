@@ -12,7 +12,16 @@ let currentEl = null;
 // 文本 → 音频文件名（纯函数，生成脚本与运行时共用同一实现，保证命名一致）。
 // 例："May I have a rabbit?" → may-i-have-a-rabbit；"It's lovely." → its-lovely
 // 超长文本（如整段故事）：截断 + 8 位哈希后缀，既不超文件名限制又保证不重名。
-import { createHash } from 'node:crypto';
+// ⚠️ 哈希用纯 JS 的 FNV-1a（浏览器/Node 通用）。绝不能 import 'node:crypto'——
+//    浏览器没有该模块，会让整个 app 模块图加载失败 → 白屏（2026-11-03 线上事故）。
+function fnv1aHex(s) {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    hash ^= s.charCodeAt(i);
+    hash = (hash + ((hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24))) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
+}
 
 export function audioSlug(text) {
   let s = String(text)
@@ -22,8 +31,7 @@ export function audioSlug(text) {
     .replace(/^-+|-+$/g, '');
   if (!s) return 'x';
   if (s.length > 60) {
-    const h = createHash('sha256').update(s).digest('hex').slice(0, 8);
-    s = `${s.slice(0, 60).replace(/-+$/, '')}-${h}`;
+    s = `${s.slice(0, 60).replace(/-+$/, '')}-${fnv1aHex(s)}`;
   }
   return s;
 }
