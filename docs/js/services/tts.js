@@ -32,8 +32,9 @@ const NATURAL_RE = new RegExp(
   'i',
 );
 
-// 选音（纯函数，可测试）：英语语音里先剔除特效音，再优先"自然音"，最后才退回任意英语。
-// 口径：en-US 优先 → 任意自然音 → en-GB → 第一个普通英语音；全是特效音也绝不返回 null。
+// 选音（纯函数，可测试）：本项目发音标准 = 美音（en-US，与小学教材配套录音一致）。
+// 英语语音里先剔除特效音，再严格优先 en-US（自然音 > 普通音），en-GB 仅作无美音时的最后兜底。
+// 口径：自然 en-US → 普通 en-US → 自然 en-GB → en-GB → 第一个普通英语音；全是特效音也绝不返回 null。
 export function chooseVoice(voices) {
   const list = (voices || []).filter((v) => /^en(-|_|$)/i.test(v.lang || ''));
   if (!list.length) return null;
@@ -41,8 +42,8 @@ export function chooseVoice(voices) {
   const pool = normal.length ? normal : list;
   return (
     pool.find((v) => NATURAL_RE.test(v.name || '') && /en-US/i.test(v.lang || ''))
-    || pool.find((v) => NATURAL_RE.test(v.name || ''))
     || pool.find((v) => /en-US/i.test(v.lang || ''))
+    || pool.find((v) => NATURAL_RE.test(v.name || '') && /en-GB/i.test(v.lang || ''))
     || pool.find((v) => /en-GB/i.test(v.lang || ''))
     || pool[0]
   );
