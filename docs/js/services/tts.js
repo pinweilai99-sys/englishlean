@@ -1,6 +1,7 @@
-// TTS 发音服务：SpeechSynthesis 封装 + 不可用时的降级
+// TTS 发音服务：优先播预生成音频文件（手机无 TTS 引擎也能出声），speechSynthesis 兜底
 // 降级原则：没有音频能力时隐藏喇叭、改为"手动确认"，绝不让页面报错或阻塞学习。
 // 能力检测在调用时进行（而非导入时），确保环境变化（含测试注入）即时生效。
+import { hasAudio, playAudio, stopAudio } from './audio.js?v=1793670759';
 
 const state = {
   enabled: true,
@@ -64,14 +65,29 @@ export function setEnabled(flag) {
 }
 
 export function cancel() {
+  stopAudio();
   const s = synth();
   if (!s) return;
   try { s.cancel(); } catch (e) { /* 忽略 */ }
   state.current = null;
 }
 
-// 朗读文本；返回 Promise，播放结束或失败时 resolve
-export function speak(text, opts = {}) {
+// 朗读文本（入口）：优先播预生成音频文件（手机无 TTS 引擎也能出声），失败退回 speechSynthesis。
+// 返回 Promise，播放结束或失败时 resolve。
+export async function speak(text, opts = {}) {
+  if (!state.enabled || !text) {
+    return Promise.resolve({ ok: false, reason: 'unavailable' });
+  }
+  if (hasAudio(text)) {
+    // eslint-disable-next-line no-await-in-loop
+    const ok = await playAudio(text);
+    if (ok) return { ok: true, via: 'audio' };
+  }
+  return speakSynth(text, opts);
+}
+
+// speechSynthesis 兜底通道（原实现）
+function speakSynth(text, opts = {}) {
   const { rate = 0.85, pitch = 1.0, lang = 'en-US' } = opts;
   const s = synth();
   if (!s || !state.enabled || !text) {

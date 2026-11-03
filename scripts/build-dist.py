@@ -16,7 +16,7 @@ VER = str(int(time.time()))
 if os.path.exists(DIST):
     shutil.rmtree(DIST)
 os.makedirs(DIST)
-for item in ['index.html', 'styles', 'js', 'data', 'models']:
+for item in ['index.html', 'styles', 'js', 'data', 'models', 'assets']:
     src = os.path.join(ROOT, item)
     dst = os.path.join(DIST, item)
     if os.path.isdir(src):

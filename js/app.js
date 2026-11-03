@@ -20,6 +20,7 @@ import { renderStories, renderQuiz } from './ui/story.js';
 import { renderRecall } from './ui/recall.js';
 import { renderParent } from './ui/parent.js';
 import * as tts from './services/tts.js';
+import { initAudio } from './services/audio.js';
 
 const UNIT_ID = 'u5';
 const state = {
@@ -291,6 +292,10 @@ async function boot() {
 
   window.addEventListener('hashchange', render);
   render();
+
+  // 拉取预生成音频清单（assets/audio/manifest.json）：手机没有英语 TTS 引擎也能播放发音。
+  // 拉取失败不阻塞（全部退回 speechSynthesis）。
+  initAudio();
 
   // 后台渐进加载本地识别模型（Whisper WASM）：不阻塞学习；就绪后"我来读"自动升级为离线打分。
   // E2E 测试通过 __disableLocalAsr 禁用（jsdom 无法执行 wasm）。
