@@ -1,7 +1,7 @@
 // Stage2 核心句型：① 句型填空（选动物填空+跟读） → ② 应答配对
 // 结构：两张独立卡片，层级清晰（填空是第一步，配对是第二步）
-import { h, toast, starFly, confetti } from './dom.js?v=1793700777';
-import * as tts from '../services/tts.js?v=1793700777';
+import { h, toast, starFly, confetti } from './dom.js?v=1793703062';
+import * as tts from '../services/tts.js?v=1793703062';
 
 export function renderSentence(ctx, unit) {
   const s = unit.sentences;
@@ -97,7 +97,8 @@ export function renderSentence(ctx, unit) {
       const row = h('div', { class: 'btn-row', style: 'margin-top:8px' });
       (pair.opts || s.answers.concat(['Sure.'])).forEach((ans) => {
         row.appendChild(h('button', {
-          class: `option ${answeredOk ? (ans === pair.a ? 'is-correct' : 'is-wrong') : ''}`,
+          // 答对后只标绿正确项，其余恢复中性——不给孩子看"红色错误"残留（成长型思维：不留失败痕迹）
+          class: `option ${answeredOk && ans === pair.a ? 'is-correct' : ''}`,
           style: 'width:auto;min-width:150px;margin-bottom:0',
           text: ans,
           onclick: () => {
