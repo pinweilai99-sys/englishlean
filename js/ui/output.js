@@ -1,7 +1,7 @@
 // Stage3 真实输出：角色扮演 / Let's Write / 思维导图
-import { h, toast, starFly, confetti } from './dom.js?v=1793711771';
-import * as tts from '../services/tts.js?v=1793711771';
-import * as recorder from '../services/recorder.js?v=1793711771';
+import { h, toast, starFly, confetti } from './dom.js?v=1793712794';
+import * as tts from '../services/tts.js?v=1793712794';
+import * as recorder from '../services/recorder.js?v=1793712794';
 
 export function renderOutput(ctx, unit) {
   const session = ctx.session;
@@ -302,7 +302,7 @@ export function renderOutput(ctx, unit) {
     } else {
       wrap.appendChild(h('p', { class: 'hint', style: 'margin-top:8px', text: '🔒 四个问题都选好了，就能拼出你的宠物介绍！' }));
     }
-    // 课本示范是英语，必须有播放（铁律：只要是英语就要有 🔊）
+    // 课本示范是英语：🔊 语音版 + 英文文字版（家长定版：语音下面加文字版，点文字可再听）
     wrap.appendChild(h('div', { class: 'hint', style: 'margin-top:10px;display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap' }, [
       h('span', { text: '📖 课本示范：' }),
       h('button', {
@@ -311,6 +311,11 @@ export function renderOutput(ctx, unit) {
         onclick: () => tts.speak(mm.sample),
       }),
     ]));
+    wrap.appendChild(h('p', {
+      class: 'story-text', style: 'margin-top:6px;cursor:pointer', title: '点一下再听一遍',
+      text: mm.sample,
+      onclick: () => tts.speak(mm.sample),
+    }));
 
     // 底部：明示还剩哪几项没做（家长建议：三项里没做的要在底部提示）
     const missing = [];
