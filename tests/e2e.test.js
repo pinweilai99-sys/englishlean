@@ -1240,3 +1240,32 @@ test('E2E-43 对话连读改名+挑战自由创作（句型支架带🔊）+ 底
     assert.ok(mainText(window).includes('三项任务都完成啦'), '全完成后应有完成提示');
   } finally { cleanup(); }
 });
+
+test('E2E-44 范文对话：课文范围示范对话（说话人+英文+中文，每句 🔊+整段连读），点喇叭不判分', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/2');
+    // 14 行范文对话齐全：每行 🔊
+    const sdSpeaks = window.document.querySelectorAll('main .sd-speak');
+    assert.equal(sdSpeaks.length, 14, '范文对话 14 句都应有 🔊');
+    // 英文文字版 + 中文 + 说话人显示
+    assert.ok(mainText(window).includes('May I come in?'), '进店问句应显示');
+    assert.ok(mainText(window).includes('我可以进来吗'), '每句应有中文对照');
+    assert.ok(mainText(window).includes('May I feed it a carrot?'), '喂胡萝卜句应显示');
+    assert.ok(mainText(window).includes('我可以摸摸它吗'), '摸摸它中文应显示');
+    assert.ok(mainText(window).includes("You're welcome."), '结束礼貌用语应显示');
+    // 场景行 + 整段连读按钮
+    assert.ok(mainText(window).includes('在宠物店'), '场景应显示');
+    assert.ok(mainText(window).includes('范文整段连读'), '应有范文整段连读按钮');
+    // 点句子喇叭不判分、不留标记
+    sdSpeaks[0].dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(!window.document.querySelector('main .option.is-correct'), '点范文喇叭不得判分');
+    assert.ok(!window.document.querySelector('main .option.is-wrong'), '点范文喇叭不得留错误标记');
+  } finally { cleanup(); }
+});

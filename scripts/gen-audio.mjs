@@ -53,6 +53,9 @@ function collectTexts() {
       if (it.ctx) texts.add(it.ctx);
       if (it.ask) texts.add(it.ask);
     });
+    // 范文对话（挑战区示范对话：每一句都要 🔊）
+    const sd = (u.writing || {}).sampleDialogue;
+    if (sd) (sd.lines || []).forEach((l) => { if (l.t) texts.add(l.t); });
     // 思维导图：问题句（🔊 听问题）+ 每问全部候选句 + 动物特征句 + 结尾句（拼装介绍词逐句朗读）
     const mm = u.mindmap || {};
     if (mm.sample) texts.add(mm.sample);
