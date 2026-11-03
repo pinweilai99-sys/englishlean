@@ -74,12 +74,92 @@ export function renderOutput(ctx, unit) {
       }),
     ]));
 
-    // 2. Let's Write
+    // 2. Let's Write（三步脚手架：① 听情境选句子 → ② 三句连读输出 → ③ 选做打字挑战）
+    //    零基础孩子"凭空写三句"必然卡死；降级为"选句运用"（考同句型不同情境的灵活运用），
+    //    选完连读成文——会读出来就是他的作文。挑战层留给愿意打字的孩子。
+    const wr = unit.writing;
     wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:24px', text: "② Let's Write" }));
-    wrap.appendChild(h('p', { class: 'hint', text: unit.writing.prompt }));
+    wrap.appendChild(h('p', { class: 'hint', text: wr.prompt }));
+    wrap.appendChild(h('p', { class: 'hint', style: 'font-weight:700', text: '👇 第 1 步：看情境，点 🔊 听一听，选出最合适的那句话' }));
+    session.wrPick = session.wrPick || {};
+    const wrItems = wr.items || [];
+    wrItems.forEach((it, i) => {
+      const picked = session.wrPick[i];
+      const ok = picked === it.a;
+      const box = h('div', { style: 'margin-bottom:12px' }, [
+        h('p', { class: 'story-text', text: it.ctx }),
+        h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${it.ctxZh}` }),
+      ]);
+      const row = h('div', { class: 'btn-row', style: 'margin-top:8px' });
+      (it.opts || []).forEach((ans) => {
+        row.appendChild(h('button', {
+          // 选对后只标绿锁定；选错可重试且不留红（成长型思维：不留失败痕迹）
+          class: `option ${ok && ans === it.a ? 'is-correct' : ''}`,
+          style: 'width:auto;min-width:150px;margin-bottom:0',
+          onclick: () => {
+            if (session.wrPick[i] === it.a) return; // 选对的题锁定
+            if (ans === it.a) {
+              session.wrPick[i] = ans;
+              session.wrStarred = session.wrStarred || {};
+              if (!session.wrStarred[i]) { session.wrStarred[i] = true; ctx.addStars(1); starFly(1); }
+              toast('选对啦！');
+            } else {
+              ctx.addWrong({ unit: unit.id, type: 'writing_pick', q: it.ctxZh, a: it.a, chosen: ans });
+              toast('再想想看～');
+            }
+            render();
+          },
+        }, [
+          h('span', {
+            class: 'wr-speak', text: '🔊', title: '听这句话',
+            style: 'margin-right:6px;cursor:pointer',
+            onclick: (e) => { e.stopPropagation(); tts.speak(ans); },
+          }),
+          h('span', { style: 'display:flex;flex-direction:column;align-items:center;line-height:1.35' }, [
+            document.createTextNode(ans),
+            wr.zhMap && wr.zhMap[ans] ? h('span', { class: 'wr-zh', text: wr.zhMap[ans], style: 'font-size:0.72em;font-weight:600;color:var(--muted,#888)' }) : null,
+          ]),
+        ]));
+      });
+      box.appendChild(row);
+      wrap.appendChild(box);
+    });
+
+    const wrAllOk = wrItems.length > 0 && wrItems.every((it, i) => session.wrPick[i] === it.a);
+    if (wrAllOk) {
+      const lines = wrItems.map((it) => it.a);
+      const doneBox = h('div', { style: 'margin-top:12px' }, [
+        h('p', { class: 'hint', style: 'font-weight:800', text: '🎉 第 2 步：三句话连起来，就是你的作文！读一读吧：' }),
+      ]);
+      lines.forEach((ln) => {
+        doneBox.appendChild(h('p', {
+          class: 'story-text', style: 'margin-bottom:6px;cursor:pointer', title: '点一句读一句',
+          text: ln,
+          onclick: () => tts.speak(ln),
+        }));
+      });
+      doneBox.appendChild(h('div', { class: 'btn-row', style: 'margin-top:8px' }, [
+        h('button', { class: 'btn ghost', text: '🔊 整段连读', onclick: () => tts.speakSequence(lines) }),
+        h('button', {
+          class: 'btn leaf', text: '✅ 我会写这三句了',
+          onclick: () => {
+            session.writeDone = true;
+            ctx.addStars(2); starFly(2);
+            toast('写得真好！');
+            render();
+          },
+        }),
+      ]));
+      wrap.appendChild(doneBox);
+    } else {
+      wrap.appendChild(h('p', { class: 'hint', style: 'margin-top:8px', text: '🔒 三句话都选对了，就能听到你的完整作文啦！' }));
+    }
+
+    // 3. 挑战层（选做）：把三句话打出来
+    wrap.appendChild(h('p', { class: 'hint', style: 'margin-top:14px;font-weight:700', text: '✏️ 挑战（选做）：把这三句话打出来' }));
     const ta = h('textarea', {
       class: 'text-input',
-      placeholder: '在这里写下三句话…',
+      placeholder: '选做：会打字的小朋友来挑战～',
       oninput: (e) => { session.writeText = e.target.value; },
     });
     if (session.writeText) ta.value = session.writeText;
@@ -89,23 +169,11 @@ export function renderOutput(ctx, unit) {
         class: 'btn ghost', text: '🎤 说出来（录音）',
         onclick: async () => {
           const ok = await recorder.start();
-          if (!ok.ok) { toast('没有麦克风，写下来也一样棒！'); return; }
+          if (!ok.ok) { toast('没有麦克风，读出来也一样棒！'); return; }
           toast('🎤 请说出你的三句话…');
           await new Promise((r) => setTimeout(r, 3500));
           await recorder.stop();
-          session.writeDone = true;
-          ctx.addStars(2); starFly(2);
           toast('说得真清楚！');
-          render();
-        },
-      }),
-      h('button', {
-        class: 'btn leaf', text: '✅ 写好了',
-        onclick: () => {
-          session.writeDone = true;
-          ctx.addStars(2); starFly(2);
-          toast('写得真好！');
-          render();
         },
       }),
     ]));

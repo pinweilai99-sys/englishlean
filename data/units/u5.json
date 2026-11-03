@@ -99,7 +99,34 @@
   },
   "writing": {
     "prompt": "Haohao 不喜欢鹦鹉，Xiaoxiao 该怎么做？请写三句话。",
-    "slots": 3
+    "slots": 3,
+    "zhMap": {
+      "May I have a pet?": "我想要一只宠物，可以吗？",
+      "Yes, you can.": "可以哦，给你。",
+      "No, you can't.": "不行哦，不可以。",
+      "Sure.": "当然可以！",
+      "Yes, he can.": "是的，它可以。"
+    },
+    "items": [
+      {
+        "ctx": "She takes the parrot to the pet shop. She says to the shopkeeper:",
+        "ctxZh": "她把鹦鹉带回宠物店，对店员说：",
+        "a": "May I have a pet?",
+        "opts": ["May I have a pet?", "Yes, you can.", "No, you can't."]
+      },
+      {
+        "ctx": "Haohao wants to hold the parrot. The shopkeeper says no.",
+        "ctxZh": "浩浩想抱鹦鹉，店员摇摇头。她对浩浩说：",
+        "a": "No, you can't.",
+        "opts": ["No, you can't.", "Yes, you can.", "Sure."]
+      },
+      {
+        "ctx": "Dongdong asks to hold the rabbit. The shopkeeper agrees.",
+        "ctxZh": "东东想抱小兔子，店员点头同意了。店员说：",
+        "a": "Sure.",
+        "opts": ["Sure.", "No, you can't.", "Yes, he can."]
+      }
+    ]
   },
   "mindmap": {
     "chain": [
@@ -108,7 +135,56 @@
       "What does your pet look like?",
       "What do you do with your pet?"
     ],
-    "sample": "I have a cat. Her name is Mimi. She has big blue eyes, a pink nose and short legs. I feed, hold and play with her. She's cute. I love my pet cat."
+    "chainZh": [
+      "你养宠物吗？",
+      "你想养什么宠物？",
+      "它长什么样子？",
+      "你和它一起做什么？"
+    ],
+    "sample": "I have a cat. Her name is Mimi. She has big blue eyes, a pink nose and short legs. I feed, hold and play with her. She's cute. I love my pet cat.",
+    "steps": [
+      {
+        "q": "Do you have a pet?",
+        "qZh": "你养宠物吗？",
+        "opts": [
+          { "t": "I want a pet!", "zh": "我想要一只宠物！" },
+          { "t": "I love pets!", "zh": "我喜欢宠物！" }
+        ]
+      },
+      {
+        "q": "What pet do you want?",
+        "qZh": "你想养什么宠物？",
+        "opts": [
+          { "t": "I want a cat.", "zh": "我想养一只小猫。" },
+          { "t": "I want a dog.", "zh": "我想养一只小狗。" },
+          { "t": "I want a rabbit.", "zh": "我想养一只小兔。" },
+          { "t": "I want a goldfish.", "zh": "我想养一条金鱼。" },
+          { "t": "I want a parrot.", "zh": "我想养一只鹦鹉。" }
+        ]
+      },
+      {
+        "q": "What does your pet look like?",
+        "qZh": "它长什么样子？",
+        "featureByAnimal": {
+          "cat": { "t": "It has big eyes.", "zh": "它有大大的眼睛。" },
+          "dog": { "t": "It has short legs.", "zh": "它有短短的腿。" },
+          "rabbit": { "t": "It has long ears.", "zh": "它有长长的耳朵。" },
+          "goldfish": { "t": "It is lovely.", "zh": "它很可爱。" },
+          "parrot": { "t": "It is clever.", "zh": "它很聪明。" }
+        },
+        "extra": { "t": "It is cute.", "zh": "它真讨人喜欢。" }
+      },
+      {
+        "q": "What do you do with your pet?",
+        "qZh": "你和它一起做什么？",
+        "opts": [
+          { "t": "I feed it.", "zh": "我给它喂食。" },
+          { "t": "I hold it.", "zh": "我抱着它。" },
+          { "t": "I play with it.", "zh": "我和它一起玩。" }
+        ]
+      }
+    ],
+    "ending": { "t": "I love my pet!", "zh": "我爱我的宠物！" }
   },
   "stories": [
     {

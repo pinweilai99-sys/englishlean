@@ -13,6 +13,26 @@ function optBtn(root, text) {
     .find((b) => b.textContent.replace(/🔊/g, '').trim() === text);
 }
 
+// 写作选句查找助手：同一英文句子会在多张情境卡出现（干扰项复用），
+// 必须先按情境中文定位到所属卡（取内容最短的=卡片本体），再在卡内找选项
+function wrBox(root, ctxZh) {
+  const divs = Array.from(root.querySelectorAll('main div'))
+    .filter((d) => (d.textContent || '').includes(ctxZh) && d.querySelector('.wr-zh'));
+  divs.sort((a, b) => a.textContent.length - b.textContent.length);
+  return divs[0];
+}
+
+// 写作选句点击助手：在指定情境卡内点选句子
+async function wrPickIn(window, ctxZh, sentence) {
+  const box = wrBox(window.document, ctxZh);
+  if (!box) throw new Error(`找不到情境卡「${ctxZh}」`);
+  const b = Array.from(box.querySelectorAll('button.option'))
+    .find((x) => (x.textContent || '').includes(sentence));
+  if (!b) throw new Error(`在「${ctxZh}」中找不到选项「${sentence}」`);
+  b.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 30));
+}
+
 // 拼写屋驱动助手：读当前题的中文提示 → 找到对应单词 → 逐字母点击正确字母块。
 // 每调用一次拼完当前题（队列前进一题）。返回拼的单词。
 async function spellOneCurrent(window) {
@@ -495,7 +515,11 @@ test('E2E-17 Stage3 真实输出：三项任务完成 → Stage3 通关', async 
     await navigate(window, app, '#/unit/u5/stage/2');
     assert.match(mainText(window), /真实输出/);
     await clickButton(window, '演完了');
-    await clickButton(window, '写好了');
+    // 写作新流程：三张情境卡各选对一句 → 出现完整作文 → 完成按钮
+    await wrPickIn(window, '她把鹦鹉带回宠物店', 'May I have a pet?');
+    await wrPickIn(window, '店员摇摇头', "No, you can't.");
+    await wrPickIn(window, '店员点头同意', 'Sure.');
+    await clickButton(window, '我会写这三句了');
     await clickButton(window, '我的宠物介绍好了');
     await clickButton(window, '完成输出阶段');
     const p = persisted(window);
@@ -979,5 +1003,44 @@ test('E2E-38 角色扮演家长支架：孩子台词有中文、家长选项有�
     await clickButton(window, 'parrot');
     await new Promise((r) => setTimeout(r, 30));
     assert.ok(mainText(window).includes('我想要一只parrot'), '换动物后孩子台词中文应跟随变化');
+  } finally { cleanup(); }
+});
+
+test("E2E-39 Let's Write 三步脚手架：情境选句（听音/中文/选错可重试不留红）→ 全对出现整段连读与完成按钮", async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/2');
+    // 支架 1：三张情境卡，情境有中文说明
+    assert.ok(mainText(window).includes('她把鹦鹉带回宠物店'), '情境 1 应有中文说明');
+    assert.ok(mainText(window).includes('店员点头同意'), '情境 3 应有中文说明');
+    // 支架 2：每个候选句带 🔊 和中文，共 9 个
+    const wrOpts = Array.from(window.document.querySelectorAll('main button.option'))
+      .filter((b) => b.querySelector('.wr-zh'));
+    assert.equal(wrOpts.length, 9, '3 题 × 3 选项 = 9 个写作候选句');
+    assert.ok(wrOpts.every((b) => b.querySelector('.wr-speak')), '每个候选句应有 🔊 听音');
+    // 支架 3：点喇叭只朗读不判分
+    wrOpts[0].querySelector('.wr-speak').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(!window.document.querySelector('main .option.is-correct'), '点喇叭不得判分');
+    // 行为 1：选错 → 不留红、可重试、不出现作文
+    await wrPickIn(window, '她把鹦鹉带回宠物店', 'Yes, you can.');
+    assert.ok(!window.document.querySelector('main .option.is-wrong'), '选错不得留红色标记');
+    assert.ok(!mainText(window).includes('就是你的作文'), '未全对不出现作文');
+    // 行为 2：三题全选对 → 标绿锁定 + 出现整段连读与完成按钮
+    await wrPickIn(window, '她把鹦鹉带回宠物店', 'May I have a pet?');
+    await wrPickIn(window, '店员摇摇头', "No, you can't.");
+    await wrPickIn(window, '店员点头同意', 'Sure.');
+    const greens = window.document.querySelectorAll('main .option.is-correct');
+    assert.equal(greens.length, 3, '三题正确项都应标绿');
+    assert.ok(mainText(window).includes('就是你的作文'), '全对后应出现完整作文引导');
+    assert.ok(mainText(window).includes('整段连读'), '应出现整段连读按钮');
+    // 行为 3：完成写作 → writeDone 生效
+    await clickButton(window, '我会写这三句了');
+    assert.ok(mainText(window).includes('写得真好') || mainText(window).includes('✅'), '完成写作应有反馈');
   } finally { cleanup(); }
 });
