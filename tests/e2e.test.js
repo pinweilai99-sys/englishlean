@@ -516,9 +516,9 @@ test('E2E-17 Stage3 真实输出：三项任务完成 → Stage3 通关', async 
     assert.match(mainText(window), /真实输出/);
     await clickButton(window, '演完了');
     // 写作新流程：三张情境卡各选对一句 → 出现完整作文 → 完成按钮
-    await wrPickIn(window, '她把鹦鹉带回宠物店', 'May I have a pet?');
-    await wrPickIn(window, '店员摇摇头', "No, you can't.");
-    await wrPickIn(window, '店员点头同意', 'Sure.');
+    await wrPickIn(window, '她把鹦鹉带回宠物店', 'Yes, you can.');
+    await wrPickIn(window, '浩浩想抱鹦鹉', "No, you can't.");
+    await wrPickIn(window, '东东想抱小兔子', 'Sure.');
     await clickButton(window, '我会写这三句了');
     // 思维导图新流程：四问各选一个答案 → 出现拼装介绍词 → 完成按钮
     const mmPickByQ = async (qText, sentence) => {
@@ -1031,7 +1031,7 @@ test("E2E-39 Let's Write 三步脚手架：情境选句（听音/中文/选错�
     await navigate(window, app, '#/unit/u5/stage/2');
     // 支架 1：三张情境卡，情境有中文说明
     assert.ok(mainText(window).includes('她把鹦鹉带回宠物店'), '情境 1 应有中文说明');
-    assert.ok(mainText(window).includes('店员点头同意'), '情境 3 应有中文说明');
+    assert.ok(mainText(window).includes('东东想抱小兔子'), '情境 3 应有中文说明');
     // 支架 2：每个候选句带 🔊 和中文，共 9 个
     const wrOpts = Array.from(window.document.querySelectorAll('main button.option'))
       .filter((b) => b.querySelector('.wr-zh'));
@@ -1042,13 +1042,13 @@ test("E2E-39 Let's Write 三步脚手架：情境选句（听音/中文/选错�
     await new Promise((r) => setTimeout(r, 30));
     assert.ok(!window.document.querySelector('main .option.is-correct'), '点喇叭不得判分');
     // 行为 1：选错 → 不留红、可重试、不出现作文
-    await wrPickIn(window, '她把鹦鹉带回宠物店', 'Yes, you can.');
+    await wrPickIn(window, '她把鹦鹉带回宠物店', 'Sure.');
     assert.ok(!window.document.querySelector('main .option.is-wrong'), '选错不得留红色标记');
     assert.ok(!mainText(window).includes('就是你的作文'), '未全对不出现作文');
     // 行为 2：三题全选对 → 标绿锁定 + 出现整段连读与完成按钮
-    await wrPickIn(window, '她把鹦鹉带回宠物店', 'May I have a pet?');
-    await wrPickIn(window, '店员摇摇头', "No, you can't.");
-    await wrPickIn(window, '店员点头同意', 'Sure.');
+    await wrPickIn(window, '她把鹦鹉带回宠物店', 'Yes, you can.');
+    await wrPickIn(window, '浩浩想抱鹦鹉', "No, you can't.");
+    await wrPickIn(window, '东东想抱小兔子', 'Sure.');
     const greens = window.document.querySelectorAll('main .option.is-correct');
     assert.equal(greens.length, 3, '三题正确项都应标绿');
     assert.ok(mainText(window).includes('就是你的作文'), '全对后应出现完整作文引导');
@@ -1151,5 +1151,38 @@ test('E2E-41 真实输出页铁律：只要是英语就必须有 🔊 播放（�
     assert.ok(sampleSpeak, '课本示范句应有 🔊 听示范');
     // 汇总清点：本页所有英语朗读入口齐全（角色扮演台词/家长选项/写作情境/候选/作文/导图问题/候选/示范）
     assert.equal(window.document.querySelectorAll('main .mm-q-speak').length, 4, '4 个导图问题 🔊 齐全');
+  } finally { cleanup(); }
+});
+
+test('E2E-42 写作卡对话化：每卡先有孩子台词（🧒英文+中文+🔊），下面才是店员回答由用户点选', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/2');
+    // 3 张卡都有孩子台词行：🧒 名字 + 英文问句 + 🔊
+    const asks = window.document.querySelectorAll('main .wr-ask-speak');
+    assert.equal(asks.length, 3, '3 张卡都应有孩子台词 🔊');
+    assert.ok(mainText(window).includes('🧒 Haohao：'), '卡 2 应显示浩浩台词');
+    assert.ok(mainText(window).includes('🧒 Dongdong：'), '卡 3 应显示东东台词');
+    assert.ok(mainText(window).includes('May I hold the parrot?'), '浩浩台词应为课本句型');
+    assert.ok(mainText(window).includes('我可以抱抱这只鹦鹉吗'), '孩子台词应有中文');
+    // 孩子台词不是可选项（不得出现在 button.option 里）
+    const askInOptions = Array.from(window.document.querySelectorAll('main button.option'))
+      .filter((b) => b.textContent.includes('May I hold the parrot?'));
+    assert.equal(askInOptions.length, 0, '孩子台词不得作为选项出现');
+    // 点孩子台词喇叭不判分
+    asks[0].dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(!window.document.querySelector('main .option.is-correct'), '点孩子台词喇叭不得判分');
+    // 第 1 卡：孩子问 May I have a pet? → 店员正确应答 Yes, you can.
+    await wrPickIn(window, '她把鹦鹉带回宠物店', 'Yes, you can.');
+    const box1 = wrBox(window.document, '她把鹦鹉带回宠物店');
+    assert.ok(box1.querySelector('.option.is-correct'), '店员应答选对应标绿');
+    // 每卡点选提示存在
+    assert.equal((mainText(window).match(/店员回答（点选最合适的）/g) || []).length, 3, '3 张卡都应有店员回答点选提示');
   } finally { cleanup(); }
 });

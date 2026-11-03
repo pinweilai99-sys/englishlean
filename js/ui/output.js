@@ -86,6 +86,7 @@ export function renderOutput(ctx, unit) {
     wrItems.forEach((it, i) => {
       const picked = session.wrPick[i];
       const ok = picked === it.a;
+      // 对话结构：情境 → 孩子台词（英文+中文+🔊）→ 👉店员回答（用户点选）
       const box = h('div', { style: 'margin-bottom:12px' }, [
         // 情境句是英语，必须有播放（铁律：只要是英语就要有 🔊）
         h('div', { class: 'story-text', style: 'font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap' }, [
@@ -97,6 +98,17 @@ export function renderOutput(ctx, unit) {
           }),
         ]),
         h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${it.ctxZh}` }),
+        it.ask ? h('div', { class: 'story-text', style: 'margin-top:6px;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap' }, [
+          h('strong', { text: `🧒 ${it.askWho}：` }),
+          h('span', { text: it.ask }),
+          h('button', {
+            class: 'wr-ask-speak', title: '听这句话', text: '🔊',
+            style: 'border:none;background:none;cursor:pointer;font-size:inherit',
+            onclick: (e) => { e.stopPropagation(); tts.speak(it.ask); },
+          }),
+        ]) : null,
+        it.askZh ? h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${it.askZh}` }) : null,
+        h('p', { class: 'hint', style: 'font-weight:700;margin-top:6px', text: '👉 店员回答（点选最合适的）:' }),
       ]);
       const row = h('div', { class: 'btn-row', style: 'margin-top:8px' });
       (it.opts || []).forEach((ans) => {

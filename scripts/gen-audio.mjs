@@ -48,8 +48,11 @@ function collectTexts() {
       (s.slots || []).forEach((slot) => texts.add(rp.child.replace('___', slot)));
     }
     (rp.parent || []).forEach((a) => texts.add(a));
-    // 写作情境句（Let's Write 每张情境卡的英文情境描述，🔊 听情境）
-    ((u.writing || {}).items || []).forEach((it) => { if (it.ctx) texts.add(it.ctx); });
+    // 写作情境句 + 孩子台词（Let's Write 情境卡：英文情境描述与孩子问句都要 🔊）
+    ((u.writing || {}).items || []).forEach((it) => {
+      if (it.ctx) texts.add(it.ctx);
+      if (it.ask) texts.add(it.ask);
+    });
     // 思维导图：问题句（🔊 听问题）+ 每问全部候选句 + 动物特征句 + 结尾句（拼装介绍词逐句朗读）
     const mm = u.mindmap || {};
     if (mm.sample) texts.add(mm.sample);
