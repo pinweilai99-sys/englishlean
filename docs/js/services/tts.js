@@ -1,7 +1,7 @@
 // TTS 发音服务：优先播预生成音频文件（手机无 TTS 引擎也能出声），speechSynthesis 兜底
 // 降级原则：没有音频能力时隐藏喇叭、改为"手动确认"，绝不让页面报错或阻塞学习。
 // 能力检测在调用时进行（而非导入时），确保环境变化（含测试注入）即时生效。
-import { hasAudio, playAudio, stopAudio } from './audio.js?v=1793703062';
+import { hasAudio, playAudio, stopAudio } from './audio.js?v=1793704406';
 
 const state = {
   enabled: true,
