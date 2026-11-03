@@ -5,7 +5,7 @@ import {
   freshApp, buttons, clickButton, navigate, mainText, persisted, UNIT,
 } from './e2e-helper.mjs';
 import { computePdfLayout, buildHandwritingWords } from '../js/ui/handwriting.js';
-import { buildSpellQueue, SPELL_TIMES_PER_WORD, SPELL_WRONG_RETRY } from '../js/ui/spelling.js';
+import { buildSpellQueue, SPELL_TIMES_PER_WORD } from '../js/ui/spelling.js';
 
 // 拼写屋驱动助手：读当前题的中文提示 → 找到对应单词 → 逐字母点击正确字母块。
 // 每调用一次拼完当前题（队列前进一题）。返回拼的单词。
@@ -602,37 +602,38 @@ test('E2E-22 听音选词收尾：12 题全做完 → 出完成页并停止自�
   } finally { cleanup(); }
 });
 
-test('E2E-25 拼写屋"重新拼一遍"：拼完出完成页，点击后真正重开回到第一题（不再无响应）', async () => {
+test('E2E-25 拼写屋"重新来一次"：拼完 12 词出完成页，点击后真正重开回到第一题（不再无响应）', async () => {
   const { window, app, cleanup } = await freshApp();
   try {
     await navigate(window, app, '#/unit/u5/stage/0/spelling');
-    // 12 词 × 2 = 24 题，全部拼对拼空队列
+    // 新规格：每个单词只拼 1 次 = 12 题（旧口径 12 词 × 2）
     const expectLen = SPELL_TIMES_PER_WORD * UNIT.words.length;
-    assert.equal(app.state.session.spellQueue.length, expectLen, '队列应为 12 词 × 2');
+    assert.equal(expectLen, 12, '每词 1 次：队列应为 12 题');
+    assert.equal(app.state.session.spellQueue.length, expectLen, '队列应为 12 词各 1 次');
     for (let k = 0; k < expectLen; k++) await spellOneCurrent(window);
     // 队列拼空 → 完成页
     assert.match(mainText(window), /单词全部拼完啦/, '应出现完成页');
-    // 点"重新拼一遍" → 队列重建，回到第一题（修复前点击无反应）
-    await clickButton(window, '重新拼一遍');
+    // 点"重新来一次" → 队列重建，回到第一题（修复前点击无反应）
+    await clickButton(window, '重新来一次');
     assert.match(mainText(window), /把这个词用字母拼出来/, '应重新出题');
     assert.equal(app.state.session.spellQueue.length, expectLen, '队列应重建');
   } finally { cleanup(); }
 });
 
-test('E2E-26 拼写屋队列规则：12 词全覆盖每词 2 次；拼错的词追加 3 次再练且不无限追加', async () => {
-  // 纯函数：buildSpellQueue 多单元聚合（为 U1-4 混入预留）
+test('E2E-26 拼写屋队列规则：12 词每词只拼 1 次；拼错的词不再自动加练、只进总结清单', async () => {
+  // 纯函数：buildSpellQueue 多单元聚合（为 U1-4 混入预留），每词 1 次
   const q = buildSpellQueue([
     { id: 'u5', words: UNIT.words },
     { id: 'u1', wordSource: [{ w: 'pen' }, { w: 'ruler' }] }, // 模拟未来 U1 未掌握词
   ]);
-  assert.equal(q.length, UNIT.words.length * 2 + 4, 'U5 12词×2 + U1 2词×2');
-  UNIT.words.forEach((w) => assert.equal(q.filter((x) => x === w.w).length, 2, `${w.w} 应出现 2 次`));
-  assert.equal(q.filter((x) => x === 'pen').length, 2, '外来词也出现 2 次');
+  assert.equal(q.length, UNIT.words.length + 2, 'U5 12词×1 + U1 2词×1');
+  UNIT.words.forEach((w) => assert.equal(q.filter((x) => x === w.w).length, 1, `${w.w} 应只出现 1 次（旧口径 2 次已废除）`));
+  assert.equal(q.filter((x) => x === 'pen').length, 1, '外来词也只出现 1 次');
   for (let i = 1; i < q.length; i++) {
     assert.notEqual(q[i], q[i - 1], `队列相邻项不应相同（位置 ${i}: ${q[i]}）`);
   }
 
-  // E2E：拼错一个词 → 该词追加 3 次；再错也不追加（不无限）
+  // E2E：拼错一个词 → 不加练（队列余额 0），只记入错词总结清单
   const { window, app, cleanup } = await freshApp();
   try {
     await navigate(window, app, '#/unit/u5/stage/0/spelling');
@@ -655,19 +656,19 @@ test('E2E-26 拼写屋队列规则：12 词全覆盖每词 2 次；拼错的词�
       block.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
       await new Promise((r) => setTimeout(r, 20));
     }
-    // 该词被记为拼错，队列追加 3 次再练（其余额 = 本轮第 2 次排期 1 + 加练 3 = 4）
-    assert.deepEqual(app.state.session.spellWrong, [firstWord], '拼错词应入复习清单');
+    // 反向对照：旧口径该词会追加 3 次再练；新口径队列不再出现它
+    assert.deepEqual(app.state.session.spellWrong, [firstWord], '拼错词应入总结清单');
     const remain = app.state.session.spellQueue.filter((x) => x === firstWord).length;
-    assert.equal(remain, 1 + SPELL_WRONG_RETRY, '错词余额应为 第2次排期1 + 加练3 = 4');
-    assert.equal(app.state.session.spellQueue.length, UNIT.words.length * 2 - 1 + SPELL_WRONG_RETRY,
-      '总队列 = 24 - 已拼1 + 加练3');
-    assert.ok(app.state.session.spellRetried.has(firstWord), '错词应标记已追加');
-    // 再错一次也不会追加（防无限）
-    assert.notEqual(app.state.session.spellQueue[0], firstWord, '下一题应是别的词');
+    assert.equal(remain, 0, '错词不应再被加练进队列（旧口径为 3）');
+    assert.equal(app.state.session.spellQueue.length, UNIT.words.length - 1,
+      '总队列 = 12 - 已拼 1，不再追加');
+    assert.equal(app.state.session.spellQueue[0] === firstWord, false, '下一题应是别的词');
+    // 计数口径：标题显示"第 2 / 12 词"（本轮进度，与剩余一致）
+    assert.match(mainText(window), /第 2 \/ 12 词/, '标题应显示本轮进度 2/12');
   } finally { cleanup(); }
 });
 
-test('E2E-27 拼写屋完成页复习区：本轮拼错的词+中文意思展示在完成页下方并落盘', async () => {
+test('E2E-27 拼写屋完成页错词总结：本轮拼错的词+中文意思展示在完成页下方并落盘', async () => {
   const { window, app, cleanup } = await freshApp();
   try {
     await navigate(window, app, '#/unit/u5/stage/0/spelling');
@@ -682,19 +683,19 @@ test('E2E-27 拼写屋完成页复习区：本轮拼错的词+中文意思展示
     wrongBlock.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 20));
     await spellOneCurrent(window);
-    // 拼完剩余全部题（含错词加练）
-    for (let k = 0; k < 40; k++) {
+    // 拼完剩余全部题（每词 1 次，最多 11 题）
+    for (let k = 0; k < 20; k++) {
       if (mainText(window).includes('单词全部拼完啦')) break;
       await spellOneCurrent(window);
     }
-    assert.match(mainText(window), /单词全部拼完啦/, '应完成整轮');
-    // 复习区：显示拼错的词 + 中文意思
-    assert.match(mainText(window), /本轮拼错的词，复习一下/, '完成页应有复习区标题');
-    assert.match(mainText(window), new RegExp(firstWord), '复习区应含拼错单词');
-    assert.match(mainText(window), new RegExp(firstMeta.zh.slice(0, 2)), '复习区应含中文意思');
-    // 点击复习项可发音（不抛错）
+    assert.match(mainText(window), /单词全部拼完啦/, '应完成整轮（12 词各拼 1 次即结束）');
+    // 总结区：显示拼错的词 + 中文意思
+    assert.match(mainText(window), /本轮拼错的单词总结/, '完成页应有错词总结区标题');
+    assert.match(mainText(window), new RegExp(firstWord), '总结区应含拼错单词');
+    assert.match(mainText(window), new RegExp(firstMeta.zh.slice(0, 2)), '总结区应含中文意思');
+    // 点击总结项可发音（不抛错）
     const item = window.document.querySelector('.spell-wrong-item');
-    assert.ok(item, '复习项应存在且可点击');
+    assert.ok(item, '总结项应存在且可点击');
     // 错词清单落盘
     const p = persisted(window);
     assert.deepEqual(p.progress.u5.spellingWrong, [firstWord], 'spellingWrong 应落盘');

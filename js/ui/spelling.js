@@ -1,14 +1,13 @@
-// 拼写屋（1.4）：单词字母拼写考察
-// 规则（2026-11-03 家长定版）：单元全部单词（含认读词）都进拼写队列，每个单词拼 2 次；
-//   拼错的单词（本轮首次拼错时）追加 3 次再练；队列拼空才算本轮完成。
+// 拼写屋（1.5）：单词字母拼写考察
+// 规则（2026-11-03 家长再定版）：单元全部单词（含认读词）都进拼写队列，每个单词只拼 1 次；
+//   拼错的单词不再自动加练，全部拼完后在完成页"拼错单词总结"区集中复习。
 //   拼对仍落盘 spellingDone 并参与 Stage1 通关判定（通关仍只看四会词，认读词多练不卡人）。
 // 队列生成抽成纯函数 buildSpellQueue：接受多个单元的数据，后续 U1-4 内容就位后，
 //   把未掌握/需复习的单词作为附加来源传入即可自动混入（见函数注释）。
 import { h, toast, starFly, confetti } from './dom.js';
 import * as tts from '../services/tts.js';
 
-export const SPELL_TIMES_PER_WORD = 2;   // 每个单词拼 2 次
-export const SPELL_WRONG_RETRY = 3;      // 拼错的单词追加 3 次
+export const SPELL_TIMES_PER_WORD = 1;   // 每个单词只拼 1 次（2026-11-03 家长定版）
 
 // 构建本轮拼写队列（纯函数，可测）。
 // units: [{ id, words }] —— 单元数据数组；wordSource 可选，指定该单元进队列的单词
@@ -50,14 +49,13 @@ export function renderSpelling(ctx, unit) {
   }
 
   // 本轮拼写队列（session 级）：完成判定 = 队列拼空，与落盘 spellingDone 解耦。
-  // 首次进入（或点"重新拼一遍"后 spellQueue=null）时重建。
+  // 首次进入（或点"重新来一次"后 spellQueue=null）时重建。
   // TODO(U1-4)：内容就位后在此把未掌握/需复习词作为附加 unit 传入 buildSpellQueue。
   function ensureQueue() {
     if (!Array.isArray(session.spellQueue)) {
       session.spellQueue = buildSpellQueue([{ id: unit.id, words: allWords }]);
       session.spellRoundOk = new Set();   // 本轮已拼对过的词（避免重复得星）
-      session.spellRetried = new Set();   // 本轮已追加过再练的错词（防无限追加）
-      session.spellWrong = [];            // 本轮拼错的词（完成页复习区用）
+      session.spellWrong = [];            // 本轮拼错的词（完成页总结区用）
     }
   }
 
@@ -74,7 +72,7 @@ export function renderSpelling(ctx, unit) {
       const wrong = session.spellWrong || [];
       if (wrong.length > 0) {
         const box = h('div', { id: 'spell-wrong-review', style: 'margin:14px auto 0;max-width:360px;border-top:2px dashed var(--line,#ddd);padding-top:12px' });
-        box.appendChild(h('p', { style: 'font-weight:800;text-align:center;margin-bottom:8px', text: '📝 本轮拼错的词，复习一下：' }));
+        box.appendChild(h('p', { style: 'font-weight:800;text-align:center;margin-bottom:8px', text: '📝 本轮拼错的单词总结：' }));
         wrong.forEach((wordStr) => {
           const meta = allWords.find((x) => x.w === wordStr);
           if (!meta) return;
@@ -94,7 +92,7 @@ export function renderSpelling(ctx, unit) {
       }
       wrap.appendChild(h('div', { class: 'btn-row', style: 'justify-content:center;margin-top:12px' }, [
         h('button', {
-          class: 'btn ghost', text: '🔁 重新拼一遍',
+          class: 'btn ghost', text: '🔄 重新来一次',
           onclick: () => {
             // 真正重开：清空队列让其重建（不依赖落盘 spellingDone）
             session.spellQueue = null;
@@ -117,8 +115,10 @@ export function renderSpelling(ctx, unit) {
     }
 
     const typed = session.spellProgress;
-    wrap.appendChild(h('div', { class: 'card-title', text: `🔤 拼写屋　已拼对 ${spellingDone.size} / ${allWords.length}` }));
-    wrap.appendChild(h('p', { class: 'card-sub', text: `听一听，把这个词用字母拼出来（还剩 ${session.spellQueue.length} 题）` }));
+    // 计数口径统一：本轮已拼对 X / 12，当前是第 X+1 词；剩余 = 队列长度 - 当前词
+    const roundOk = session.spellRoundOk.size;
+    wrap.appendChild(h('div', { class: 'card-title', text: `🔤 拼写屋　第 ${roundOk + 1} / ${allWords.length} 词` }));
+    wrap.appendChild(h('p', { class: 'card-sub', text: `听一听，把这个词用字母拼出来（还剩 ${session.spellQueue.length - 1} 个词）` }));
 
     wrap.appendChild(h('div', { style: 'text-align:center;font-size:72px', text: w.img }));
     wrap.appendChild(h('div', { style: 'text-align:center;font-size:var(--fs-lg);font-weight:800', text: w.zh }));
@@ -159,24 +159,22 @@ export function renderSpelling(ctx, unit) {
                 starFly(2);
               }
               tts.speak(w.w);
-              // 拼错的单词（本轮首次拼错时）：追加 3 次再练，不无限追加
-              if (session.spellMiss > 0 && !session.spellRetried.has(w.w)) {
-                session.spellRetried.add(w.w);
+              // 拼错的词：记入本轮错词清单，完成页集中总结复习（不再自动加练）
+              if (session.spellMiss > 0) {
                 session.spellWrong.push(w.w);
-                for (let r = 0; r < SPELL_WRONG_RETRY; r++) session.spellQueue.push(w.w);
-                toast(`${w.w} 刚才拼错过，待会儿再练 ${SPELL_WRONG_RETRY} 次～`, 2400);
+                toast('拼对啦！这个词刚才错过，最后会列出来一起复习～', 2400);
               }
               render();
               if (session.spellQueue.length === 0) {
                 toast('🎉 拼写通关！', 3000);
                 confetti();
-                // 本轮错词清单落盘（供完成页复习区与家长查看）
+                // 本轮错词清单落盘（供完成页总结区与家长查看）
                 ctx.updateUnitProgress(unit.id, (up) => ({
                   ...up,
                   spellingWrong: [...(session.spellWrong || [])],
                 }));
                 ctx.checkStage1(unit.id);
-              } else {
+              } else if (session.spellMiss === 0) {
                 toast('拼对啦！', 1800);
               }
             } else {
@@ -215,6 +213,6 @@ export function renderSpelling(ctx, unit) {
   return h('div', {}, [
     h('button', { class: 'back-btn', text: '← 返回学习路径', onclick: () => ctx.navigate(`#/unit/${unit.id}`) }),
     wrap,
-    h('p', { class: 'hint', text: '小贴士：每个单词要拼 2 遍，拼错的单词会再多练 3 遍。拼错了没关系，多拼几遍就记住啦。' }),
+    h('p', { class: 'hint', text: '小贴士：每个单词只拼 1 次。拼错的单词会在最后列出来一起复习。拼错了没关系，再来一次就记住啦。' }),
   ]);
 }
