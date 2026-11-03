@@ -945,3 +945,39 @@ test('E2E-37 零基础支架：应答配对每题可听题目、看中文意思�
     assert.ok(boxOf(q1).querySelector('.option.is-correct'), '点选项本体应正常判分');
   } finally { cleanup(); }
 });
+
+test('E2E-38 角色扮演家长支架：孩子台词有中文、家长选项有中文意思+🔊听发音（家长不会英文也能陪练）', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/2');
+    assert.match(mainText(window), /宠物店角色扮演/);
+    // 支架 1：孩子台词下方显示中文意思（含当前动物）
+    assert.ok(mainText(window).includes('我想要一只'), '孩子台词应显示中文意思');
+    // 支架 2：每个家长选项直接显示中文意思（家长是成年人，无需藏起来）
+    const rpBtns = Array.from(window.document.querySelectorAll('main button.option'))
+      .filter((b) => b.querySelector('.rp-zh'));
+    assert.equal(rpBtns.length, 4, '4 个家长选项都应带中文意思');
+    assert.ok(rpBtns.every((b) => (b.querySelector('.rp-zh').textContent || '').length > 0), '每个选项的中文不得为空');
+    // 支架 3：每个选项有 🔊，点喇叭只朗读不选中
+    rpBtns.forEach((b) => assert.ok(b.querySelector('.rp-speak'), '每个家长选项应有 🔊 听发音'));
+    const target = rpBtns.find((b) => b.textContent.includes('Yes, you can.'));
+    target.querySelector('.rp-speak').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(!window.document.querySelectorAll('main .option.is-correct').length, '点喇叭不得选中选项');
+    // 点选项本体正常选中并高亮
+    target.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    const selected = Array.from(window.document.querySelectorAll('main .option.is-correct'));
+    assert.equal(selected.length, 1, '点选项本体应选中且只选中一个');
+    assert.ok(selected[0].textContent.includes('Yes, you can.'), '选中的应是所点的句子');
+    // 换动物后孩子台词中文跟随变化（parrot → 我想要一只parrot）
+    await clickButton(window, 'parrot');
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(mainText(window).includes('我想要一只parrot'), '换动物后孩子台词中文应跟随变化');
+  } finally { cleanup(); }
+});
