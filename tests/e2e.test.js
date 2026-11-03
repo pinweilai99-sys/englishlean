@@ -1128,3 +1128,28 @@ test('E2E-40 思维导图四问互动：听问题/点选答案（无对错）/Q3
     assert.ok(true);
   } finally { cleanup(); }
 });
+
+test('E2E-41 真实输出页铁律：只要是英语就必须有 🔊 播放（写作情境句 ×3 + 思维导图课本示范句）', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/2');
+    // 写作：3 张情境卡的英文情境都有 🔊 听情境
+    const ctxSpeaks = window.document.querySelectorAll('main .wr-ctx-speak');
+    assert.equal(ctxSpeaks.length, 3, '3 张情境卡都应有 🔊 听情境');
+    // 点情境喇叭不判分、不留任何标记
+    ctxSpeaks[0].dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(!window.document.querySelector('main .option.is-correct'), '点情境喇叭不得判分');
+    assert.ok(!window.document.querySelector('main .option.is-wrong'), '点情境喇叭不得留错误标记');
+    // 思维导图：课本示范句有 🔊 听示范（英语长句）
+    const sampleSpeak = window.document.querySelector('main .mm-sample-speak');
+    assert.ok(sampleSpeak, '课本示范句应有 🔊 听示范');
+    // 汇总清点：本页所有英语朗读入口齐全（角色扮演台词/家长选项/写作情境/候选/作文/导图问题/候选/示范）
+    assert.equal(window.document.querySelectorAll('main .mm-q-speak').length, 4, '4 个导图问题 🔊 齐全');
+  } finally { cleanup(); }
+});

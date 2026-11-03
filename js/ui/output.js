@@ -87,7 +87,15 @@ export function renderOutput(ctx, unit) {
       const picked = session.wrPick[i];
       const ok = picked === it.a;
       const box = h('div', { style: 'margin-bottom:12px' }, [
-        h('p', { class: 'story-text', text: it.ctx }),
+        // 情境句是英语，必须有播放（铁律：只要是英语就要有 🔊）
+        h('div', { class: 'story-text', style: 'font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap' }, [
+          h('span', { text: it.ctx }),
+          h('button', {
+            class: 'wr-ctx-speak', title: '听情境', text: '🔊',
+            style: 'border:none;background:none;cursor:pointer;font-size:inherit',
+            onclick: (e) => { e.stopPropagation(); tts.speak(it.ctx); },
+          }),
+        ]),
         h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${it.ctxZh}` }),
       ]);
       const row = h('div', { class: 'btn-row', style: 'margin-top:8px' });
@@ -263,7 +271,15 @@ export function renderOutput(ctx, unit) {
     } else {
       wrap.appendChild(h('p', { class: 'hint', style: 'margin-top:8px', text: '🔒 四个问题都选好了，就能拼出你的宠物介绍！' }));
     }
-    wrap.appendChild(h('p', { class: 'hint', style: 'margin-top:10px', text: `📖 课本示范：${mm.sample}` }));
+    // 课本示范是英语，必须有播放（铁律：只要是英语就要有 🔊）
+    wrap.appendChild(h('div', { class: 'hint', style: 'margin-top:10px;display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap' }, [
+      h('span', { text: '📖 课本示范：' }),
+      h('button', {
+        class: 'mm-sample-speak', title: '听课本示范', text: '🔊 听示范',
+        style: 'border:none;background:none;cursor:pointer;font-size:inherit;color:var(--brand,#2a7)',
+        onclick: () => tts.speak(mm.sample),
+      }),
+    ]));
 
     const allDone = session.rpDone && session.writeDone && session.mmDone;
     wrap.appendChild(h('div', { class: 'btn-row', style: 'margin-top:20px' }, [
