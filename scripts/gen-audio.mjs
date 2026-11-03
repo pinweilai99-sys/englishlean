@@ -36,6 +36,11 @@ function collectTexts() {
     (s.slots || []).forEach((slot) => { if (s.pattern) texts.add(s.pattern.replace('___', slot)); });
     (s.answers || []).forEach((a) => texts.add(a));
     Object.entries(s.extra || {}).forEach(([k, v]) => { texts.add(k); texts.add(v); });
+    // 每只动物一组对话（题干 + 正确答案 + 全部选项都会被朗读）
+    Object.values(s.dialogues || {}).forEach((pairs) => pairs.forEach((p) => {
+      texts.add(p.q); texts.add(p.a);
+      (p.opts || []).forEach((o) => texts.add(o));
+    }));
     // 角色扮演：孩子台词（模板 × 槽位 + 默认 pet）+ 家长应答
     const rp = u.roleplay || {};
     if (rp.child) {

@@ -266,10 +266,10 @@ test('E2E-8 Stage2 完整通关：填读 3 种动物 + 两组应答全对 → st
       await clickButton(window, animal);
       await clickButton(window, '我读出来了');
     }
-    // 两组应答配对：题目 1 跟随最后所选动物 dog（新口径 2 题，旧口径 3 组固定题）
+    // 两组应答配对：题目跟随最后所选动物 dog（新口径=每只动物一组课本对话，dog 用课本导盲犬对话）
     const pairs = [
-      { q: 'May I have a dog?', a: 'Yes, you can.' },
-      { q: 'May I hold it?', a: 'Sure.' },
+      { q: 'May I touch him?', a: "No, you can't. He's working now." },
+      { q: 'Can he help blind people?', a: 'Yes, he can.' },
     ];
     for (const { q, a } of pairs) {
       const blocks = Array.from(window.document.querySelectorAll('.card > div'));
@@ -817,5 +817,48 @@ test('E2E-34 跟读步不显示技术提示文案（家长定版：浏览器识�
     assert.ok(!text.includes('本地识别'), '不应出现"本地识别"等技术细节');
     // 兜底按钮仍然必须显示（学习链路不能被技术卡死）
     assert.ok(buttons(window).some((b) => b.textContent.includes('手动点亮')), '兜底按钮应保留');
+  } finally { cleanup(); }
+});
+
+test('E2E-35 换动物后第 2 题也清空；每只动物对话不同，同句型答案可不同（举一反三，家长定版）', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, false, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/1');
+    const blocks = () => Array.from(window.document.querySelectorAll('.card > div'));
+    const boxOf = (q) => blocks().find((d) => (d.textContent || '').includes(q) && d.querySelector('button'));
+    // 选 rabbit → 第 2 题是 take good care of（课本 A-3 责任感考点），答对
+    await clickButton(window, 'rabbit');
+    assert.match(mainText(window), /Can you take good care of it\?/, 'rabbit 的第 2 题应为课本 take good care of 对话');
+    const okBtn = Array.from(boxOf('Can you take good care of it?').querySelectorAll('button'))
+      .find((b) => b.textContent.trim() === 'OK. Yes, I can.');
+    okBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(boxOf('Can you take good care of it?').querySelector('.option.is-correct'), 'rabbit 第 2 题答对应锁定');
+    // 换 dog → 两题全部换新（含第 2 题）且清空（家长反馈：旧口径第 2 题答案不清空）
+    await clickButton(window, 'dog');
+    assert.match(mainText(window), /May I touch him\?/, 'dog 的第 1 题应为课本导盲犬对话');
+    assert.match(mainText(window), /Can he help blind people\?/, 'dog 的第 2 题应为课本 Can he 问句');
+    const dogBox = boxOf('Can he help blind people?');
+    assert.ok(dogBox, 'dog 应有自己的第 2 题');
+    assert.equal(dogBox.querySelector('.option.is-correct'), null, '换动物后第 2 题应清空为未作答');
+    assert.equal(dogBox.querySelector('.option.is-wrong'), null, '换动物后第 2 题不应残留错误标记');
+    assert.ok(Array.from(dogBox.querySelectorAll('button')).some((b) => b.textContent.trim() === 'Yes, he can.'), 'dog 第 2 题应可作答');
+    // 举一反三：同一句型 May I have a ___? 不同动物正确答案不同（goldfish 课本原句是否定回答）
+    await clickButton(window, 'goldfish');
+    const gBox = boxOf('May I have a goldfish?');
+    assert.ok(gBox, '应出现 goldfish 第 1 题');
+    const gCorrect = gBox.querySelector('.option.is-correct') || Array.from(gBox.querySelectorAll('button'))
+      .find((b) => b.textContent.trim() === "No, you can't. But you can feed it.");
+    assert.ok(gCorrect, "goldfish 的正确回答应为课本否定句 No, you can't. But you can feed it.");
+    // 而 rabbit 的同句型正确回答是肯定句 → 证明同句型不同答案（防止写死答案）
+    await clickButton(window, 'rabbit');
+    const rBox = boxOf('May I have a rabbit?');
+    assert.ok(Array.from(rBox.querySelectorAll('button')).some((b) => b.textContent.trim() === 'Yes, you can.'),
+      'rabbit 同句型正确回答应为肯定句（两种动物答案不同）');
   } finally { cleanup(); }
 });
