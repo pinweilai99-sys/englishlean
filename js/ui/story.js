@@ -1,6 +1,6 @@
 // Stage4 巩固拓展：故事屋 + ou chant + 考点微测
-import { h, toast, starFly, confetti, stage3Nav } from './dom.js?v=1793792688';
-import * as tts from '../services/tts.js?v=1793792688';
+import { h, toast, starFly, confetti, stage3Nav } from './dom.js?v=1793794126';
+import * as tts from '../services/tts.js?v=1793794126';
 
 export function renderStories(ctx, unit) {
   const session = ctx.session;
@@ -212,7 +212,11 @@ export function renderQuiz(ctx, unit) {
         }));
       });
       if (chosen !== undefined) {
-        box.appendChild(h('p', { class: 'hint', text: `💡 ${q.explain || ''}` }));
+        // 家长定版：答完（无论对错）都明确给出正确答案与解说
+        box.appendChild(h('div', { class: 'quiz-explain', style: 'margin-top:8px;padding:10px 12px;background:var(--soft,#f4f7fb);border-radius:10px' }, [
+          h('p', { style: 'margin:0 0 4px;font-weight:800;color:var(--ok,#1a9c6b)', text: `✅ 正确答案：${q.options[q.answer]}` }),
+          h('p', { class: 'hint', style: 'margin:0', text: `💡 ${q.explain || ''}` }),
+        ]));
       }
       wrap.appendChild(box);
     });
