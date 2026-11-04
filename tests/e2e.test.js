@@ -1269,3 +1269,31 @@ test('E2E-44 范文对话：课文范围示范对话（说话人+英文+中文�
     assert.ok(!window.document.querySelector('main .option.is-wrong'), '点范文喇叭不得留错误标记');
   } finally { cleanup(); }
 });
+
+test('E2E-45 第2步完整对话：问答成对显示（🧒孩子问+👩店员答），整段连读含问句', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/2');
+    await wrPickIn(window, '她把鹦鹉带回宠物店', 'Yes, you can.');
+    await wrPickIn(window, '浩浩想抱鹦鹉', "No, you can't.");
+    await wrPickIn(window, '东东想抱小兔子', 'Sure.');
+    // 问答成对：3 个问句 + 3 个答句都有说话人标签（限定在第 2 步 wr-done 区块内）
+    const done = window.document.querySelector('main .wr-done');
+    const asks = Array.from(done.querySelectorAll('.story-text strong'))
+      .filter((s) => (s.textContent || '').includes('🧒'));
+    const answers = Array.from(done.querySelectorAll('.story-text strong'))
+      .filter((s) => (s.textContent || '').includes('👩 店员'));
+    assert.equal(asks.length, 3, '第 2 步应显示 3 句孩子问句');
+    assert.equal(answers.length, 3, '第 2 步应显示 3 句店员回答');
+    // 问句内容正确（含课本句型）
+    const askTexts = asks.map((s) => s.parentElement.textContent).join(' ');
+    assert.ok(askTexts.includes('May I have a pet?'), '卡 1 问句应显示');
+    assert.ok(askTexts.includes('May I hold the parrot?'), '卡 2 问句应显示');
+    assert.ok(askTexts.includes('May I hold it?'), '卡 3 问句应显示');
+  } finally { cleanup(); }
+});
