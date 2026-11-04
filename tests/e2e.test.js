@@ -653,6 +653,44 @@ test('E2E-49 考点微测 VI（选词填空）：渲染（无🔊）+可作答',
   } finally { cleanup(); }
 });
 
+test('E2E-50 巩固拓展子导航：进入 Stage3 默认故事屋，可见「考点微测」入口并一键切换', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, true, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    // 进入巩固拓展（Stage3），默认渲染故事屋
+    await navigate(window, app, '#/unit/u5/stage/3');
+    assert.match(mainText(window), /故事屋/);
+    // 子导航三栏都应存在
+    const tabs = window.document.querySelectorAll('.stage3-nav button[data-tab]');
+    const keys = Array.from(tabs).map((b) => b.getAttribute('data-tab'));
+    assert.ok(keys.includes('stories'), '应有「故事屋」栏');
+    assert.ok(keys.includes('quiz'), '应有「考点微测」栏（修复：此前入口缺失）');
+    assert.ok(keys.includes('review'), '应有「复习」栏');
+    const quizTab = Array.from(tabs).find((b) => b.getAttribute('data-tab') === 'quiz');
+    assert.match(quizTab.textContent, /考点微测/);
+
+    // 点击「考点微测」应切到微测页（修复前只能通过深链访问）
+    quizTab.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 60));
+    assert.match(mainText(window), /考点微测/);
+    assert.ok(mainText(window).match(/共\s*25\s*题/), '微测应显示 25 题');
+    // 微测页也应带子导航，且当前高亮 quiz
+    const quizNav = window.document.querySelectorAll('.stage3-nav button[data-tab]');
+    const active = Array.from(quizNav).find((b) => b.classList.contains('leaf'));
+    assert.equal(active && active.getAttribute('data-tab'), 'quiz', '微测页应高亮「考点微测」');
+
+    // 再切回故事屋验证双向可达
+    const back = Array.from(quizNav).find((b) => b.getAttribute('data-tab') === 'stories');
+    back.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 60));
+    assert.match(mainText(window), /故事屋/);
+  } finally { cleanup(); }
+});
+
 test('E2E-20 字母组合 ou 拼读站：找出全部 ou 词 → 鼓励反馈', async () => {
   const { window, app, cleanup } = await freshApp();
   try {
