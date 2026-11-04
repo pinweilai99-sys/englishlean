@@ -13,27 +13,119 @@ export function renderStories(ctx, unit) {
 
     unit.stories.forEach((st) => {
       const done = (session.storiesDone || []).includes(st.id);
+      session.stQuizOk = session.stQuizOk || {};
       const box = h('div', { class: 'card soft', style: 'margin-bottom:14px' }, [
         h('div', { class: 'card-title', style: 'font-size:var(--fs-md)', text: `${st.id} · ${st.title}` }),
         h('p', { class: 'card-sub', text: st.titleEn }),
-        h('div', { class: 'story-text', style: 'margin-top:10px', text: st.text }),
-        h('div', { class: 'pill-row', style: 'margin-top:10px' }, st.tasks.map((t) => h('span', { class: 'pill', text: t }))),
-        h('div', { class: 'btn-row', style: 'margin-top:12px' }, [
-          h('button', { class: 'btn ghost', text: '🔊 听故事', onclick: () => tts.speak(st.text, { rate: 0.8 }) }),
-          h('button', {
-            class: `btn ${done ? 'ghost' : 'leaf'}`, text: done ? '✅ 已完成' : '✅ 我读完并演了',
-            onclick: () => {
-              const arr = session.storiesDone || [];
-              if (!arr.includes(st.id)) {
-                session.storiesDone = [...arr, st.id];
-                ctx.addStars(2); starFly(2);
-                toast('故事完成！');
-              }
-              render();
-            },
-          }),
-        ]),
       ]);
+
+      // 对话型故事：背景旁白外置（家长要求），对话按课本标准格式分行
+      if (st.lines && st.lines.length) {
+        if (st.narration) {
+          box.appendChild(h('div', { class: 'story-text', style: 'margin-top:10px;display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap' }, [
+            h('strong', { text: '📖 背景：' }),
+            h('span', {
+              text: st.narration, style: 'cursor:pointer', title: '点一句听一句',
+              onclick: () => tts.speak(st.narration),
+            }),
+            h('button', {
+              class: 'st-narr-speak', title: '听背景', text: '🔊',
+              style: 'border:none;background:none;cursor:pointer;font-size:inherit',
+              onclick: (e) => { e.stopPropagation(); tts.speak(st.narration); },
+            }),
+          ]));
+          if (st.narrationZh) box.appendChild(h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${st.narrationZh}` }));
+        }
+        st.lines.forEach((l) => {
+          box.appendChild(h('div', { class: 'story-text', style: 'margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap' }, [
+            h('strong', { text: `${l.who}：` }),
+            h('span', {
+              text: l.t, style: 'cursor:pointer', title: '点一句听一句',
+              onclick: () => tts.speak(l.t),
+            }),
+            h('span', { text: `（${l.zh}）`, style: 'font-size:0.78em;font-weight:600;color:var(--muted,#888)' }),
+            h('button', {
+              class: 'st-line-speak', title: '听这句', text: '🔊',
+              style: 'border:none;background:none;cursor:pointer;font-size:inherit',
+              onclick: (e) => { e.stopPropagation(); tts.speak(l.t); },
+            }),
+          ]));
+        });
+      } else {
+        // 叙述型故事：保持课文段落文体
+        box.appendChild(h('div', { class: 'story-text', style: 'margin-top:10px', text: st.text }));
+      }
+
+      box.appendChild(h('div', { class: 'pill-row', style: 'margin-top:10px' }, st.tasks.map((t) => h('span', { class: 'pill', text: t }))));
+
+      // 阅读理解：判断题（课本原生题型）+ 细节选择题，答对只奖励不留红
+      if (st.quiz && st.quiz.length) {
+        box.appendChild(h('p', { class: 'hint', style: 'margin-top:14px;font-weight:700', text: '🤔 读懂了吗？来判断一下：' }));
+        st.quiz.forEach((q, qi) => {
+          const okKey = `${st.id}-${qi}`;
+          const ok = !!session.stQuizOk[okKey];
+          const qBox = h('div', { style: 'margin-top:8px' }, [
+            h('div', { style: 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:700' }, [
+              h('span', { text: `${qi + 1}. ${q.q}` }),
+              h('button', {
+                class: 'st-q-speak', title: '听题目', text: '🔊',
+                style: 'border:none;background:none;cursor:pointer;font-size:inherit',
+                onclick: () => tts.speak(q.q),
+              }),
+            ]),
+            h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${q.qZh}` }),
+          ]);
+          const row = h('div', { class: 'btn-row', style: 'margin-top:6px' });
+          const opts = q.type === 'tf' ? ['T', 'F'] : q.opts;
+          const labelOf = (o) => (q.type === 'tf' ? (o === 'T' ? 'T 对' : 'F 错') : o);
+          opts.forEach((o) => {
+            row.appendChild(h('button', {
+              class: `option ${ok && o === q.a ? 'is-correct' : ''}`,
+              style: 'width:auto;min-width:120px;margin-bottom:0',
+              onclick: () => {
+                if (session.stQuizOk[okKey]) return; // 答对锁定
+                if (o === q.a) {
+                  session.stQuizOk[okKey] = true;
+                  ctx.addStars(1); starFly(1);
+                  toast('答对啦！你真的读懂了！');
+                } else {
+                  ctx.addWrong({ unit: unit.id, type: 'story_quiz', q: q.q, a: q.a, chosen: o });
+                  toast('再读一读，想一想～');
+                }
+                render();
+              },
+            }, [
+              h('span', {
+                class: 'st-opt-speak', text: '🔊', title: '听这个选项',
+                style: 'margin-right:6px;cursor:pointer',
+                onclick: (e) => { e.stopPropagation(); tts.speak(labelOf(o).replace(/ (对|错)$/, '')); },
+              }),
+              document.createTextNode(labelOf(o)),
+            ]));
+          });
+          qBox.appendChild(row);
+          box.appendChild(qBox);
+        });
+      }
+
+      const allLines = st.lines && st.lines.length
+        ? [st.narration, ...st.lines.map((l) => l.t)].filter(Boolean)
+        : [st.text];
+      box.appendChild(h('div', { class: 'btn-row', style: 'margin-top:12px' }, [
+        h('button', { class: 'btn ghost', text: '🔊 听整篇', onclick: () => tts.speakSequence(allLines) }),
+        h('button', {
+          class: `btn ${done ? 'ghost' : 'leaf'}`, text: done ? '✅ 已完成' : '✅ 我读完并演了',
+          onclick: () => {
+            const arr = session.storiesDone || [];
+            if (!arr.includes(st.id)) {
+              session.storiesDone = [...arr, st.id];
+              ctx.addStars(2); starFly(2);
+              toast('故事完成！');
+            }
+            render();
+          },
+        }),
+      ]));
       wrap.appendChild(box);
     });
   }

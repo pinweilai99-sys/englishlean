@@ -8,80 +8,367 @@
     "parent": "请求养宠物 + 回应许可（May I…? / Yes, you can. / No, you can't.）"
   },
   "words": [
-    { "w": "may", "ipa": "/me\u026a/", "zh": "可以；可能", "tier": "four", "img": "\u270b", "tts": "may",
-      "chunks": ["may"], "memo": "单音节 m-ay：ay 读 /e\u026a/，和拼音 mei 的韵母一样" },
-    { "w": "pet", "ipa": "/pet/", "zh": "宠物", "tier": "four", "img": "\ud83d\udc31", "tts": "pet",
-      "chunks": ["pet"], "memo": "单音节 p-e-t：三个字母各读各的音，直接拼" },
-    { "w": "rabbit", "ipa": "/\u02c8r\u00e6b\u026at/", "zh": "兔", "tier": "four", "img": "\ud83d\udc30", "tts": "rabbit",
-      "chunks": ["rab", "bit"], "memo": "双音节 rab·bit：bb 相连只读一个 /b/" },
-    { "w": "feed", "ipa": "/fi\u02d0d/", "zh": "喂养", "tier": "four", "img": "\ud83c\udf5c", "tts": "feed",
-      "chunks": ["feed"], "memo": "ee 组合读长音 /i\u02d0/（衣——）：see / tree / three 同族" },
-    { "w": "hold", "ipa": "/h\u0259\u028ald/", "zh": "抱住；握着", "tier": "four", "img": "\ud83e\udd1f", "tts": "hold",
-      "chunks": ["hold"], "memo": "old 组合读 /\u0259\u028ald/：gold / told 同族（goldfish 里就有 gold）" },
-    { "w": "Mrs", "ipa": "/\u02c8m\u026as\u026az/", "zh": "太太；夫人", "tier": "read", "img": "\ud83d\udc69", "tts": "Mrs",
-      "chunks": ["Mrs"], "memo": "尊称缩写，读 /\u02c8m\u026as\u026az/（音近「米西兹」），别按字母读 M-r-s" },
-    { "w": "lovely", "ipa": "/\u02c8l\u028cvli/", "zh": "美丽的；可爱的", "tier": "read", "img": "\ud83c\udf38", "tts": "lovely",
-      "chunks": ["love", "ly"], "memo": "love（爱）+ ly（…的）= 可爱的" },
-    { "w": "goldfish", "ipa": "/\u02c8g\u0259\u028aldf\u026a\u0283/", "zh": "金鱼", "tier": "read", "img": "\ud83d\udc1f", "tts": "goldfish",
-      "chunks": ["gold", "fish"], "memo": "合成词：gold（金色）+ fish（鱼）= 金鱼，两块都能单独读" },
-    { "w": "clever", "ipa": "/\u02c8klev\u0259(r)/", "zh": "聪明的", "tier": "read", "img": "\ud83e\udd24", "tts": "clever",
-      "chunks": ["cle", "ver"], "memo": "双音节 cle\u00b7ver：c 读 /k/，结尾 -er 读轻声 /\u0259/" },
-    { "w": "shop", "ipa": "/\u0283\u0252p/", "zh": "商店；购物", "tier": "read", "img": "\ud83c\udfe6", "tts": "shop",
-      "chunks": ["shop"], "memo": "sh 组合读 /\u0283/（像「嘘——」）：she / ship 同族" },
-    { "w": "parrot", "ipa": "/\u02c8p\u00e6r\u0259t/", "zh": "鹦鹉", "tier": "read", "img": "\ud83d\udc9c", "tts": "parrot",
-      "chunks": ["par", "rot"], "memo": "双音节 par\u00b7rot：rr 相连只读一个 /r/，和 rabbit 的 bb 一样" },
-    { "w": "back", "ipa": "/b\u00e6k/", "zh": "回到原处；回应", "tier": "read", "img": "\ud83d\udc49", "tts": "back",
-      "chunks": ["back"], "memo": "ck 组合只读一个 /k/：black / clock 同族" }
+    {
+      "w": "may",
+      "ipa": "/meɪ/",
+      "zh": "可以；可能",
+      "tier": "four",
+      "img": "✋",
+      "tts": "may",
+      "chunks": [
+        "may"
+      ],
+      "memo": "单音节 m-ay：ay 读 /eɪ/，和拼音 mei 的韵母一样"
+    },
+    {
+      "w": "pet",
+      "ipa": "/pet/",
+      "zh": "宠物",
+      "tier": "four",
+      "img": "🐱",
+      "tts": "pet",
+      "chunks": [
+        "pet"
+      ],
+      "memo": "单音节 p-e-t：三个字母各读各的音，直接拼"
+    },
+    {
+      "w": "rabbit",
+      "ipa": "/ˈræbɪt/",
+      "zh": "兔",
+      "tier": "four",
+      "img": "🐰",
+      "tts": "rabbit",
+      "chunks": [
+        "rab",
+        "bit"
+      ],
+      "memo": "双音节 rab·bit：bb 相连只读一个 /b/"
+    },
+    {
+      "w": "feed",
+      "ipa": "/fiːd/",
+      "zh": "喂养",
+      "tier": "four",
+      "img": "🍜",
+      "tts": "feed",
+      "chunks": [
+        "feed"
+      ],
+      "memo": "ee 组合读长音 /iː/（衣——）：see / tree / three 同族"
+    },
+    {
+      "w": "hold",
+      "ipa": "/həʊld/",
+      "zh": "抱住；握着",
+      "tier": "four",
+      "img": "🤟",
+      "tts": "hold",
+      "chunks": [
+        "hold"
+      ],
+      "memo": "old 组合读 /əʊld/：gold / told 同族（goldfish 里就有 gold）"
+    },
+    {
+      "w": "Mrs",
+      "ipa": "/ˈmɪsɪz/",
+      "zh": "太太；夫人",
+      "tier": "read",
+      "img": "👩",
+      "tts": "Mrs",
+      "chunks": [
+        "Mrs"
+      ],
+      "memo": "尊称缩写，读 /ˈmɪsɪz/（音近「米西兹」），别按字母读 M-r-s"
+    },
+    {
+      "w": "lovely",
+      "ipa": "/ˈlʌvli/",
+      "zh": "美丽的；可爱的",
+      "tier": "read",
+      "img": "🌸",
+      "tts": "lovely",
+      "chunks": [
+        "love",
+        "ly"
+      ],
+      "memo": "love（爱）+ ly（…的）= 可爱的"
+    },
+    {
+      "w": "goldfish",
+      "ipa": "/ˈgəʊldfɪʃ/",
+      "zh": "金鱼",
+      "tier": "read",
+      "img": "🐟",
+      "tts": "goldfish",
+      "chunks": [
+        "gold",
+        "fish"
+      ],
+      "memo": "合成词：gold（金色）+ fish（鱼）= 金鱼，两块都能单独读"
+    },
+    {
+      "w": "clever",
+      "ipa": "/ˈklevə(r)/",
+      "zh": "聪明的",
+      "tier": "read",
+      "img": "🤤",
+      "tts": "clever",
+      "chunks": [
+        "cle",
+        "ver"
+      ],
+      "memo": "双音节 cle·ver：c 读 /k/，结尾 -er 读轻声 /ə/"
+    },
+    {
+      "w": "shop",
+      "ipa": "/ʃɒp/",
+      "zh": "商店；购物",
+      "tier": "read",
+      "img": "🏦",
+      "tts": "shop",
+      "chunks": [
+        "shop"
+      ],
+      "memo": "sh 组合读 /ʃ/（像「嘘——」）：she / ship 同族"
+    },
+    {
+      "w": "parrot",
+      "ipa": "/ˈpærət/",
+      "zh": "鹦鹉",
+      "tier": "read",
+      "img": "💜",
+      "tts": "parrot",
+      "chunks": [
+        "par",
+        "rot"
+      ],
+      "memo": "双音节 par·rot：rr 相连只读一个 /r/，和 rabbit 的 bb 一样"
+    },
+    {
+      "w": "back",
+      "ipa": "/bæk/",
+      "zh": "回到原处；回应",
+      "tier": "read",
+      "img": "👉",
+      "tts": "back",
+      "chunks": [
+        "back"
+      ],
+      "memo": "ck 组合只读一个 /k/：black / clock 同族"
+    }
   ],
   "phonics": {
     "pattern": "ou",
-    "ipa": "/a\u028a/",
-    "words": ["mouse", "mouth", "cloud", "south", "shout", "out"],
+    "ipa": "/aʊ/",
+    "words": [
+      "mouse",
+      "mouth",
+      "cloud",
+      "south",
+      "shout",
+      "out"
+    ],
     "chant": "I see a big mouse, sneaking into the house. My mum sees it and shouts, Get out, mouse!"
   },
   "listenPairs": [
-    ["may", "my"],
-    ["pet", "get"],
-    ["rabbit", "ribbon"],
-    ["feed", "food"],
-    ["hold", "house"],
-    ["Mrs", "Miss"],
-    ["lovely", "lonely"],
-    ["goldfish", "fish"],
-    ["clever", "never"],
-    ["shop", "ship"],
-    ["parrot", "carrot"],
-    ["back", "black"]
+    [
+      "may",
+      "my"
+    ],
+    [
+      "pet",
+      "get"
+    ],
+    [
+      "rabbit",
+      "ribbon"
+    ],
+    [
+      "feed",
+      "food"
+    ],
+    [
+      "hold",
+      "house"
+    ],
+    [
+      "Mrs",
+      "Miss"
+    ],
+    [
+      "lovely",
+      "lonely"
+    ],
+    [
+      "goldfish",
+      "fish"
+    ],
+    [
+      "clever",
+      "never"
+    ],
+    [
+      "shop",
+      "ship"
+    ],
+    [
+      "parrot",
+      "carrot"
+    ],
+    [
+      "back",
+      "black"
+    ]
   ],
   "sentences": {
     "pattern": "May I have a ___?",
-    "slots": ["rabbit", "goldfish", "dog", "cat", "parrot"],
-    "answers": ["Yes, you can.", "No, you can't."],
-    "extra": { "May I hold it?": "Sure." },
+    "slots": [
+      "rabbit",
+      "goldfish",
+      "dog",
+      "cat",
+      "parrot"
+    ],
+    "answers": [
+      "Yes, you can.",
+      "No, you can't."
+    ],
+    "extra": {
+      "May I hold it?": "Sure."
+    },
     "dialogues": {
       "pet": [
-        { "q": "May I have a pet?", "a": "Yes, you can.", "zh": "我可以养一只宠物吗？——可以。", "opts": ["Yes, you can.", "No, you can't.", "Sure."] },
-        { "q": "May I hold it?", "a": "Sure.", "zh": "我可以抱抱它吗？——当然可以。", "opts": ["Sure.", "Yes, you can.", "No, you can't."] }
+        {
+          "q": "May I have a pet?",
+          "a": "Yes, you can.",
+          "zh": "我可以养一只宠物吗？——可以。",
+          "opts": [
+            "Yes, you can.",
+            "No, you can't.",
+            "Sure."
+          ]
+        },
+        {
+          "q": "May I hold it?",
+          "a": "Sure.",
+          "zh": "我可以抱抱它吗？——当然可以。",
+          "opts": [
+            "Sure.",
+            "Yes, you can.",
+            "No, you can't."
+          ]
+        }
       ],
       "rabbit": [
-        { "q": "May I have a rabbit?", "a": "Yes, you can.", "zh": "我可以养一只兔子吗？——可以。", "opts": ["Yes, you can.", "No, you can't.", "Sure."] },
-        { "q": "Can you take good care of it?", "a": "OK. Yes, I can.", "zh": "你能把它照顾好吗？——好的，我能。", "opts": ["OK. Yes, I can.", "Yes, you can.", "No, you can't."] }
+        {
+          "q": "May I have a rabbit?",
+          "a": "Yes, you can.",
+          "zh": "我可以养一只兔子吗？——可以。",
+          "opts": [
+            "Yes, you can.",
+            "No, you can't.",
+            "Sure."
+          ]
+        },
+        {
+          "q": "Can you take good care of it?",
+          "a": "OK. Yes, I can.",
+          "zh": "你能把它照顾好吗？——好的，我能。",
+          "opts": [
+            "OK. Yes, I can.",
+            "Yes, you can.",
+            "No, you can't."
+          ]
+        }
       ],
       "goldfish": [
-        { "q": "May I have a goldfish?", "a": "No, you can't. But you can feed it.", "zh": "我可以养一条金鱼吗？——不行哦，但你可以喂它。", "opts": ["No, you can't. But you can feed it.", "Yes, you can.", "Sure."] },
-        { "q": "May I feed it?", "a": "Sure.", "zh": "我可以喂喂它吗？——当然可以。", "opts": ["Sure.", "No, you can't.", "OK. Yes, I can."] }
+        {
+          "q": "May I have a goldfish?",
+          "a": "No, you can't. But you can feed it.",
+          "zh": "我可以养一条金鱼吗？——不行哦，但你可以喂它。",
+          "opts": [
+            "No, you can't. But you can feed it.",
+            "Yes, you can.",
+            "Sure."
+          ]
+        },
+        {
+          "q": "May I feed it?",
+          "a": "Sure.",
+          "zh": "我可以喂喂它吗？——当然可以。",
+          "opts": [
+            "Sure.",
+            "No, you can't.",
+            "OK. Yes, I can."
+          ]
+        }
       ],
       "dog": [
-        { "q": "May I touch him?", "a": "No, you can't. He's working now.", "zh": "我可以摸摸它吗？——不行哦，它正在工作呢。", "opts": ["No, you can't. He's working now.", "Sure.", "Yes, you can."] },
-        { "q": "Can he help blind people?", "a": "Yes, he can.", "zh": "它能帮助盲人吗？——能，它可以。", "opts": ["Yes, he can.", "Yes, you can.", "Sure."] }
+        {
+          "q": "May I touch him?",
+          "a": "No, you can't. He's working now.",
+          "zh": "我可以摸摸它吗？——不行哦，它正在工作呢。",
+          "opts": [
+            "No, you can't. He's working now.",
+            "Sure.",
+            "Yes, you can."
+          ]
+        },
+        {
+          "q": "Can he help blind people?",
+          "a": "Yes, he can.",
+          "zh": "它能帮助盲人吗？——能，它可以。",
+          "opts": [
+            "Yes, he can.",
+            "Yes, you can.",
+            "Sure."
+          ]
+        }
       ],
       "cat": [
-        { "q": "May I have a cat?", "a": "Yes, you can.", "zh": "我可以养一只小猫吗？——可以。", "opts": ["Yes, you can.", "No, you can't.", "Sure."] },
-        { "q": "May I hold it?", "a": "Sure.", "zh": "我可以抱抱它吗？——当然可以。", "opts": ["Sure.", "No, you can't.", "Yes, you can."] }
+        {
+          "q": "May I have a cat?",
+          "a": "Yes, you can.",
+          "zh": "我可以养一只小猫吗？——可以。",
+          "opts": [
+            "Yes, you can.",
+            "No, you can't.",
+            "Sure."
+          ]
+        },
+        {
+          "q": "May I hold it?",
+          "a": "Sure.",
+          "zh": "我可以抱抱它吗？——当然可以。",
+          "opts": [
+            "Sure.",
+            "No, you can't.",
+            "Yes, you can."
+          ]
+        }
       ],
       "parrot": [
-        { "q": "May I have a parrot?", "a": "Yes, you can.", "zh": "我可以养一只鹦鹉吗？——可以。", "opts": ["Yes, you can.", "No, you can't.", "Sure."] },
-        { "q": "Can you take good care of it?", "a": "OK. Yes, I can.", "zh": "你能把它照顾好吗？——好的，我能。", "opts": ["OK. Yes, I can.", "Sure.", "No, you can't."] }
+        {
+          "q": "May I have a parrot?",
+          "a": "Yes, you can.",
+          "zh": "我可以养一只鹦鹉吗？——可以。",
+          "opts": [
+            "Yes, you can.",
+            "No, you can't.",
+            "Sure."
+          ]
+        },
+        {
+          "q": "Can you take good care of it?",
+          "a": "OK. Yes, I can.",
+          "zh": "你能把它照顾好吗？——好的，我能。",
+          "opts": [
+            "OK. Yes, I can.",
+            "Sure.",
+            "No, you can't."
+          ]
+        }
       ]
     }
   },
@@ -89,7 +376,12 @@
     "scene": "宠物店：你想要一只小宠物",
     "child": "May I have a ___?",
     "childZh": "我想要一只___，可以吗？",
-    "parent": ["Yes, you can.", "No, you can't.", "Sure.", "OK. Yes, I can."],
+    "parent": [
+      "Yes, you can.",
+      "No, you can't.",
+      "Sure.",
+      "OK. Yes, I can."
+    ],
     "parentZh": {
       "Yes, you can.": "可以哦，给你。",
       "No, you can't.": "不行哦，不可以。",
@@ -110,20 +402,76 @@
     "sampleDialogue": {
       "scene": "🐰 在宠物店",
       "lines": [
-        { "who": "🧒 Haohao", "t": "May I come in?", "zh": "我可以进来吗？" },
-        { "who": "👩 店员", "t": "Sure. Come in, please!", "zh": "当然可以，快进来吧！" },
-        { "who": "🧒 Haohao", "t": "The rabbit is lovely! May I hold it?", "zh": "这兔子真可爱！我可以抱抱它吗？" },
-        { "who": "👩 店员", "t": "Yes, you can. Here you are.", "zh": "可以哦，给你。" },
-        { "who": "🧒 Haohao", "t": "It has long ears. It is cute!", "zh": "它有长长的耳朵，真讨人喜欢！" },
-        { "who": "👩 店员", "t": "Have some carrots.", "zh": "吃点胡萝卜吧。" },
-        { "who": "🧒 Haohao", "t": "May I feed it a carrot?", "zh": "我可以喂它一根胡萝卜吗？" },
-        { "who": "👩 店员", "t": "OK. Here you are.", "zh": "好的，给你。" },
-        { "who": "🧒 Haohao", "t": "Can I touch it?", "zh": "我可以摸摸它吗？" },
-        { "who": "👩 店员", "t": "Sure.", "zh": "当然可以！" },
-        { "who": "🧒 Haohao", "t": "I like it very much! May I take it home?", "zh": "我太喜欢它了！我可以带它回家吗？" },
-        { "who": "👩 店员", "t": "OK. Yes, you can.", "zh": "好的，可以哦。" },
-        { "who": "🧒 Haohao", "t": "Thank you!", "zh": "谢谢您！" },
-        { "who": "👩 店员", "t": "You're welcome.", "zh": "不客气。" }
+        {
+          "who": "🧒 Haohao",
+          "t": "May I come in?",
+          "zh": "我可以进来吗？"
+        },
+        {
+          "who": "👩 店员",
+          "t": "Sure. Come in, please!",
+          "zh": "当然可以，快进来吧！"
+        },
+        {
+          "who": "🧒 Haohao",
+          "t": "The rabbit is lovely! May I hold it?",
+          "zh": "这兔子真可爱！我可以抱抱它吗？"
+        },
+        {
+          "who": "👩 店员",
+          "t": "Yes, you can. Here you are.",
+          "zh": "可以哦，给你。"
+        },
+        {
+          "who": "🧒 Haohao",
+          "t": "It has long ears. It is cute!",
+          "zh": "它有长长的耳朵，真讨人喜欢！"
+        },
+        {
+          "who": "👩 店员",
+          "t": "Have some carrots.",
+          "zh": "吃点胡萝卜吧。"
+        },
+        {
+          "who": "🧒 Haohao",
+          "t": "May I feed it a carrot?",
+          "zh": "我可以喂它一根胡萝卜吗？"
+        },
+        {
+          "who": "👩 店员",
+          "t": "OK. Here you are.",
+          "zh": "好的，给你。"
+        },
+        {
+          "who": "🧒 Haohao",
+          "t": "Can I touch it?",
+          "zh": "我可以摸摸它吗？"
+        },
+        {
+          "who": "👩 店员",
+          "t": "Sure.",
+          "zh": "当然可以！"
+        },
+        {
+          "who": "🧒 Haohao",
+          "t": "I like it very much! May I take it home?",
+          "zh": "我太喜欢它了！我可以带它回家吗？"
+        },
+        {
+          "who": "👩 店员",
+          "t": "OK. Yes, you can.",
+          "zh": "好的，可以哦。"
+        },
+        {
+          "who": "🧒 Haohao",
+          "t": "Thank you!",
+          "zh": "谢谢您！"
+        },
+        {
+          "who": "👩 店员",
+          "t": "You're welcome.",
+          "zh": "不客气。"
+        }
       ]
     },
     "items": [
@@ -134,7 +482,11 @@
         "ask": "May I have a pet?",
         "askZh": "我想要一只宠物，可以吗？",
         "a": "Yes, you can.",
-        "opts": ["Yes, you can.", "No, you can't.", "Sure."]
+        "opts": [
+          "Yes, you can.",
+          "No, you can't.",
+          "Sure."
+        ]
       },
       {
         "ctx": "Haohao wants to hold the parrot. The shopkeeper says no.",
@@ -143,7 +495,11 @@
         "ask": "May I hold the parrot?",
         "askZh": "我可以抱抱这只鹦鹉吗？",
         "a": "No, you can't.",
-        "opts": ["No, you can't.", "Yes, you can.", "Sure."]
+        "opts": [
+          "No, you can't.",
+          "Yes, you can.",
+          "Sure."
+        ]
       },
       {
         "ctx": "Dongdong asks to hold the rabbit. The shopkeeper agrees.",
@@ -152,7 +508,11 @@
         "ask": "May I hold it?",
         "askZh": "我可以抱抱它吗？",
         "a": "Sure.",
-        "opts": ["Sure.", "No, you can't.", "Yes, he can."]
+        "opts": [
+          "Sure.",
+          "No, you can't.",
+          "Yes, he can."
+        ]
       }
     ]
   },
@@ -175,100 +535,541 @@
         "q": "Do you have a pet?",
         "qZh": "你养宠物吗？",
         "opts": [
-          { "t": "I want a pet!", "zh": "我想要一只宠物！" },
-          { "t": "I love pets!", "zh": "我喜欢宠物！" }
+          {
+            "t": "I want a pet!",
+            "zh": "我想要一只宠物！"
+          },
+          {
+            "t": "I love pets!",
+            "zh": "我喜欢宠物！"
+          }
         ]
       },
       {
         "q": "What pet do you want?",
         "qZh": "你想养什么宠物？",
         "opts": [
-          { "t": "I want a cat.", "zh": "我想养一只小猫。" },
-          { "t": "I want a dog.", "zh": "我想养一只小狗。" },
-          { "t": "I want a rabbit.", "zh": "我想养一只小兔。" },
-          { "t": "I want a goldfish.", "zh": "我想养一条金鱼。" },
-          { "t": "I want a parrot.", "zh": "我想养一只鹦鹉。" }
+          {
+            "t": "I want a cat.",
+            "zh": "我想养一只小猫。"
+          },
+          {
+            "t": "I want a dog.",
+            "zh": "我想养一只小狗。"
+          },
+          {
+            "t": "I want a rabbit.",
+            "zh": "我想养一只小兔。"
+          },
+          {
+            "t": "I want a goldfish.",
+            "zh": "我想养一条金鱼。"
+          },
+          {
+            "t": "I want a parrot.",
+            "zh": "我想养一只鹦鹉。"
+          }
         ]
       },
       {
         "q": "What does your pet look like?",
         "qZh": "它长什么样子？",
         "featureByAnimal": {
-          "cat": { "t": "It has big eyes.", "zh": "它有大大的眼睛。" },
-          "dog": { "t": "It has short legs.", "zh": "它有短短的腿。" },
-          "rabbit": { "t": "It has long ears.", "zh": "它有长长的耳朵。" },
-          "goldfish": { "t": "It is lovely.", "zh": "它很可爱。" },
-          "parrot": { "t": "It is clever.", "zh": "它很聪明。" }
+          "cat": {
+            "t": "It has big eyes.",
+            "zh": "它有大大的眼睛。"
+          },
+          "dog": {
+            "t": "It has short legs.",
+            "zh": "它有短短的腿。"
+          },
+          "rabbit": {
+            "t": "It has long ears.",
+            "zh": "它有长长的耳朵。"
+          },
+          "goldfish": {
+            "t": "It is lovely.",
+            "zh": "它很可爱。"
+          },
+          "parrot": {
+            "t": "It is clever.",
+            "zh": "它很聪明。"
+          }
         },
-        "extra": { "t": "It is cute.", "zh": "它真讨人喜欢。" }
+        "extra": {
+          "t": "It is cute.",
+          "zh": "它真讨人喜欢。"
+        }
       },
       {
         "q": "What do you do with your pet?",
         "qZh": "你和它一起做什么？",
         "opts": [
-          { "t": "I feed it.", "zh": "我给它喂食。" },
-          { "t": "I hold it.", "zh": "我抱着它。" },
-          { "t": "I play with it.", "zh": "我和它一起玩。" }
+          {
+            "t": "I feed it.",
+            "zh": "我给它喂食。"
+          },
+          {
+            "t": "I hold it.",
+            "zh": "我抱着它。"
+          },
+          {
+            "t": "I play with it.",
+            "zh": "我和它一起玩。"
+          }
         ]
       }
     ],
-    "ending": { "t": "I love my pet!", "zh": "我爱我的宠物！" }
+    "ending": {
+      "t": "I love my pet!",
+      "zh": "我爱我的宠物！"
+    }
   },
   "stories": [
     {
       "id": "A",
       "title": "Dongdong 买兔子",
       "titleEn": "May I have a rabbit?",
-      "text": "Mrs Chen and Dongdong are walking on the street. \u2014 Mum, may I have a pet? \u2014 Yes, you can. They go to the pet shop. \u2014 May I have a rabbit? \u2014 Can you take good care of it? \u2014 OK. Yes, I can. \u2014 It's lovely. May I hold it? \u2014 Sure. \u2014 It's your new home, Bunny. \u2014 Have some carrots.",
-      "tasks": ["跟读 3 遍", "演一演这段对话"]
+      "text": "Mrs Chen and Dongdong are walking on the street. — Mum, may I have a pet? — Yes, you can. They go to the pet shop. — May I have a rabbit? — Can you take good care of it? — OK. Yes, I can. — It's lovely. May I hold it? — Sure. — It's your new home, Bunny. — Have some carrots.",
+      "tasks": [
+        "跟读 3 遍",
+        "演一演这段对话"
+      ],
+      "narration": "Mrs Chen and Dongdong are walking on the street. They go to the pet shop.",
+      "narrationZh": "陈夫人和东东走在街上。他们来到宠物店。",
+      "lines": [
+        {
+          "who": "🧒 Dongdong",
+          "t": "Mum, may I have a pet?",
+          "zh": "妈妈，我可以养一只宠物吗？"
+        },
+        {
+          "who": "👩 Mrs Chen",
+          "t": "Yes, you can.",
+          "zh": "可以哦。"
+        },
+        {
+          "who": "🧒 Dongdong",
+          "t": "May I have a rabbit?",
+          "zh": "我可以买一只兔子吗？"
+        },
+        {
+          "who": "👩 Mrs Chen",
+          "t": "Can you take good care of it?",
+          "zh": "你能照顾好它吗？"
+        },
+        {
+          "who": "🧒 Dongdong",
+          "t": "OK. Yes, I can.",
+          "zh": "好的，我能。"
+        },
+        {
+          "who": "🧒 Dongdong",
+          "t": "It's lovely. May I hold it?",
+          "zh": "它真可爱。我可以抱抱它吗？"
+        },
+        {
+          "who": "👩 Mrs Chen",
+          "t": "Sure.",
+          "zh": "当然可以。"
+        },
+        {
+          "who": "👩 Mrs Chen",
+          "t": "It's your new home, Bunny. Have some carrots.",
+          "zh": "这是你的新家，邦尼。吃点胡萝卜吧。"
+        }
+      ],
+      "quiz": [
+        {
+          "q": "Dongdong wants a rabbit.",
+          "qZh": "东东想要一只兔子。",
+          "type": "tf",
+          "a": "T"
+        },
+        {
+          "q": "Mum says, \"Can you take good care of it?\"",
+          "qZh": "妈妈说：\"你能照顾好它吗？\"",
+          "type": "tf",
+          "a": "T"
+        },
+        {
+          "q": "What do they give Bunny?",
+          "qZh": "他们给邦尼吃什么？",
+          "type": "choice",
+          "opts": [
+            "Carrots.",
+            "Apples.",
+            "Fish."
+          ],
+          "a": "Carrots."
+        }
+      ]
     },
     {
       "id": "F",
       "title": "鹦鹉学舌",
       "titleEn": "The parrot can talk",
-      "text": "Xiaoxiao loves animals. \u201cMay I have a pet, Dad?\u201d Xiaoxiao asks. \u201cYes, you can,\u201d her father says. They go to a pet shop. Xiaoxiao chooses a beautiful parrot. She and her father take the parrot home. They are very happy. The parrot can talk. Xiaoxiao likes him very much. \u201cHi, I'm Haohao,\u201d says Xiaoxiao's brother. \u201cHi, I'm Haohao,\u201d says the parrot. \u201cDon't follow me!\u201d says Haohao. \u201cDon't follow me!\u201d says the parrot. \u201cCan you take him back to the pet shop?\u201d Haohao asks Xiaoxiao. He's not happy.",
-      "tasks": ["跟读 3 遍", "复述：Haohao 让谁把鹦鹉送回去？"]
+      "text": "Xiaoxiao loves animals. “May I have a pet, Dad?” Xiaoxiao asks. “Yes, you can,” her father says. They go to a pet shop. Xiaoxiao chooses a beautiful parrot. She and her father take the parrot home. They are very happy. The parrot can talk. Xiaoxiao likes him very much. “Hi, I'm Haohao,” says Xiaoxiao's brother. “Hi, I'm Haohao,” says the parrot. “Don't follow me!” says Haohao. “Don't follow me!” says the parrot. “Can you take him back to the pet shop?” Haohao asks Xiaoxiao. He's not happy.",
+      "tasks": [
+        "跟读 3 遍",
+        "复述：Haohao 让谁把鹦鹉送回去？"
+      ],
+      "quiz": [
+        {
+          "q": "The parrot can talk.",
+          "qZh": "鹦鹉会说话。",
+          "type": "tf",
+          "a": "T"
+        },
+        {
+          "q": "Haohao is happy about the parrot.",
+          "qZh": "浩浩对鹦鹉很满意。",
+          "type": "tf",
+          "a": "F"
+        },
+        {
+          "q": "Where does Haohao want Xiaoxiao to take the parrot?",
+          "qZh": "浩浩想把鹦鹉带到哪里去？",
+          "type": "choice",
+          "opts": [
+            "To the pet shop.",
+            "To the zoo.",
+            "To school."
+          ],
+          "a": "To the pet shop."
+        }
+      ]
     },
     {
       "id": "D",
       "title": "导盲犬小短剧",
       "titleEn": "He's a guide dog",
-      "text": "\u2014 Look, Tim! There is a cute dog. \u2014 He's a guide dog. He can help blind people. He's clever and helpful. \u2014 May I touch him? \u2014 No, you can't. He's working now.",
-      "tasks": ["跟读", "演一演（为什么不能摸？）"]
+      "text": "— Look, Tim! There is a cute dog. — He's a guide dog. He can help blind people. He's clever and helpful. — May I touch him? — No, you can't. He's working now.",
+      "tasks": [
+        "跟读",
+        "演一演（为什么不能摸？）"
+      ],
+      "narration": "",
+      "narrationZh": "",
+      "lines": [
+        {
+          "who": "🧒 甲",
+          "t": "Look, Tim! There is a cute dog.",
+          "zh": "看，Tim！有一只可爱的狗。"
+        },
+        {
+          "who": "🧒 甲",
+          "t": "He's a guide dog. He can help blind people. He's clever and helpful.",
+          "zh": "它是导盲犬。它能帮助盲人。它聪明又乐于助人。"
+        },
+        {
+          "who": "🧒 Tim",
+          "t": "May I touch him?",
+          "zh": "我可以摸摸它吗？"
+        },
+        {
+          "who": "🧒 甲",
+          "t": "No, you can't. He's working now.",
+          "zh": "不行哦，它正在工作呢。"
+        }
+      ],
+      "quiz": [
+        {
+          "q": "The dog can help blind people.",
+          "qZh": "这只狗能帮助盲人。",
+          "type": "tf",
+          "a": "T"
+        },
+        {
+          "q": "Tim can touch the dog.",
+          "qZh": "Tim 可以摸这只狗。",
+          "type": "tf",
+          "a": "F"
+        },
+        {
+          "q": "Why can't Tim touch him?",
+          "qZh": "Tim 为什么不能摸它？",
+          "type": "choice",
+          "opts": [
+            "He's working now.",
+            "He's sleeping.",
+            "He's eating."
+          ],
+          "a": "He's working now."
+        }
+      ]
     },
     {
       "id": "X",
       "title": "Ben 和 Mia 的生日",
       "titleEn": "Ben and Mia",
-      "text": "Today is Ben and Mia's birthday. They go to a pet shop with their parents. Ben chooses a lovely rabbit. Mia looks around, but she doesn't find her favourite pet. She feels a little sad. On their way home, Mia sees a small cat on the street. It looks cute and friendly. \u201cDad, Mum, may I take it home?\u201d \u201cCan you take good care of it?\u201d Mum asks. \u201cYes, I can,\u201d Mia says. They take the cat to the vet. The vet checks the cat and says it is healthy. They go home with the cat happily.",
-      "tasks": ["读 2 遍", "连线：Ben—? Mia—?"]
+      "text": "Today is Ben and Mia's birthday. They go to a pet shop with their parents. Ben chooses a lovely rabbit. Mia looks around, but she doesn't find her favourite pet. She feels a little sad. On their way home, Mia sees a small cat on the street. It looks cute and friendly. “Dad, Mum, may I take it home?” “Can you take good care of it?” Mum asks. “Yes, I can,” Mia says. They take the cat to the vet. The vet checks the cat and says it is healthy. They go home with the cat happily.",
+      "tasks": [
+        "读 2 遍",
+        "连线：Ben—? Mia—?"
+      ],
+      "quiz": [
+        {
+          "q": "Ben chooses a lovely rabbit.",
+          "qZh": "Ben 挑了一只可爱的兔子。",
+          "type": "tf",
+          "a": "T"
+        },
+        {
+          "q": "Mia finds her favourite pet in the shop.",
+          "qZh": "Mia 在店里找到了她最喜欢的宠物。",
+          "type": "tf",
+          "a": "F"
+        },
+        {
+          "q": "Where does the cat go for a check?",
+          "qZh": "小猫去哪里做检查？",
+          "type": "choice",
+          "opts": [
+            "To the vet.",
+            "To the park.",
+            "To school."
+          ],
+          "a": "To the vet."
+        }
+      ]
     }
   ],
   "quiz": [
-    { "id": "I1", "type": "listen_choice", "prompt": "听音选词（听音选正确单词）", "speak": "pet", "options": ["pet", "get", "hat"], "answer": 0, "explain": "pet 是宠物；get 是拿；hat 是帽子。" },
-    { "id": "I2", "type": "listen_choice", "prompt": "听音选词", "speak": "may", "options": ["mother", "may", "my"], "answer": 1, "explain": "may 是可以；my 是我的。" },
-    { "id": "I3", "type": "listen_choice", "prompt": "听音选词", "speak": "hold", "options": ["house", "home", "hold"], "answer": 2, "explain": "hold 是抱住。" },
-    { "id": "II1", "type": "listen_pick", "prompt": "听音选图：宠物店", "speak": "pet shop", "options": ["\ud83d\udc31", "\ud83c\udfe6", "\ud83d\udc76"], "answer": 1, "explain": "宠物店里有小宠物。" },
-    { "id": "IV1", "type": "picture_word", "prompt": "看图猜词：\ud83d\udc1f", "options": ["goldfish", "rabbit", "parrot"], "answer": 0, "explain": "金鱼 goldfish。" },
-    { "id": "IV2", "type": "picture_word", "prompt": "看图猜词：\ud83d\udc30", "options": ["mouse", "goldfish", "rabbit"], "answer": 2, "explain": "兔子 rabbit。" },
-    { "id": "V1", "type": "same_group", "prompt": "选同类词：beautiful → ?", "options": ["clever", "carrots", "her"], "answer": 0, "explain": "beautiful 与 clever 都是形容词。" },
-    { "id": "V2", "type": "same_group", "prompt": "选同类词：may → ?", "options": ["walk", "can", "her"], "answer": 1, "explain": "may 与 can 都是情态动词。" },
-    { "id": "VII1", "type": "true_false", "prompt": "图句判断：The girl holds a rabbit. （\ud83d\udc30）", "options": ["T", "F"], "answer": 0, "explain": "她抱着的是兔子。" },
-    { "id": "VIII1", "type": "communicate", "prompt": "情景交际：May I have a rabbit? → ?", "options": ["Yes, you can.", "No, I don't.", "What's this?", "Can I hold it?"], "answer": 0, "explain": "请求许可用 Yes, you can. / No, you can't." },
-    { "id": "VIII2", "type": "communicate", "prompt": "情景交际：Let's go to the pet shop. → ?", "options": ["Yes, you can.", "Great!", "No, I don't."], "answer": 1, "explain": "提议去宠物店，对方会说 Great!" },
-    { "id": "IX1", "type": "imitate", "prompt": "仿写：May I have a rabbit? → ?", "options": ["May I have a goldfish?", "Yes, I can.", "It's lovely."], "answer": 0, "explain": "把宠物换成 goldfish 即可。" },
-    { "id": "X1", "type": "read", "prompt": "阅读理解（Ben & Mia）：Ben 选了什么？", "options": ["a rabbit", "a cat", "a parrot"], "answer": 0, "explain": "Ben chooses a lovely rabbit." },
-    { "id": "X2", "type": "read", "prompt": "阅读理解（Ben & Mia）：Mia 在哪里看见小猫？", "options": ["at the pet shop", "on the street", "at the zoo"], "answer": 1, "explain": "On their way home, Mia sees a small cat on the street." },
-    { "id": "X3", "type": "read", "prompt": "阅读理解（Ben & Mia）：妈妈问 Mia 什么？", "options": ["Can you take good care of it?", "Do you like cats?", "How old are you?"], "answer": 0, "explain": "Mum asks: Can you take good care of it?" }
+    {
+      "id": "I1",
+      "type": "listen_choice",
+      "prompt": "听音选词（听音选正确单词）",
+      "speak": "pet",
+      "options": [
+        "pet",
+        "get",
+        "hat"
+      ],
+      "answer": 0,
+      "explain": "pet 是宠物；get 是拿；hat 是帽子。"
+    },
+    {
+      "id": "I2",
+      "type": "listen_choice",
+      "prompt": "听音选词",
+      "speak": "may",
+      "options": [
+        "mother",
+        "may",
+        "my"
+      ],
+      "answer": 1,
+      "explain": "may 是可以；my 是我的。"
+    },
+    {
+      "id": "I3",
+      "type": "listen_choice",
+      "prompt": "听音选词",
+      "speak": "hold",
+      "options": [
+        "house",
+        "home",
+        "hold"
+      ],
+      "answer": 2,
+      "explain": "hold 是抱住。"
+    },
+    {
+      "id": "II1",
+      "type": "listen_pick",
+      "prompt": "听音选图：宠物店",
+      "speak": "pet shop",
+      "options": [
+        "🐱",
+        "🏦",
+        "👶"
+      ],
+      "answer": 1,
+      "explain": "宠物店里有小宠物。"
+    },
+    {
+      "id": "IV1",
+      "type": "picture_word",
+      "prompt": "看图猜词：🐟",
+      "options": [
+        "goldfish",
+        "rabbit",
+        "parrot"
+      ],
+      "answer": 0,
+      "explain": "金鱼 goldfish。"
+    },
+    {
+      "id": "IV2",
+      "type": "picture_word",
+      "prompt": "看图猜词：🐰",
+      "options": [
+        "mouse",
+        "goldfish",
+        "rabbit"
+      ],
+      "answer": 2,
+      "explain": "兔子 rabbit。"
+    },
+    {
+      "id": "V1",
+      "type": "same_group",
+      "prompt": "选同类词：beautiful → ?",
+      "options": [
+        "clever",
+        "carrots",
+        "her"
+      ],
+      "answer": 0,
+      "explain": "beautiful 与 clever 都是形容词。"
+    },
+    {
+      "id": "V2",
+      "type": "same_group",
+      "prompt": "选同类词：may → ?",
+      "options": [
+        "walk",
+        "can",
+        "her"
+      ],
+      "answer": 1,
+      "explain": "may 与 can 都是情态动词。"
+    },
+    {
+      "id": "VII1",
+      "type": "true_false",
+      "prompt": "图句判断：The girl holds a rabbit. （🐰）",
+      "options": [
+        "T",
+        "F"
+      ],
+      "answer": 0,
+      "explain": "她抱着的是兔子。"
+    },
+    {
+      "id": "VIII1",
+      "type": "communicate",
+      "prompt": "情景交际：May I have a rabbit? → ?",
+      "options": [
+        "Yes, you can.",
+        "No, I don't.",
+        "What's this?",
+        "Can I hold it?"
+      ],
+      "answer": 0,
+      "explain": "请求许可用 Yes, you can. / No, you can't."
+    },
+    {
+      "id": "VIII2",
+      "type": "communicate",
+      "prompt": "情景交际：Let's go to the pet shop. → ?",
+      "options": [
+        "Yes, you can.",
+        "Great!",
+        "No, I don't."
+      ],
+      "answer": 1,
+      "explain": "提议去宠物店，对方会说 Great!"
+    },
+    {
+      "id": "IX1",
+      "type": "imitate",
+      "prompt": "仿写：May I have a rabbit? → ?",
+      "options": [
+        "May I have a goldfish?",
+        "Yes, I can.",
+        "It's lovely."
+      ],
+      "answer": 0,
+      "explain": "把宠物换成 goldfish 即可。"
+    },
+    {
+      "id": "X1",
+      "type": "read",
+      "prompt": "阅读理解（Ben & Mia）：Ben 选了什么？",
+      "options": [
+        "a rabbit",
+        "a cat",
+        "a parrot"
+      ],
+      "answer": 0,
+      "explain": "Ben chooses a lovely rabbit."
+    },
+    {
+      "id": "X2",
+      "type": "read",
+      "prompt": "阅读理解（Ben & Mia）：Mia 在哪里看见小猫？",
+      "options": [
+        "at the pet shop",
+        "on the street",
+        "at the zoo"
+      ],
+      "answer": 1,
+      "explain": "On their way home, Mia sees a small cat on the street."
+    },
+    {
+      "id": "X3",
+      "type": "read",
+      "prompt": "阅读理解（Ben & Mia）：妈妈问 Mia 什么？",
+      "options": [
+        "Can you take good care of it?",
+        "Do you like cats?",
+        "How old are you?"
+      ],
+      "answer": 0,
+      "explain": "Mum asks: Can you take good care of it?"
+    }
   ],
   "reviewCards": [
-    { "id": "rc1", "type": "say_sentence", "prompt": "看图说出请求句", "speak": "May I have a rabbit?", "answer": "May I have a rabbit?" },
-    { "id": "rc2", "type": "listen_reverse", "prompt": "听答句反推问题", "speak": "Yes, you can.", "answer": "May I have a pet?" },
-    { "id": "rc3", "type": "listen_reverse", "prompt": "听答句反推问题", "speak": "No, you can't.", "answer": "May I have a pet?" },
-    { "id": "rc4", "type": "say_word", "prompt": "看图说单词", "speak": "goldfish", "answer": "goldfish" },
-    { "id": "rc5", "type": "say_word", "prompt": "看图说单词", "speak": "parrot", "answer": "parrot" },
-    { "id": "rc6", "type": "story_retell", "prompt": "复述：Haohao 让谁把鹦鹉送回宠物店？", "answer": "Xiaoxiao（他把鹦鹉送回宠物店）" },
-    { "id": "rc7", "type": "phonics_sort", "prompt": "选出含 ou 的单词", "speak": "mouse", "answer": "mouse" }
+    {
+      "id": "rc1",
+      "type": "say_sentence",
+      "prompt": "看图说出请求句",
+      "speak": "May I have a rabbit?",
+      "answer": "May I have a rabbit?"
+    },
+    {
+      "id": "rc2",
+      "type": "listen_reverse",
+      "prompt": "听答句反推问题",
+      "speak": "Yes, you can.",
+      "answer": "May I have a pet?"
+    },
+    {
+      "id": "rc3",
+      "type": "listen_reverse",
+      "prompt": "听答句反推问题",
+      "speak": "No, you can't.",
+      "answer": "May I have a pet?"
+    },
+    {
+      "id": "rc4",
+      "type": "say_word",
+      "prompt": "看图说单词",
+      "speak": "goldfish",
+      "answer": "goldfish"
+    },
+    {
+      "id": "rc5",
+      "type": "say_word",
+      "prompt": "看图说单词",
+      "speak": "parrot",
+      "answer": "parrot"
+    },
+    {
+      "id": "rc6",
+      "type": "story_retell",
+      "prompt": "复述：Haohao 让谁把鹦鹉送回宠物店？",
+      "answer": "Xiaoxiao（他把鹦鹉送回宠物店）"
+    },
+    {
+      "id": "rc7",
+      "type": "phonics_sort",
+      "prompt": "选出含 ou 的单词",
+      "speak": "mouse",
+      "answer": "mouse"
+    }
   ],
   "grammar": {
     "parentCard": [

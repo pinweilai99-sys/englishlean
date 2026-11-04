@@ -1297,3 +1297,51 @@ test('E2E-45 第2步完整对话：问答成对显示（🧒孩子问+👩店员
     assert.ok(askTexts.includes('May I hold it?'), '卡 3 问句应显示');
   } finally { cleanup(); }
 });
+
+test('E2E-46 故事屋重构：背景旁白外置、对话标准格式分行、每篇 3 道阅读理解（听题/答对锁定+星/错可重试）', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, true, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/3');
+    assert.match(mainText(window), /故事屋/);
+    // A 篇：背景旁白外置（📖 背景 + 🔊），对话不再混入背景
+    assert.ok(mainText(window).includes('📖 背景：'), 'A 篇应有外置背景块');
+    const aBox = window.document.querySelectorAll('main .card.soft')[0];
+    assert.ok(aBox.textContent.includes('Mrs Chen and Dongdong are walking on the street.'), '背景英文应显示');
+    assert.ok(aBox.textContent.includes('陈夫人'), '背景应有中文对照');
+    // 对话标准格式：说话人 + 每行 🔊 + 中文
+    const lineSpeaks = aBox.querySelectorAll('.st-line-speak');
+    assert.equal(lineSpeaks.length, 8, 'A 篇对话应 8 行且每行有 🔊');
+    assert.ok(aBox.textContent.includes('🧒 Dongdong：') && aBox.textContent.includes('👩 Mrs Chen：'), '对话应有说话人标签');
+    assert.ok(aBox.textContent.includes('妈妈，我可以养一只宠物吗'), '对话应有中文对照');
+    // 点对话行喇叭不判分、不留标记
+    lineSpeaks[0].dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(!window.document.querySelector('.option.is-correct'), '点对话喇叭不得判分');
+    // 阅读理解：3 题，判断题 T/F 选项
+    const qSpeaks = aBox.querySelectorAll('.st-q-speak');
+    assert.equal(qSpeaks.length, 3, 'A 篇应 3 道阅读理解题');
+    // 第 1 题先点错（F）→ 不留红；再点对（T）→ 标绿
+    const q1Box = qSpeaks[0].closest('div[style]').parentElement;
+    const q1Buttons = Array.from(q1Box.querySelectorAll('button.option'));
+    const fBtn = q1Buttons.find((b) => b.textContent.includes('F 错'));
+    const tBtn = q1Buttons.find((b) => b.textContent.includes('T 对'));
+    fBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(!window.document.querySelector('.option.is-wrong'), '答错不得留红色标记');
+    tBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    // render() 会整体重建 DOM，必须重新查询卡片（旧 aBox 引用已脱离文档）
+    const aBox2 = window.document.querySelectorAll('main .card.soft')[0];
+    assert.ok(Array.from(aBox2.querySelectorAll('.option.is-correct')).length >= 1, '答对应标绿');
+    // 听整篇按钮存在
+    assert.ok(aBox.textContent.includes('听整篇'), '应可听整篇');
+    // 故事完成按钮仍可用（Stage4 通关链路不变）
+    await clickButton(window, '我读完并演了');
+    assert.ok((app.state.session.storiesDone || []).includes('A'), 'A 篇应标记完成');
+  } finally { cleanup(); }
+});

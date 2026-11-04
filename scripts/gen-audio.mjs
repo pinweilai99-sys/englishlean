@@ -72,7 +72,11 @@ function collectTexts() {
     // 故事 + 故事问题
     (u.stories || []).forEach((st) => {
       if (st.text) texts.add(st.text);
+      if (st.narration) texts.add(st.narration);
+      (st.lines || []).forEach((l) => { if (l.t) texts.add(l.t); });
       (st.questions || []).forEach((q) => { if (q.speak) texts.add(q.speak); });
+      // 故事阅读理解题干朗读
+      (st.quiz || []).forEach((q) => { if (q.q) texts.add(q.q); });
     });
     // 微测
     (u.quiz || []).forEach((q) => { if (q.speak) texts.add(q.speak); });
