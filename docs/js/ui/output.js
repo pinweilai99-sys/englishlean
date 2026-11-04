@@ -1,7 +1,7 @@
 // Stage3 真实输出：角色扮演 / Let's Write / 思维导图
-import { h, toast, starFly, confetti } from './dom.js?v=1793713418';
-import * as tts from '../services/tts.js?v=1793713418';
-import * as recorder from '../services/recorder.js?v=1793713418';
+import { h, toast, starFly, confetti } from './dom.js?v=1793752921';
+import * as tts from '../services/tts.js?v=1793752921';
+import * as recorder from '../services/recorder.js?v=1793752921';
 
 export function renderOutput(ctx, unit) {
   const session = ctx.session;
@@ -147,20 +147,24 @@ export function renderOutput(ctx, unit) {
 
     const wrAllOk = wrItems.length > 0 && wrItems.every((it, i) => session.wrPick[i] === it.a);
     if (wrAllOk) {
-      const lines = wrItems.map((it) => it.a);
-      const doneBox = h('div', { style: 'margin-top:12px' }, [
+      // 完整对话：🧒孩子问句 + 👩店员回答 成对显示（家长反馈：只有答不是完整对话）
+      const allLines = wrItems.flatMap((it) => [it.ask, it.a]).filter(Boolean);
+      const doneBox = h('div', { class: 'wr-done', style: 'margin-top:12px' }, [
         // 是"三段对话"不是"作文"——对话逻辑：问→答→再问答，连起来演一演（家长的严谨反馈）
         h('p', { class: 'hint', style: 'font-weight:800', text: '🎉 第 2 步：三段对话连起来，演一演吧：' }),
       ]);
-      lines.forEach((ln) => {
-        doneBox.appendChild(h('p', {
-          class: 'story-text', style: 'margin-bottom:6px;cursor:pointer', title: '点一句读一句',
-          text: ln,
-          onclick: () => tts.speak(ln),
-        }));
+      wrItems.forEach((it) => {
+        doneBox.appendChild(h('div', { class: 'story-text', style: 'margin-bottom:6px;cursor:pointer', title: '点一句读一句', onclick: () => tts.speak(it.ask) }, [
+          h('strong', { text: `🧒 ${it.askWho}：` }),
+          h('span', { text: it.ask }),
+        ]));
+        doneBox.appendChild(h('div', { class: 'story-text', style: 'margin-bottom:6px;margin-left:18px;cursor:pointer', title: '点一句读一句', onclick: () => tts.speak(it.a) }, [
+          h('strong', { text: '👩 店员：' }),
+          h('span', { text: it.a }),
+        ]));
       });
       doneBox.appendChild(h('div', { class: 'btn-row', style: 'margin-top:8px' }, [
-        h('button', { class: 'btn ghost', text: '🔊 整段连读', onclick: () => tts.speakSequence(lines) }),
+        h('button', { class: 'btn ghost', text: '🔊 整段连读', onclick: () => tts.speakSequence(allLines) }),
         h('button', {
           class: 'btn leaf', text: '✅ 这三句我会了',
           onclick: () => {
