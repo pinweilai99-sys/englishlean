@@ -1310,34 +1310,55 @@ test('E2E-46 故事屋重构：背景旁白外置、对话标准格式分行、�
     assert.match(mainText(window), /故事屋/);
     // A 篇：背景旁白外置（📖 背景 + 🔊），对话不再混入背景
     assert.ok(mainText(window).includes('📖 背景：'), 'A 篇应有外置背景块');
-    const aBox = window.document.querySelectorAll('main .card.soft')[0];
+    let aBox = window.document.querySelectorAll('main .card.soft')[0];
     assert.ok(aBox.textContent.includes('Mrs Chen and Dongdong are walking on the street.'), '背景英文应显示');
-    assert.ok(aBox.textContent.includes('陈夫人'), '背景应有中文对照');
-    // 对话标准格式：说话人 + 每行 🔊 + 中文
-    const lineSpeaks = aBox.querySelectorAll('.st-line-speak');
-    assert.equal(lineSpeaks.length, 8, 'A 篇对话应 8 行且每行有 🔊');
+    // 中文对照门控：未答题时中文隐藏 + 显示引导提示（防孩子只读中文，家长定版）
+    assert.ok(!aBox.textContent.includes('陈夫人'), '未答题时背景中文应隐藏');
+    assert.ok(!aBox.textContent.includes('妈妈，我可以养一只宠物吗'), '未答题时对话中文应隐藏');
+    assert.ok(aBox.querySelector('.st-zh-lock'), '未答题时应显示中文门控提示');
+    assert.ok(aBox.textContent.includes('已答对 0/3'), '门控提示应显示进度');
+    // 对话标准格式：说话人 + 每行 🔊
+    assert.equal(aBox.querySelectorAll('.st-line-speak').length, 8, 'A 篇对话应 8 行且每行有 🔊');
     assert.ok(aBox.textContent.includes('🧒 Dongdong：') && aBox.textContent.includes('👩 Mrs Chen：'), '对话应有说话人标签');
-    assert.ok(aBox.textContent.includes('妈妈，我可以养一只宠物吗'), '对话应有中文对照');
     // 点对话行喇叭不判分、不留标记
-    lineSpeaks[0].dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    aBox.querySelectorAll('.st-line-speak')[0].dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 30));
     assert.ok(!window.document.querySelector('.option.is-correct'), '点对话喇叭不得判分');
     // 阅读理解：3 题，判断题 T/F 选项
-    const qSpeaks = aBox.querySelectorAll('.st-q-speak');
-    assert.equal(qSpeaks.length, 3, 'A 篇应 3 道阅读理解题');
+    aBox = window.document.querySelectorAll('main .card.soft')[0];
+    assert.equal(aBox.querySelectorAll('.st-q-speak').length, 3, 'A 篇应 3 道阅读理解题');
     // 第 1 题先点错（F）→ 不留红；再点对（T）→ 标绿
-    const q1Box = qSpeaks[0].closest('div[style]').parentElement;
+    const q1Box = aBox.querySelectorAll('.st-q-speak')[0].closest('div[style]').parentElement;
     const q1Buttons = Array.from(q1Box.querySelectorAll('button.option'));
     const fBtn = q1Buttons.find((b) => b.textContent.includes('F 错'));
-    const tBtn = q1Buttons.find((b) => b.textContent.includes('T 对'));
     fBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 30));
     assert.ok(!window.document.querySelector('.option.is-wrong'), '答错不得留红色标记');
-    tBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    // 答对第 1 题后中文仍未解锁
+    const tBtn = window.document.querySelectorAll('main .card.soft')[0]
+      .querySelectorAll('.st-q-speak')[0].closest('div[style]').parentElement
+      .querySelectorAll('button.option');
+    Array.from(tBtn).find((b) => b.textContent.includes('T 对')).dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 30));
-    // render() 会整体重建 DOM，必须重新查询卡片（旧 aBox 引用已脱离文档）
-    const aBox2 = window.document.querySelectorAll('main .card.soft')[0];
-    assert.ok(Array.from(aBox2.querySelectorAll('.option.is-correct')).length >= 1, '答对应标绿');
+    aBox = window.document.querySelectorAll('main .card.soft')[0];
+    assert.ok(Array.from(aBox.querySelectorAll('.option.is-correct')).length >= 1, '答对应标绿');
+    assert.ok(aBox.textContent.includes('已答对 1/3'), '门控提示应更新进度');
+    assert.ok(!aBox.textContent.includes('妈妈，我可以养一只宠物吗'), '未答完时对话中文仍应隐藏');
+    // 依次答对第 2、3 题（render 重建 DOM，每轮重新查询）
+    const answerQ = async (idx, want) => {
+      const box = window.document.querySelectorAll('main .card.soft')[0];
+      const qb = box.querySelectorAll('.st-q-speak')[idx].closest('div[style]').parentElement;
+      Array.from(qb.querySelectorAll('button.option')).find((b) => b.textContent.includes(want))
+        .dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+      await new Promise((r) => setTimeout(r, 30));
+    };
+    await answerQ(1, 'T 对');
+    await answerQ(2, 'Carrots.');
+    // 全部答对 → 中文对照解锁出现
+    aBox = window.document.querySelectorAll('main .card.soft')[0];
+    assert.ok(!aBox.querySelector('.st-zh-lock'), '答完题后门控提示应消失');
+    assert.ok(aBox.textContent.includes('陈夫人'), '答完题后背景中文应出现');
+    assert.ok(aBox.textContent.includes('妈妈，我可以养一只宠物吗'), '答完题后对话中文应出现');
     // 听整篇按钮存在
     assert.ok(aBox.textContent.includes('听整篇'), '应可听整篇');
     // 故事完成按钮仍可用（Stage4 通关链路不变）

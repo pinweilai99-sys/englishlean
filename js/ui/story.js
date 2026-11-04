@@ -14,6 +14,9 @@ export function renderStories(ctx, unit) {
     unit.stories.forEach((st) => {
       const done = (session.storiesDone || []).includes(st.id);
       session.stQuizOk = session.stQuizOk || {};
+      // 中文对照门控：答完该篇全部阅读理解（全对锁定）才出现中文，防止孩子只读中文（家长定版）
+      const quizOkCount = (st.quiz || []).filter((_, qi) => session.stQuizOk[`${st.id}-${qi}`]).length;
+      const zhShow = !(st.quiz && st.quiz.length) || quizOkCount === st.quiz.length;
       const box = h('div', { class: 'card soft', style: 'margin-bottom:14px' }, [
         h('div', { class: 'card-title', style: 'font-size:var(--fs-md)', text: `${st.id} · ${st.title}` }),
         h('p', { class: 'card-sub', text: st.titleEn }),
@@ -34,23 +37,28 @@ export function renderStories(ctx, unit) {
               onclick: (e) => { e.stopPropagation(); tts.speak(st.narration); },
             }),
           ]));
-          if (st.narrationZh) box.appendChild(h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${st.narrationZh}` }));
+          if (st.narrationZh && zhShow) box.appendChild(h('p', { class: 'hint st-zh', style: 'color:var(--muted,#666)', text: `💬 ${st.narrationZh}` }));
         }
         st.lines.forEach((l) => {
-          box.appendChild(h('div', { class: 'story-text', style: 'margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap' }, [
+          const kids = [
             h('strong', { text: `${l.who}：` }),
             h('span', {
               text: l.t, style: 'cursor:pointer', title: '点一句听一句',
               onclick: () => tts.speak(l.t),
             }),
-            h('span', { text: `（${l.zh}）`, style: 'font-size:0.78em;font-weight:600;color:var(--muted,#888)' }),
-            h('button', {
-              class: 'st-line-speak', title: '听这句', text: '🔊',
-              style: 'border:none;background:none;cursor:pointer;font-size:inherit',
-              onclick: (e) => { e.stopPropagation(); tts.speak(l.t); },
-            }),
-          ]));
+          ];
+          if (zhShow) kids.push(h('span', { class: 'st-zh', text: `（${l.zh}）`, style: 'font-size:0.78em;font-weight:600;color:var(--muted,#888)' }));
+          kids.push(h('button', {
+            class: 'st-line-speak', title: '听这句', text: '🔊',
+            style: 'border:none;background:none;cursor:pointer;font-size:inherit',
+            onclick: (e) => { e.stopPropagation(); tts.speak(l.t); },
+          }));
+          box.appendChild(h('div', { class: 'story-text', style: 'margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap' }, kids));
         });
+        // 中文未解锁时的引导提示（不说"错了"，只说再看一遍）
+        if (st.quiz && st.quiz.length && !zhShow) {
+          box.appendChild(h('p', { class: 'hint st-zh-lock', style: 'margin-top:8px', text: `👀 先读英文，答完下面的 ${st.quiz.length} 道题，中文对照就会出现哦！（已答对 ${quizOkCount}/${st.quiz.length}）` }));
+        }
       } else {
         // 叙述型故事：保持课文段落文体
         box.appendChild(h('div', { class: 'story-text', style: 'margin-top:10px', text: st.text }));
