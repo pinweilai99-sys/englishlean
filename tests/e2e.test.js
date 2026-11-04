@@ -691,6 +691,26 @@ test('E2E-50 巩固拓展子导航：进入 Stage3 默认故事屋，可见「�
   } finally { cleanup(); }
 });
 
+test('E2E-51 回忆卡看图卡配插画：rc1 兔子图、听音卡无图、rc4 金鱼图（pic 字段驱动）', async () => {
+  const { window, app, cleanup } = await freshApp();
+  try {
+    await navigate(window, app, '#/recall');
+    // rc1 看图说出请求句：应显示兔子插画
+    const pic1 = window.document.querySelector('.recall-pic svg');
+    assert.ok(pic1, 'rc1 应渲染插画 svg');
+    assert.equal(pic1.getAttribute('aria-label'), 'a rabbit', 'rc1 插画应是兔子');
+    // rc2 听答句反推问题：非看图卡，不应有插画
+    await clickButton(window, '下一张');
+    assert.equal(window.document.querySelector('.recall-pic svg'), null, 'rc2 听音卡不应有插画');
+    // 连翻到 rc4（看图说单词 goldfish）
+    await clickButton(window, '下一张'); // rc3
+    await clickButton(window, '下一张'); // rc4
+    const pic4 = window.document.querySelector('.recall-pic svg');
+    assert.ok(pic4, 'rc4 应渲染插画 svg');
+    assert.equal(pic4.getAttribute('aria-label'), 'a goldfish', 'rc4 插画应是金鱼');
+  } finally { cleanup(); }
+});
+
 test('E2E-20 字母组合 ou 拼读站：找出全部 ou 词 → 鼓励反馈', async () => {
   const { window, app, cleanup } = await freshApp();
   try {
