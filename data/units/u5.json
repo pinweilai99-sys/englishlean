@@ -681,14 +681,14 @@
       ],
       "quiz": [
         {
-          "q": "Dongdong wants a rabbit.",
-          "qZh": "东东想要一只兔子。",
+          "q": "Dongdong wants to have a pet rabbit.",
+          "qZh": "东东想养一只宠物兔子。",
           "type": "tf",
           "a": "T"
         },
         {
-          "q": "Mum says, \"Can you take good care of it?\"",
-          "qZh": "妈妈说：\"你能照顾好它吗？\"",
+          "q": "The rabbit's name is Bunny.",
+          "qZh": "兔子的名字叫邦尼。",
           "type": "tf",
           "a": "T"
         },
@@ -716,20 +716,20 @@
       ],
       "quiz": [
         {
-          "q": "The parrot can talk.",
-          "qZh": "鹦鹉会说话。",
+          "q": "The parrot can say \"Hi, I'm Haohao.\"",
+          "qZh": "鹦鹉会说“你好，我是浩浩”。",
           "type": "tf",
           "a": "T"
         },
         {
-          "q": "Haohao is happy about the parrot.",
-          "qZh": "浩浩对鹦鹉很满意。",
+          "q": "Haohao likes the parrot very much.",
+          "qZh": "浩浩非常喜欢这只鹦鹉。",
           "type": "tf",
           "a": "F"
         },
         {
           "q": "Where does Haohao want Xiaoxiao to take the parrot?",
-          "qZh": "浩浩想把鹦鹉带到哪里去？",
+          "qZh": "浩浩想让笑笑把鹦鹉带到哪里去？",
           "type": "choice",
           "opts": [
             "To the pet shop.",
@@ -775,27 +775,27 @@
       ],
       "quiz": [
         {
-          "q": "The dog can help blind people.",
-          "qZh": "这只狗能帮助盲人。",
+          "q": "The guide dog is clever and helpful.",
+          "qZh": "这只导盲犬又聪明又乐于助人。",
           "type": "tf",
           "a": "T"
         },
         {
-          "q": "Tim can touch the dog.",
-          "qZh": "Tim 可以摸这只狗。",
+          "q": "Tim can touch the dog because it is sleeping.",
+          "qZh": "Tim 可以摸这只狗，因为它在睡觉。",
           "type": "tf",
           "a": "F"
         },
         {
-          "q": "Why can't Tim touch him?",
-          "qZh": "Tim 为什么不能摸它？",
+          "q": "Why can't Tim touch the dog?",
+          "qZh": "Tim 为什么不能摸这只狗？",
           "type": "choice",
           "opts": [
-            "He's working now.",
-            "He's sleeping.",
-            "He's eating."
+            "Because it's working.",
+            "Because it's sleeping.",
+            "Because it's eating."
           ],
-          "a": "He's working now."
+          "a": "Because it's working."
         }
       ]
     },
@@ -810,20 +810,20 @@
       ],
       "quiz": [
         {
-          "q": "Ben chooses a lovely rabbit.",
-          "qZh": "Ben 挑了一只可爱的兔子。",
+          "q": "It is Ben and Mia's birthday today.",
+          "qZh": "今天是 Ben 和 Mia 的生日。",
           "type": "tf",
           "a": "T"
         },
         {
-          "q": "Mia finds her favourite pet in the shop.",
-          "qZh": "Mia 在店里找到了她最喜欢的宠物。",
+          "q": "Mia finds her favourite pet in the pet shop.",
+          "qZh": "Mia 在宠物店里找到了她最喜欢的宠物。",
           "type": "tf",
           "a": "F"
         },
         {
-          "q": "Where does the cat go for a check?",
-          "qZh": "小猫去哪里做检查？",
+          "q": "Where do they take the cat first?",
+          "qZh": "他们先把小猫带到哪里去？",
           "type": "choice",
           "opts": [
             "To the vet.",
