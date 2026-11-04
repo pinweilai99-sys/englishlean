@@ -1176,6 +1176,7 @@
       "id": "rc1",
       "type": "say_sentence",
       "prompt": "看图说出请求句",
+      "pic": "rabbit",
       "speak": "May I have a rabbit?",
       "answer": "May I have a rabbit?"
     },
@@ -1197,6 +1198,7 @@
       "id": "rc4",
       "type": "say_word",
       "prompt": "看图说单词",
+      "pic": "goldfish",
       "speak": "goldfish",
       "answer": "goldfish"
     },
@@ -1204,6 +1206,7 @@
       "id": "rc5",
       "type": "say_word",
       "prompt": "看图说单词",
+      "pic": "parrot",
       "speak": "parrot",
       "answer": "parrot"
     },
