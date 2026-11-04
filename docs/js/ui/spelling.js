@@ -4,8 +4,8 @@
 //   拼对仍落盘 spellingDone 并参与 Stage1 通关判定（通关仍只看四会词，认读词多练不卡人）。
 // 队列生成抽成纯函数 buildSpellQueue：接受多个单元的数据，后续 U1-4 内容就位后，
 //   把未掌握/需复习的单词作为附加来源传入即可自动混入（见函数注释）。
-import { h, toast, starFly, confetti } from './dom.js?v=1793755858';
-import * as tts from '../services/tts.js?v=1793755858';
+import { h, toast, starFly, confetti } from './dom.js?v=1793758591';
+import * as tts from '../services/tts.js?v=1793758591';
 
 export const SPELL_TIMES_PER_WORD = 1;   // 每个单词只拼 1 次（2026-11-03 家长定版）
 
