@@ -1019,6 +1019,156 @@
       ],
       "answer": 0,
       "explain": "Mum asks: Can you take good care of it?"
+    },
+    {
+      "id": "III1",
+      "type": "cloze_listen",
+      "prompt": "听短语，选词填空：This is my ___ .",
+      "speak": "This is my dog.",
+      "options": [
+        "name",
+        "dog",
+        "lovely",
+        "parrot",
+        "take care",
+        "carrots",
+        "take"
+      ],
+      "answer": 1,
+      "explain": "Lucy 介绍她的宠物：这是我的狗。"
+    },
+    {
+      "id": "III2",
+      "type": "cloze_listen",
+      "prompt": "听短语，选词填空：Its ___ is Coco.",
+      "speak": "Its name is Coco.",
+      "options": [
+        "name",
+        "dog",
+        "lovely",
+        "parrot",
+        "take care",
+        "carrots",
+        "take"
+      ],
+      "answer": 0,
+      "explain": "它的名字叫 Coco。"
+    },
+    {
+      "id": "III3",
+      "type": "cloze_listen",
+      "prompt": "听短语，选词填空：It is ___ .",
+      "speak": "It is lovely.",
+      "options": [
+        "name",
+        "dog",
+        "lovely",
+        "parrot",
+        "take care",
+        "carrots",
+        "take"
+      ],
+      "answer": 2,
+      "explain": "它很可爱。"
+    },
+    {
+      "id": "III4",
+      "type": "cloze_listen",
+      "prompt": "听短语，选词填空：It likes ___ .",
+      "speak": "It likes carrots.",
+      "options": [
+        "name",
+        "dog",
+        "lovely",
+        "parrot",
+        "take care",
+        "carrots",
+        "take"
+      ],
+      "answer": 5,
+      "explain": "它喜欢胡萝卜。"
+    },
+    {
+      "id": "III5",
+      "type": "cloze_listen",
+      "prompt": "听短语，选词填空：I ___ of it every day.",
+      "speak": "I take care of it every day.",
+      "options": [
+        "name",
+        "dog",
+        "lovely",
+        "parrot",
+        "take care",
+        "carrots",
+        "take"
+      ],
+      "answer": 4,
+      "explain": "我每天照顾它。take care of = 照顾。"
+    },
+    {
+      "id": "VI1",
+      "type": "cloze",
+      "prompt": "选词填空：The dog is ___ in the park.",
+      "options": [
+        "lovely",
+        "walking",
+        "parrots",
+        "helpful"
+      ],
+      "answer": 1,
+      "explain": "狗狗在公园里走。walking = walk + ing。"
+    },
+    {
+      "id": "VI2",
+      "type": "cloze",
+      "prompt": "选词填空：The cat is ___ .",
+      "options": [
+        "walking",
+        "lovely",
+        "parrots",
+        "helpful"
+      ],
+      "answer": 1,
+      "explain": "猫咪很可爱。lovely 是 U5 四会词。"
+    },
+    {
+      "id": "VI3",
+      "type": "cloze",
+      "prompt": "选词填空：I have two ___ .",
+      "options": [
+        "lovely",
+        "parrots",
+        "walking",
+        "helpful"
+      ],
+      "answer": 1,
+      "explain": "我有两只鹦鹉。parrots 是 parrot 的复数。"
+    },
+    {
+      "id": "VI4",
+      "type": "cloze",
+      "prompt": "选词填空：The dog is ___ . It helps blind people.",
+      "options": [
+        "walking",
+        "helpful",
+        "lovely",
+        "parrots"
+      ],
+      "answer": 1,
+      "explain": "狗狗很有帮助，它帮盲人出行。helpful = help + ful。"
+    },
+    {
+      "id": "VI5",
+      "type": "cloze",
+      "prompt": "选词填空：I like the dog. I play with ___ .",
+      "options": [
+        "lovely",
+        "him",
+        "parrots",
+        "walking"
+      ],
+      "answer": 1,
+      "explain": "我和它一起玩。him 是 he 的宾格。"
     }
   ],
   "reviewCards": [

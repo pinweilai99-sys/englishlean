@@ -42,6 +42,20 @@ test('微测题目 answer 全部在 options 范围内', () => {
   });
 });
 
+test('考点微测覆盖同步优学 I–X 十类题型（T23 硬指标）', () => {
+  const families = new Set(raw.quiz.map((q) => q.id.replace(/\d+$/, '')));
+  const want = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+  want.forEach((f) => assert.ok(families.has(f), `考点微测缺少题型 ${f}`));
+  assert.equal(families.size, 10, `应正好覆盖 10 类题型，实际 ${families.size} 类`);
+  // III（听短语选词填空）与 VI（选词填空）必须有题，且各带正确英语文本
+  const iii = raw.quiz.filter((q) => q.id.startsWith('III'));
+  const vi = raw.quiz.filter((q) => q.id.startsWith('VI'));
+  assert.ok(iii.length >= 1, '缺少 III 听短语选词填空');
+  assert.ok(iii.every((q) => typeof q.speak === 'string' && q.speak.length > 0), 'III 每题必须有听短语文本 speak');
+  assert.ok(vi.length >= 1, '缺少 VI 选词填空');
+  assert.ok(vi.every((q) => !('speak' in q)), 'VI 选词填空不需音频（纯阅读填空）');
+});
+
 test('听音选词：12 个单元单词逐词出现（每词都是一题的目标词）', () => {
   const targets = raw.listenPairs.map((p) => p[0]);
   assert.equal(raw.listenPairs.length, raw.words.length, '题数应等于单词数');

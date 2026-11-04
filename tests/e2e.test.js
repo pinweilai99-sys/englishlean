@@ -586,6 +586,73 @@ test('E2E-19 Stage4 考点微测：全部答对（≥80%）→ Stage4 通关并�
   } finally { cleanup(); }
 });
 
+// 定位某道微测题的题块（题干 div 的父节点 = box）
+function quizBox(window, id) {
+  const q = UNIT.quiz.find((x) => x.id === id);
+  assert.ok(q, `quiz 缺少 ${id}`);
+  const div = Array.from(window.document.querySelectorAll('main div')).find((d) => {
+    const t = (d.textContent || '').trim();
+    return /^\d+\.\s/.test(t) && t.slice(t.indexOf(' ') + 1) === q.prompt;
+  });
+  const box = div?.parentElement;
+  assert.ok(box, `找不到题块 ${id}（题干：${q.prompt}）`);
+  return box;
+}
+
+test('E2E-48 考点微测 III（听短语选词填空）：渲染+🔊听短语+可作答', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, true, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/3/quiz');
+    assert.match(mainText(window), /考点微测/);
+    const q = UNIT.quiz.find((x) => x.id === 'III1');
+    const box = quizBox(window, 'III1');
+    // III 类应有「🔊 听一遍」按钮（听短语）
+    const speakBtn = Array.from(box.querySelectorAll('button')).find((b) => b.textContent.trim() === '🔊 听一遍');
+    assert.ok(speakBtn, 'III 题应出现🔊听短语按钮');
+    // 点击🔊不报错
+    speakBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    // 作答正确项
+    const ans = q.options[q.answer];
+    const btn = Array.from(box.querySelectorAll('button')).find((b) => b.textContent.trim() === ans);
+    btn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    // render() 重建 DOM，须重查元素
+    const box2 = quizBox(window, 'III1');
+    const btn2 = Array.from(box2.querySelectorAll('button')).find((b) => b.textContent.trim() === ans);
+    assert.ok(btn2.classList.contains('is-correct'), 'III 答对应标 is-correct');
+    assert.match(box2.textContent, new RegExp(q.explain.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), '应显示讲解');
+  } finally { cleanup(); }
+});
+
+test('E2E-49 考点微测 VI（选词填空）：渲染（无🔊）+可作答', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, true, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/3/quiz');
+    const q = UNIT.quiz.find((x) => x.id === 'VI1');
+    const box = quizBox(window, 'VI1');
+    // VI 类纯阅读填空，不应有🔊按钮
+    const speakBtn = Array.from(box.querySelectorAll('button')).find((b) => b.textContent.trim() === '🔊 听一遍');
+    assert.ok(!speakBtn, 'VI 题不应出现🔊按钮');
+    const ans = q.options[q.answer];
+    const btn = Array.from(box.querySelectorAll('button')).find((b) => b.textContent.trim() === ans);
+    btn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    const box2 = quizBox(window, 'VI1');
+    const btn2 = Array.from(box2.querySelectorAll('button')).find((b) => b.textContent.trim() === ans);
+    assert.ok(btn2.classList.contains('is-correct'), 'VI 答对应标 is-correct');
+  } finally { cleanup(); }
+});
+
 test('E2E-20 字母组合 ou 拼读站：找出全部 ou 词 → 鼓励反馈', async () => {
   const { window, app, cleanup } = await freshApp();
   try {

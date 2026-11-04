@@ -171,7 +171,7 @@ export function renderQuiz(ctx, unit) {
       const box = h('div', { style: 'margin-bottom:18px' }, [
         h('div', { style: 'font-weight:800;font-size:var(--fs-md);margin-bottom:8px', text: `${qi + 1}. ${q.prompt}` }),
       ]);
-      if (q.speak && q.type === 'listen_choice') {
+      if (q.speak) {
         box.appendChild(h('div', { class: 'btn-row', style: 'margin-bottom:8px' }, [
           h('button', { class: 'btn ghost', text: '🔊 听一遍', onclick: () => tts.speak(q.speak) }),
         ]));

@@ -1,6 +1,6 @@
 // Stage4 巩固拓展：故事屋 + ou chant + 考点微测
-import { h, toast, starFly, confetti } from './dom.js?v=1793765311';
-import * as tts from '../services/tts.js?v=1793765311';
+import { h, toast, starFly, confetti } from './dom.js?v=1793790418';
+import * as tts from '../services/tts.js?v=1793790418';
 
 export function renderStories(ctx, unit) {
   const session = ctx.session;
@@ -171,7 +171,7 @@ export function renderQuiz(ctx, unit) {
       const box = h('div', { style: 'margin-bottom:18px' }, [
         h('div', { style: 'font-weight:800;font-size:var(--fs-md);margin-bottom:8px', text: `${qi + 1}. ${q.prompt}` }),
       ]);
-      if (q.speak && q.type === 'listen_choice') {
+      if (q.speak) {
         box.appendChild(h('div', { class: 'btn-row', style: 'margin-bottom:8px' }, [
           h('button', { class: 'btn ghost', text: '🔊 听一遍', onclick: () => tts.speak(q.speak) }),
         ]));
