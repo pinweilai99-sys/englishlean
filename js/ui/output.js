@@ -31,7 +31,9 @@ export function renderOutput(ctx, unit) {
     const kidZh = (rp.childZh || '').replace('___', session.rpSlot || '小宠物');
     const dialog = h('div', { class: 'story-text', style: 'margin-top:12px' }, [
       h('div', { style: 'margin-bottom:10px' }, [h('strong', { text: '🧒 孩子：' }), kidLine]),
-      kidZh ? h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${kidZh}` }) : null,
+      kidZh ? (session.rpDone
+        ? h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${kidZh}` })
+        : h('p', { class: 'hint', style: 'color:var(--muted,#aaa)', text: '💬（演完后看中文）' })) : null,
       h('div', { style: 'margin-bottom:10px' }, [h('strong', { text: '👨‍👩‍👦 家长：' }), session.rpParent || '（请家长选一句）']),
     ]);
     wrap.appendChild(dialog);
@@ -87,7 +89,7 @@ export function renderOutput(ctx, unit) {
       const picked = session.wrPick[i];
       const ok = picked === it.a;
       // 对话结构：情境 → 孩子台词（英文+中文+🔊）→ 👉店员回答（用户点选）
-      const box = h('div', { style: 'margin-bottom:12px' }, [
+      const box = h('div', { 'data-ctxzh': it.ctxZh, style: 'margin-bottom:12px' }, [
         // 情境句是英语，必须有播放（铁律：只要是英语就要有 🔊）
         h('div', { class: 'story-text', style: 'font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap' }, [
           h('span', { text: it.ctx }),
@@ -97,7 +99,9 @@ export function renderOutput(ctx, unit) {
             onclick: (e) => { e.stopPropagation(); tts.speak(it.ctx); },
           }),
         ]),
-        h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${it.ctxZh}` }),
+        it.ctxZh ? (ok
+          ? h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${it.ctxZh}` })
+          : h('p', { class: 'hint', style: 'color:var(--muted,#aaa)', text: '💬（选对后看中文）' })) : null,
         it.ask ? h('div', { class: 'story-text', style: 'margin-top:6px;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap' }, [
           h('strong', { text: `🧒 ${it.askWho}：` }),
           h('span', { text: it.ask }),
@@ -107,7 +111,9 @@ export function renderOutput(ctx, unit) {
             onclick: (e) => { e.stopPropagation(); tts.speak(it.ask); },
           }),
         ]) : null,
-        it.askZh ? h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${it.askZh}` }) : null,
+        it.askZh ? (ok
+          ? h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${it.askZh}` })
+          : h('p', { class: 'hint', style: 'color:var(--muted,#aaa)', text: '💬（选对后看中文）' })) : null,
         h('p', { class: 'hint', style: 'font-weight:700;margin-top:6px', text: '👉 店员回答（点选最合适的）:' }),
       ]);
       const row = h('div', { class: 'btn-row', style: 'margin-top:8px' });
@@ -137,7 +143,7 @@ export function renderOutput(ctx, unit) {
           }),
           h('span', { style: 'display:flex;flex-direction:column;align-items:center;line-height:1.35' }, [
             document.createTextNode(ans),
-            wr.zhMap && wr.zhMap[ans] ? h('span', { class: 'wr-zh', text: wr.zhMap[ans], style: 'font-size:0.72em;font-weight:600;color:var(--muted,#888)' }) : null,
+            ok && ans === it.a && wr.zhMap && wr.zhMap[ans] ? h('span', { class: 'wr-zh', text: wr.zhMap[ans], style: 'font-size:0.72em;font-weight:600;color:var(--muted,#888)' }) : null,
           ]),
         ]));
       });
@@ -213,7 +219,7 @@ export function renderOutput(ctx, unit) {
             text: l.t, style: 'cursor:pointer', title: '点一句听一句',
             onclick: () => tts.speak(l.t),
           }),
-          h('span', { text: `（${l.zh}）`, style: 'font-size:0.78em;font-weight:600;color:var(--muted,#888)' }),
+          session.sdListened ? h('span', { text: `（${l.zh}）`, style: 'font-size:0.78em;font-weight:600;color:var(--muted,#888)' }) : h('span', { text: '（听完后看中文）', style: 'font-size:0.78em;font-weight:600;color:var(--muted,#aaa)' }),
           h('button', {
             class: 'sd-speak', title: '听这句', text: '🔊',
             style: 'border:none;background:none;cursor:pointer;font-size:inherit',
@@ -224,7 +230,7 @@ export function renderOutput(ctx, unit) {
       wrap.appendChild(h('div', { class: 'btn-row', style: 'margin-top:6px' }, [
         h('button', {
           class: 'btn ghost', text: '🔊 范文整段连读',
-          onclick: () => tts.speakSequence(sdLines.map((l) => l.t)),
+          onclick: () => { session.sdListened = true; tts.speakSequence(sdLines.map((l) => l.t)); render(); },
         }),
       ]));
     }
@@ -283,7 +289,7 @@ export function renderOutput(ctx, unit) {
       }),
       h('span', { style: 'display:flex;flex-direction:column;align-items:center;line-height:1.35' }, [
         document.createTextNode(o.t),
-        o.zh ? h('span', { class: 'mm-zh', text: o.zh, style: 'font-size:0.72em;font-weight:600;color:var(--muted,#888)' }) : null,
+        !!session.mmPick[i] && o.zh ? h('span', { class: 'mm-zh', text: o.zh, style: 'font-size:0.72em;font-weight:600;color:var(--muted,#888)' }) : null,
       ]),
     ]);
     mmSteps.forEach((st, i) => {
@@ -297,7 +303,9 @@ export function renderOutput(ctx, unit) {
             onclick: (e) => { e.stopPropagation(); tts.speak(st.q); },
           }),
         ]),
-        h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${st.qZh}` }),
+        st.qZh ? (!!session.mmPick[i]
+          ? h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${st.qZh}` })
+          : h('p', { class: 'hint', style: 'color:var(--muted,#aaa)', text: '💬（选好后看中文）' })) : null,
       ]);
       const row = h('div', { class: 'btn-row', style: 'margin-top:8px' });
       if (i === 2) {

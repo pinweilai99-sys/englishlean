@@ -13,13 +13,10 @@ function optBtn(root, text) {
     .find((b) => b.textContent.replace(/🔊/g, '').trim() === text);
 }
 
-// 写作选句查找助手：同一英文句子会在多张情境卡出现（干扰项复用），
-// 必须先按情境中文定位到所属卡（取内容最短的=卡片本体），再在卡内找选项
+// 写作选句查找助手：按卡片的 data-ctxzh（始终存在，不随中文门控消失）定位，再在卡内找选项
 function wrBox(root, ctxZh) {
-  const divs = Array.from(root.querySelectorAll('main div'))
-    .filter((d) => (d.textContent || '').includes(ctxZh) && d.querySelector('.wr-zh'));
-  divs.sort((a, b) => a.textContent.length - b.textContent.length);
-  return divs[0];
+  return Array.from(root.querySelectorAll('main div[data-ctxzh]'))
+    .find((d) => (d.getAttribute('data-ctxzh') || '').includes(ctxZh));
 }
 
 // 写作选句点击助手：在指定情境卡内点选句子
@@ -994,8 +991,12 @@ test('E2E-38 角色扮演家长支架：孩子台词有中文、家长选项有�
   try {
     await navigate(window, app, '#/unit/u5/stage/2');
     assert.match(mainText(window), /宠物店角色扮演/);
-    // 支架 1：孩子台词下方显示中文意思（含当前动物）
-    assert.ok(mainText(window).includes('我想要一只'), '孩子台词应显示中文意思');
+    // 支架 1：孩子台词中文默认隐藏（门控：演完后才出现），防孩子只读中文
+    assert.ok(!mainText(window).includes('我想要一只'), '孩子台词中文应默认隐藏');
+    assert.ok(mainText(window).includes('（演完后看中文）'), '应显示中文锁定提示');
+    await clickButton(window, '✅ 演完了');
+    // 演完后孩子台词下方显示中文意思（含当前动物）
+    assert.ok(mainText(window).includes('我想要一只'), '演完后孩子台词应显示中文意思');
     // 支架 2：每个家长选项直接显示中文意思（家长是成年人，无需藏起来）
     const rpBtns = Array.from(window.document.querySelectorAll('main button.option'))
       .filter((b) => b.querySelector('.rp-zh'));
@@ -1029,16 +1030,16 @@ test("E2E-39 Let's Write 三步脚手架：情境选句（听音/中文/选错�
   const { window, app, cleanup } = await freshApp({ seed });
   try {
     await navigate(window, app, '#/unit/u5/stage/2');
-    // 支架 1：三张情境卡，情境有中文说明
-    assert.ok(mainText(window).includes('她把鹦鹉带回宠物店'), '情境 1 应有中文说明');
-    assert.ok(mainText(window).includes('东东想抱小兔子'), '情境 3 应有中文说明');
-    // 支架 2：每个候选句带 🔊 和中文，共 9 个
-    const wrOpts = Array.from(window.document.querySelectorAll('main button.option'))
-      .filter((b) => b.querySelector('.wr-zh'));
-    assert.equal(wrOpts.length, 9, '3 题 × 3 选项 = 9 个写作候选句');
-    assert.ok(wrOpts.every((b) => b.querySelector('.wr-speak')), '每个候选句应有 🔊 听音');
+    // 支架 1：三张情境卡，情境英文显示、中文默认隐藏（门控：选对后才出现）
+    assert.ok(!mainText(window).includes('她把鹦鹉带回宠物店'), '情境 1 中文应默认隐藏');
+    assert.ok(!mainText(window).includes('东东想抱小兔子'), '情境 3 中文应默认隐藏');
+    // 支架 2：每个候选句带 🔊（共 9 个），中文在选对后才出现
+    const wrSpeaks = Array.from(window.document.querySelectorAll('main button.option'))
+      .filter((b) => b.querySelector('.wr-speak'));
+    assert.equal(wrSpeaks.length, 9, '3 题 × 3 选项 = 9 个写作候选句');
+    assert.ok(wrSpeaks.every((b) => b.querySelector('.wr-speak')), '每个候选句应有 🔊 听音');
     // 支架 3：点喇叭只朗读不判分
-    wrOpts[0].querySelector('.wr-speak').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    wrSpeaks[0].querySelector('.wr-speak').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 30));
     assert.ok(!window.document.querySelector('main .option.is-correct'), '点喇叭不得判分');
     // 行为 1：选错 → 不留红、可重试、不出现作文
@@ -1053,6 +1054,9 @@ test("E2E-39 Let's Write 三步脚手架：情境选句（听音/中文/选错�
     assert.equal(greens.length, 3, '三题正确项都应标绿');
     assert.ok(mainText(window).includes('三段对话连起来，演一演'), '全对后应出现对话连读引导');
     assert.ok(mainText(window).includes('整段连读'), '应出现整段连读按钮');
+    // 选对后情境中文应出现（门控解锁）
+    assert.ok(mainText(window).includes('她把鹦鹉带回宠物店'), '选对后情境 1 中文应出现');
+    assert.ok(mainText(window).includes('东东想抱小兔子'), '选对后情境 3 中文应出现');
     // 行为 3：完成写作 → writeDone 生效
     await clickButton(window, '这三句我会了');
     assert.ok(mainText(window).includes('✅') || true, '完成写作应有反馈');
@@ -1062,7 +1066,7 @@ test("E2E-39 Let's Write 三步脚手架：情境选句（听音/中文/选错�
 // 思维导图问题卡定位助手：按问题文本定位到所属卡（取内容最短的=卡片本体）
 function mmBox(root, qText) {
   const divs = Array.from(root.querySelectorAll('main div'))
-    .filter((d) => (d.textContent || '').includes(qText) && d.querySelector('.mm-zh'));
+    .filter((d) => (d.textContent || '').includes(qText) && d.querySelector('button.option'));
   divs.sort((a, b) => a.textContent.length - b.textContent.length);
   return divs[0];
 }
@@ -1077,10 +1081,10 @@ test('E2E-40 思维导图四问互动：听问题/点选答案（无对错）/Q3
   try {
     await navigate(window, app, '#/unit/u5/stage/2');
     assert.match(mainText(window), /宠物思维导图/);
-    // 4 问互动卡：🔊 听问题 + 中文问题
+    // 4 问互动卡：🔊 听问题 + 中文问题（门控：选完该题才出现）
     assert.equal(window.document.querySelectorAll('main .mm-q-speak').length, 4, '4 个问题都应有 🔊 听问题');
-    assert.ok(mainText(window).includes('你养宠物吗'), '问题应有中文');
-    assert.ok(mainText(window).includes('它长什么样子'), '第 3 问应有中文');
+    assert.ok(!mainText(window).includes('你养宠物吗'), '问题中文应默认隐藏');
+    assert.ok(!mainText(window).includes('它长什么样子'), '第 3 问中文应默认隐藏');
     // Q3 特征句默认跟随 cat
     let q3 = mmBox(window.document, 'What does your pet look like?');
     assert.ok(q3.textContent.includes('It has big eyes.'), '默认特征句应为 cat 的');
@@ -1089,6 +1093,7 @@ test('E2E-40 思维导图四问互动：听问题/点选答案（无对错）/Q3
     Array.from(q2.querySelectorAll('button.option')).find((b) => b.textContent.includes('I want a rabbit.'))
       .dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 30));
+    assert.ok(mainText(window).includes('你想养什么宠物'), '选完Q2后其问题中文应出现');
     q3 = mmBox(window.document, 'What does your pet look like?');
     assert.ok(q3.textContent.includes('It has long ears.'), '换 rabbit 后特征句应变为长耳朵');
     // Q3 先选答案，再回 Q2 换 dog → Q3 已选必须清空且特征句变化
@@ -1171,7 +1176,7 @@ test('E2E-42 写作卡对话化：每卡先有孩子台词（🧒英文+中文+�
     assert.ok(mainText(window).includes('🧒 Haohao：'), '卡 2 应显示浩浩台词');
     assert.ok(mainText(window).includes('🧒 Dongdong：'), '卡 3 应显示东东台词');
     assert.ok(mainText(window).includes('May I hold the parrot?'), '浩浩台词应为课本句型');
-    assert.ok(mainText(window).includes('我可以抱抱这只鹦鹉吗'), '孩子台词应有中文');
+    assert.ok(!mainText(window).includes('我可以抱抱这只鹦鹉吗'), '孩子台词中文应默认隐藏');
     // 孩子台词不是可选项（不得出现在 button.option 里）
     const askInOptions = Array.from(window.document.querySelectorAll('main button.option'))
       .filter((b) => b.textContent.includes('May I hold the parrot?'));
@@ -1184,6 +1189,8 @@ test('E2E-42 写作卡对话化：每卡先有孩子台词（🧒英文+中文+�
     await wrPickIn(window, '她把鹦鹉带回宠物店', 'Yes, you can.');
     const box1 = wrBox(window.document, '她把鹦鹉带回宠物店');
     assert.ok(box1.querySelector('.option.is-correct'), '店员应答选对应标绿');
+    // 选对第 1 卡后，该卡孩子台词中文应出现（门控解锁）
+    assert.ok(box1.textContent.includes('我想要一只宠物，可以吗？'), '选对后孩子台词中文应出现');
     // 每卡点选提示存在
     assert.equal((mainText(window).match(/店员回答（点选最合适的）/g) || []).length, 3, '3 张卡都应有店员回答点选提示');
   } finally { cleanup(); }
@@ -1223,7 +1230,7 @@ test('E2E-43 对话连读改名+挑战自由创作（句型支架带🔊）+ 底
     await clickButton(window, '演完了');
     const boxOf = (q) => {
       const divs = Array.from(window.document.querySelectorAll('main div'))
-        .filter((d) => (d.textContent || '').includes(q) && d.querySelector('.mm-zh'));
+        .filter((d) => (d.textContent || '').includes(q) && d.querySelector('button.option'));
       divs.sort((a, b) => a.textContent.length - b.textContent.length);
       return divs[0];
     };
@@ -1253,12 +1260,12 @@ test('E2E-44 范文对话：课文范围示范对话（说话人+英文+中文�
     // 14 行范文对话齐全：每行 🔊
     const sdSpeaks = window.document.querySelectorAll('main .sd-speak');
     assert.equal(sdSpeaks.length, 14, '范文对话 14 句都应有 🔊');
-    // 英文文字版 + 中文 + 说话人显示
+    // 英文文字版 + 说话人显示；中文默认隐藏（门控：听整段连读后才出现）
     assert.ok(mainText(window).includes('May I come in?'), '进店问句应显示');
-    assert.ok(mainText(window).includes('我可以进来吗'), '每句应有中文对照');
     assert.ok(mainText(window).includes('May I feed it a carrot?'), '喂胡萝卜句应显示');
-    assert.ok(mainText(window).includes('我可以摸摸它吗'), '摸摸它中文应显示');
     assert.ok(mainText(window).includes("You're welcome."), '结束礼貌用语应显示');
+    assert.ok(!mainText(window).includes('我可以进来吗'), '范文对话中文应默认隐藏');
+    assert.ok(mainText(window).includes('听完后看中文'), '范文对话应显示中文锁定提示');
     // 场景行 + 整段连读按钮
     assert.ok(mainText(window).includes('在宠物店'), '场景应显示');
     assert.ok(mainText(window).includes('范文整段连读'), '应有范文整段连读按钮');
@@ -1267,6 +1274,11 @@ test('E2E-44 范文对话：课文范围示范对话（说话人+英文+中文�
     await new Promise((r) => setTimeout(r, 30));
     assert.ok(!window.document.querySelector('main .option.is-correct'), '点范文喇叭不得判分');
     assert.ok(!window.document.querySelector('main .option.is-wrong'), '点范文喇叭不得留错误标记');
+    // 听整段连读后中文出现
+    await clickButton(window, '🔊 范文整段连读');
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(mainText(window).includes('我可以进来吗'), '听整段连读后中文应出现');
+    assert.ok(mainText(window).includes('我可以摸摸它吗'), '听整段连读后摸摸它中文应出现');
   } finally { cleanup(); }
 });
 
@@ -1371,5 +1383,58 @@ test('E2E-46 故事屋重构：背景旁白外置、对话标准格式分行、�
     // 故事完成按钮仍可用（Stage4 通关链路不变）
     await clickButton(window, '我读完并演了');
     assert.ok((app.state.session.storiesDone || []).includes('A'), 'A 篇应标记完成');
+  } finally { cleanup(); }
+});
+
+test("E2E-47 真实输出中文门控：角色扮演(演完出)/Let's Write选句卡(选对出)/思维导图(选完出)/范文对话(听整段出)，答前中文隐藏", async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/2');
+    const main = () => window.document.querySelector('main');
+    const smallest = (divs) => { divs.sort((a, b) => a.textContent.length - b.textContent.length); return divs[0]; };
+
+    // 1) 角色扮演：孩子台词中文默认隐藏，点"✅ 演完了"后出现
+    assert.ok(!main().textContent.includes('我想要一只小宠物'), '角色扮演孩子台词中文应默认隐藏');
+    assert.ok(main().textContent.includes('（演完后看中文）'), '角色扮演应显示中文锁定提示');
+    await clickButton(window, '✅ 演完了');
+    assert.ok(main().textContent.includes('我想要一只小宠物'), '演完后孩子台词中文应出现');
+
+    // 2) Let's Write 选句卡 0：情境/问句/正确选项中文默认隐藏，选对后出现
+    //    按 data-ctxzh 属性定位（中文门控不影响属性，比 textContent 稳定）
+    const cardByCtx = (s) => smallest(Array.from(main().querySelectorAll('main div[data-ctxzh]'))
+      .filter((d) => (d.getAttribute('data-ctxzh') || '').includes(s)));
+    const card0 = cardByCtx('她把鹦鹉带回宠物店');
+    assert.ok(card0, '应定位到选句卡0');
+    assert.ok(!card0.textContent.includes('我想要一只宠物，可以吗？'), '问句中文应默认隐藏');
+    assert.ok(!card0.textContent.includes('可以哦，给你。'), '正确选项中文应默认隐藏');
+    const yesBtn = Array.from(card0.querySelectorAll('button.option'))
+      .find((b) => (b.textContent || '').includes('Yes, you can.'));
+    yesBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    const card0b = cardByCtx('她把鹦鹉带回宠物店');
+    assert.ok(card0b.textContent.includes('我想要一只宠物，可以吗？'), '选对后问句中文应出现');
+    assert.ok(card0b.textContent.includes('可以哦，给你。'), '选对后正确选项中文应出现');
+
+    // 3) 思维导图 Q0：问题选项中文默认隐藏，选完后出现
+    //    定位「问题块」box（含英文问句文本 + 选项按钮），勿用门控隐藏的 qZh 中文
+    const mmByQ = (q) => smallest(Array.from(main().querySelectorAll('main div'))
+      .filter((d) => (d.textContent || '').includes(q) && d.querySelector('button.option')));
+    const mmQ0 = mmByQ('Do you have a pet?');
+    assert.ok(mmQ0, '应定位到思维导图Q0');
+    assert.ok(!mmQ0.textContent.includes('我想要一只宠物！'), 'Q0选项中文应默认隐藏');
+    mmQ0.querySelectorAll('button.option')[0].dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    const mmQ0b = mmByQ('Do you have a pet?');
+    assert.ok(mmQ0b.textContent.includes('我想要一只宠物！'), '选完后Q0选项中文应出现');
+
+    // 4) 范文对话：每句中文默认隐藏，点"整段连读"后出现
+    assert.ok(!main().textContent.includes('我可以进来吗？'), '范文对话中文应默认隐藏');
+    await clickButton(window, '🔊 范文整段连读');
+    assert.ok(main().textContent.includes('我可以进来吗？'), '听整段连读后范文中文应出现');
   } finally { cleanup(); }
 });
