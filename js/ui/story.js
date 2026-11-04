@@ -66,9 +66,10 @@ export function renderStories(ctx, unit) {
 
       box.appendChild(h('div', { class: 'pill-row', style: 'margin-top:10px' }, st.tasks.map((t) => h('span', { class: 'pill', text: t }))));
 
-      // 阅读理解：判断题（课本原生题型）+ 细节选择题，答对只奖励不留红
+      // 阅读理解（考试题型）：判断正误 + 选择正确答案；题干中文答对该题后才出现（家长定版）
       if (st.quiz && st.quiz.length) {
-        box.appendChild(h('p', { class: 'hint', style: 'margin-top:14px;font-weight:700', text: '🤔 读懂了吗？来判断一下：' }));
+        box.appendChild(h('p', { class: 'hint', style: 'margin-top:14px;font-weight:700', text: '🤔 阅读理解·考试题型练一练' }));
+        box.appendChild(h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: '根据故事内容答题：先判断正误（T=对，F=错），再选出正确答案。答对一题，它的中文意思就会出现哦。' }));
         st.quiz.forEach((q, qi) => {
           const okKey = `${st.id}-${qi}`;
           const ok = !!session.stQuizOk[okKey];
@@ -81,8 +82,9 @@ export function renderStories(ctx, unit) {
                 onclick: () => tts.speak(q.q),
               }),
             ]),
-            h('p', { class: 'hint', style: 'color:var(--muted,#666)', text: `💬 ${q.qZh}` }),
           ]);
+          // 题干中文门控：答对该题（锁定）后才显示
+          if (ok) qBox.appendChild(h('p', { class: 'hint st-q-zh', style: 'color:var(--muted,#666)', text: `💬 ${q.qZh}` }));
           const row = h('div', { class: 'btn-row', style: 'margin-top:6px' });
           const opts = q.type === 'tf' ? ['T', 'F'] : q.opts;
           const labelOf = (o) => (q.type === 'tf' ? (o === 'T' ? 'T 对' : 'F 错') : o);

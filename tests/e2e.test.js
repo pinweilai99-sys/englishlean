@@ -1317,6 +1317,10 @@ test('E2E-46 故事屋重构：背景旁白外置、对话标准格式分行、�
     assert.ok(!aBox.textContent.includes('妈妈，我可以养一只宠物吗'), '未答题时对话中文应隐藏');
     assert.ok(aBox.querySelector('.st-zh-lock'), '未答题时应显示中文门控提示');
     assert.ok(aBox.textContent.includes('已答对 0/3'), '门控提示应显示进度');
+    // 考试题型：指令语 + 题干中文门控（答对该题才显示）
+    assert.ok(aBox.textContent.includes('阅读理解·考试题型练一练'), '应有考试题型指令语');
+    assert.ok(aBox.textContent.includes('判断正误'), '指令应含判断题说明');
+    assert.ok(!aBox.textContent.includes('东东想养一只宠物兔子'), '未答对第 1 题时题干中文应隐藏');
     // 对话标准格式：说话人 + 每行 🔊
     assert.equal(aBox.querySelectorAll('.st-line-speak').length, 8, 'A 篇对话应 8 行且每行有 🔊');
     assert.ok(aBox.textContent.includes('🧒 Dongdong：') && aBox.textContent.includes('👩 Mrs Chen：'), '对话应有说话人标签');
@@ -1344,6 +1348,8 @@ test('E2E-46 故事屋重构：背景旁白外置、对话标准格式分行、�
     assert.ok(Array.from(aBox.querySelectorAll('.option.is-correct')).length >= 1, '答对应标绿');
     assert.ok(aBox.textContent.includes('已答对 1/3'), '门控提示应更新进度');
     assert.ok(!aBox.textContent.includes('妈妈，我可以养一只宠物吗'), '未答完时对话中文仍应隐藏');
+    assert.ok(aBox.textContent.includes('东东想养一只宠物兔子'), '答对第 1 题后题干中文应出现');
+    assert.ok(!aBox.textContent.includes('他们给邦尼吃什么'), '未答对第 3 题时其题干中文应隐藏');
     // 依次答对第 2、3 题（render 重建 DOM，每轮重新查询）
     const answerQ = async (idx, want) => {
       const box = window.document.querySelectorAll('main .card.soft')[0];
@@ -1359,6 +1365,7 @@ test('E2E-46 故事屋重构：背景旁白外置、对话标准格式分行、�
     assert.ok(!aBox.querySelector('.st-zh-lock'), '答完题后门控提示应消失');
     assert.ok(aBox.textContent.includes('陈夫人'), '答完题后背景中文应出现');
     assert.ok(aBox.textContent.includes('妈妈，我可以养一只宠物吗'), '答完题后对话中文应出现');
+    assert.ok(aBox.textContent.includes('他们给邦尼吃什么'), '答完题后全部题干中文应出现');
     // 听整篇按钮存在
     assert.ok(aBox.textContent.includes('听整篇'), '应可听整篇');
     // 故事完成按钮仍可用（Stage4 通关链路不变）
