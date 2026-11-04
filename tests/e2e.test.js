@@ -711,6 +711,46 @@ test('E2E-51 回忆卡看图卡配插画：rc1 兔子图、听音卡无图、rc4
   } finally { cleanup(); }
 });
 
+test('E2E-52 考点微测答后必给答案及解说：答错/答对都显示「✅ 正确答案 + 💡 解说」（家长定版）', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, true, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/3/quiz');
+    const i1 = UNIT.quiz.find((x) => x.id === 'I1');
+    const i2 = UNIT.quiz.find((x) => x.id === 'I2');
+
+    // 情形一：答错（I1 选 hat，正确答案是 pet）
+    let box = quizBox(window, 'I1');
+    const wrongBtn = Array.from(box.querySelectorAll('button.option')).find((b) => b.textContent.trim() === 'hat');
+    wrongBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    box = quizBox(window, 'I1');
+    let expl = box.querySelector('.quiz-explain');
+    assert.ok(expl, '答错后也应显示答案解说块');
+    assert.match(expl.textContent, /✅ 正确答案：pet/, '答错后应明确给出正确答案');
+    assert.match(expl.textContent, new RegExp(i1.explain.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), '答错后应显示解说');
+
+    // 情形二：答对（I2 选 may）
+    box = quizBox(window, 'I2');
+    const rightBtn = Array.from(box.querySelectorAll('button.option')).find((b) => b.textContent.trim() === 'may');
+    rightBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    box = quizBox(window, 'I2');
+    expl = box.querySelector('.quiz-explain');
+    assert.ok(expl, '答对后应显示答案解说块');
+    assert.match(expl.textContent, /✅ 正确答案：may/, '答对后应明确给出正确答案');
+    assert.match(expl.textContent, new RegExp(i2.explain.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), '答对后应显示解说');
+
+    // 未作答的题不应提前显示答案（用题干唯一的题避免 quizBox 对重复题干的歧义）
+    box = quizBox(window, 'II1');
+    assert.equal(box.querySelector('.quiz-explain'), null, '未作答不应提前剧透');
+  } finally { cleanup(); }
+});
+
 test('E2E-20 字母组合 ou 拼读站：找出全部 ou 词 → 鼓励反馈', async () => {
   const { window, app, cleanup } = await freshApp();
   try {
