@@ -1,5 +1,5 @@
 // 回忆卡中心（模块⑥）：May I 秒答 / 听答反推 / 看图说词 / 复述 / ou 归类
-import { h, toast, starFly } from './dom.js';
+import { h, toast, starFly, stage3Nav } from './dom.js';
 import * as tts from '../services/tts.js';
 
 export function renderRecall(ctx, unit) {
@@ -62,7 +62,8 @@ export function renderRecall(ctx, unit) {
 
   render();
   return h('div', {}, [
-    h('button', { class: 'back-btn', text: '← 返回单元', onclick: () => ctx.navigate(`#/unit/${unit.id}`) }),
+    h('button', { class: 'back-btn', text: '← 返回学习路径', onclick: () => ctx.navigate(`#/unit/${unit.id}`) }),
+    stage3Nav(ctx, unit, 'review'),
     wrap,
   ]);
 }

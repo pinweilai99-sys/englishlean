@@ -35,6 +35,24 @@ export function toast(msg, ms = 2000) {
   toastTimer = setTimeout(() => t.classList.remove('show'), ms);
 }
 
+// 巩固拓展（Stage3）内部模块切换栏：故事屋 / 考点微测 / 复习
+// active ∈ {'stories','quiz','review'}，由调用方按当前页指定；data-tab 供测试定位
+export function stage3Nav(ctx, unit, active) {
+  const tabs = [
+    { key: 'stories', label: '📚 故事屋', route: `#/unit/${unit.id}/stage/3` },
+    { key: 'quiz', label: '📝 考点微测', route: `#/unit/${unit.id}/stage/3/quiz` },
+    { key: 'review', label: '🃏 复习', route: `#/unit/${unit.id}/recall` },
+  ];
+  return h('div', { class: 'stage3-nav', style: 'display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px' },
+    tabs.map((t) => h('button', {
+      class: `btn ${active === t.key ? 'leaf' : 'ghost'}`,
+      text: t.label,
+      'data-tab': t.key,
+      onclick: () => ctx.navigate(t.route),
+    }))
+  );
+}
+
 export function starFly(count = 1) {
   const badge = h('div', { class: 'stars-badge', text: '⭐'.repeat(Math.min(count, 3)) });
   document.body.appendChild(badge);
