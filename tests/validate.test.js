@@ -42,11 +42,11 @@ test('微测题目 answer 全部在 options 范围内', () => {
   });
 });
 
-test('考点微测覆盖同步优学 I–X 十类题型（T23 硬指标）', () => {
+test('考点微测覆盖同步优学 I–X 十类题型 + ou 语音（U5 真考点）', () => {
   const families = new Set(raw.quiz.map((q) => q.id.replace(/\d+$/, '')));
   const want = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
   want.forEach((f) => assert.ok(families.has(f), `考点微测缺少题型 ${f}`));
-  assert.equal(families.size, 10, `应正好覆盖 10 类题型，实际 ${families.size} 类`);
+  assert.ok(families.has('P'), '缺少 ou 语音题（P 类，U5 语音考点）');
   // III（听短语选词填空）与 VI（选词填空）必须有题，且各带正确英语文本
   const iii = raw.quiz.filter((q) => q.id.startsWith('III'));
   const vi = raw.quiz.filter((q) => q.id.startsWith('VI'));
@@ -54,6 +54,31 @@ test('考点微测覆盖同步优学 I–X 十类题型（T23 硬指标）', () 
   assert.ok(iii.every((q) => typeof q.speak === 'string' && q.speak.length > 0), 'III 每题必须有听短语文本 speak');
   assert.ok(vi.length >= 1, '缺少 VI 选词填空');
   assert.ok(vi.every((q) => !('speak' in q)), 'VI 选词填空不需音频（纯阅读填空）');
+});
+
+test('II1 硬错已修复：听 pet shop 答案应为宠物店🏪（非银行🏦）', () => {
+  const q = raw.quiz.find((x) => x.id === 'II1');
+  assert.equal(q.options[q.answer], '🏪 宠物店', 'II1 正确答案应是宠物店');
+  assert.ok(!q.options.includes('🏦'), 'II1 选项不应再含银行🏦');
+});
+
+test('IV 类已改回近音辨析且覆盖四会动词 feed/touch', () => {
+  const iv = raw.quiz.filter((q) => q.id.startsWith('IV'));
+  assert.equal(iv.length, 5, 'IV 类应补齐到 5 题');
+  const words = iv.map((q) => q.options[q.answer]);
+  assert.ok(words.includes('feed'), 'IV 应覆盖 feed（四会动词）');
+  assert.ok(words.includes('touch'), 'IV 应覆盖 touch（二会动词）');
+  assert.ok(words.includes('mouse'), 'IV 应覆盖 mouse≠mouth 近音辨析');
+});
+
+test('II/VII/VIII/IX/X 各类补齐到各 5 题（除 IX 仿写 3 宠、X 阅读 4 题）', () => {
+  // 精确前缀匹配（避免 II 误匹配 III、VII 误匹配 VIII）
+  const cnt = (f) => raw.quiz.filter((q) => new RegExp('^' + f + '\\d').test(q.id)).length;
+  assert.equal(cnt('II'), 5, 'II 听音选图应 5 题');
+  assert.equal(cnt('VII'), 5, 'VII 图句判断应 5 题');
+  assert.equal(cnt('VIII'), 5, 'VIII 情景交际应 5 题');
+  assert.ok(cnt('IX') >= 3, 'IX 仿写至少覆盖 3 种宠物');
+  assert.ok(cnt('X') >= 4, 'X 阅读至少 4 题');
 });
 
 test('听音选词：12 个单元单词逐词出现（每词都是一题的目标词）', () => {

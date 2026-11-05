@@ -677,7 +677,7 @@ test('E2E-50 巩固拓展子导航：进入 Stage3 默认故事屋，可见「�
     quizTab.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 60));
     assert.match(mainText(window), /考点微测/);
-    assert.ok(mainText(window).match(/共\s*25\s*题/), '微测应显示 25 题');
+    assert.ok(mainText(window).match(/共\s*52\s*题/), '微测应显示 52 题（I–X 十类 + ou 语音 P 类）');
     // 微测页也应带子导航，且当前高亮 quiz
     const quizNav = window.document.querySelectorAll('.stage3-nav button[data-tab]');
     const active = Array.from(quizNav).find((b) => b.classList.contains('leaf'));
@@ -748,6 +748,54 @@ test('E2E-52 考点微测答后必给答案及解说：答错/答对都显示「
     // 未作答的题不应提前显示答案（用题干唯一的题避免 quizBox 对重复题干的歧义）
     box = quizBox(window, 'II1');
     assert.equal(box.querySelector('.quiz-explain'), null, '未作答不应提前剧透');
+  } finally { cleanup(); }
+});
+
+test('E2E-53 测评补全：II1 硬错已修 + ou 语音(P1) + 图句判断(VII3) 可答且答案正确', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, true, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/3/quiz');
+    // 1) II1 硬错修复：正确答案应为「🏪 宠物店」，且点击后标绿
+    const ii1 = UNIT.quiz.find((x) => x.id === 'II1');
+    let box = quizBox(window, 'II1');
+    const petShopBtn = Array.from(box.querySelectorAll('button.option')).find((b) => b.textContent.trim() === '🏪 宠物店');
+    assert.ok(petShopBtn, 'II1 应出现「🏪 宠物店」选项');
+    assert.ok(!Array.from(box.querySelectorAll('button.option')).some((b) => b.textContent.includes('🏦')), 'II1 不应再含银行🏦');
+    petShopBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    box = quizBox(window, 'II1');
+    assert.ok(Array.from(box.querySelectorAll('button.option')).find((b) => b.textContent.trim() === '🏪 宠物店').classList.contains('is-correct'), 'II1 点宠物店应标 is-correct');
+    assert.equal(ii1.options[ii1.answer], '🏪 宠物店', 'II1 数据答案须是宠物店');
+
+    // 2) ou 语音 P1：听 mouse，选含 ou 的单词，答后显示答案
+    const p1 = UNIT.quiz.find((x) => x.id === 'P1');
+    box = quizBox(window, 'P1');
+    const mouseBtn = Array.from(box.querySelectorAll('button.option')).find((b) => b.textContent.trim() === 'mouse 🐭');
+    assert.ok(mouseBtn, 'P1 应出现 mouse 🐭 选项');
+    mouseBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    box = quizBox(window, 'P1');
+    let expl = box.querySelector('.quiz-explain');
+    assert.ok(expl, 'P1 答后应有答案解说块');
+    assert.match(expl.textContent, /✅ 正确答案：mouse 🐭/, 'P1 应明确给出正确答案');
+
+    // 3) 图句判断 VII3：The cat is in the zoo → F（不在动物园）
+    const vii3 = UNIT.quiz.find((x) => x.id === 'VII3');
+    box = quizBox(window, 'VII3');
+    const fBtn = Array.from(box.querySelectorAll('button.option')).find((b) => b.textContent.trim() === 'F');
+    assert.ok(fBtn, 'VII3 应出现 F 选项');
+    fBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    box = quizBox(window, 'VII3');
+    const fBtn2 = Array.from(box.querySelectorAll('button.option')).find((b) => b.textContent.trim() === 'F');
+    assert.ok(fBtn2.classList.contains('is-correct'), 'VII3 选 F 应标 is-correct');
+    expl = box.querySelector('.quiz-explain');
+    assert.ok(expl && expl.textContent.includes('动物园'), 'VII3 答后应显示解说（点明不在动物园）');
   } finally { cleanup(); }
 });
 
