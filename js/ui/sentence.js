@@ -7,6 +7,8 @@ export function renderSentence(ctx, unit) {
   const s = unit.sentences;
   const session = ctx.session;
   const wrap = h('div');
+  // 答错后的即时对照卡：只活在当前页面生命周期，不写入 session/存档（不留失败痕迹）；答对即消失
+  const feedback = {};
 
   function render() {
     wrap.innerHTML = '';
@@ -90,10 +92,19 @@ export function renderSentence(ctx, unit) {
     // 答案按「动物|题干」记录：换动物后所有题目（含第 2 题）自动清空重练；
     // 星标按题干记录：同题干换动物不重复加星（防刷星）
     const keyOf = (q) => `${animal}|${q}`;
+    // 答错对照卡：讲清「这句本身没错 / 它答的是哪类问题 / 这题该怎么答」，不剧透英文答案
+    const subjectRule = (q) => {
+      if (q.startsWith('May I')) return '这题问「我可以吗」，回答要说「你可以」～';
+      if (q.startsWith('Can you')) return '这题问「你能吗」，回答要说「我能」～';
+      if (q.startsWith('Can he')) return '这题问「它能吗」，回答要说「它能」～';
+      return '再听听谁在问、谁在答～';
+    };
+    const feedbackText = (pair, kind) => (kind === 'polarity'
+      ? `💡 看看表情：这题是${pair.cue === 'no' ? '摇头（不行）' : '点头（可以）'}，要选意思对得上的回答～`
+      : `💡 这句英文本身没错，只是答的不是这道题。${subjectRule(pair.q)}`);
     session.zhShown = session.zhShown || {};
     dialogues.forEach((pair) => {
       const answeredOk = !!session.answeredOk?.[keyOf(pair.q)];
-      const chosen = session.answers?.[keyOf(pair.q)];
       // 题干行：题干 + 🔊 听题目 + 👀 中文意思（零基础支架：先自己试，卡住再扶）
       const qRow = h('div', { class: 'story-text', style: 'font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap' }, [
         h('span', { text: pair.q }),
@@ -142,13 +153,15 @@ export function renderSentence(ctx, unit) {
                 session.starredOk[pair.q] = true;
                 ctx.addStars(1); starFly(1);
               }
+              delete feedback[keyOf(pair.q)];
               toast('配对正确！你看懂表情啦～');
             } else {
               ctx.addWrong({ unit: unit.id, type: 'answer_match', q: pair.q, a: pair.a, chosen: ans });
-              // 支架式即时纠正：不剧透答案，只把注意力引回「表情极性」或「主语人称」
+              // 支架式即时纠正：不剧透答案，把注意力引回「表情极性」或「谁在问、谁在答」
               const isNo = /(^No\b|can't)/.test(ans);
               const polarityClash = pair.cue === 'no' ? !isNo : isNo;
-              toast(polarityClash ? '看看表情，是点头还是摇头呀？' : '听听谁在问、谁在答，主语对不对？');
+              feedback[keyOf(pair.q)] = polarityClash ? 'polarity' : 'subject';
+              toast(polarityClash ? '看看表情，是点头还是摇头呀？' : '这句答的是别的问题哦，看看下面的 💡～');
             }
             render();
             const ok = dialogues.every((p) => session.answeredOk?.[keyOf(p.q)]);
@@ -168,8 +181,15 @@ export function renderSentence(ctx, unit) {
           document.createTextNode(ans),
         ]));
       });
-      if (chosen && !answeredOk) box.querySelector('.story-text').appendChild(h('span', { class: 'hint', text: '（刚才选错了，再试一次）' }));
       box.appendChild(row);
+      // 答错后留一张可反复看的中性对照卡：不标红、不进存档、答对即消失（不留失败痕迹）
+      if (!answeredOk && feedback[keyOf(pair.q)]) {
+        box.appendChild(h('p', {
+          class: 'answer-feedback hint',
+          style: 'color:var(--muted,#666);margin:8px 0 0',
+          text: feedbackText(pair, feedback[keyOf(pair.q)]),
+        }));
+      }
       // 答对后立刻讲清规则（即时反馈落在规则上，不落在猜答案上）；纯中文，不触发英语朗读铁律
       if (answeredOk && pair.rule) {
         box.appendChild(h('p', { class: 'hint', style: 'color:var(--muted,#666);margin:8px 0 0', text: `💡 ${pair.rule}` }));
