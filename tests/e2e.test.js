@@ -1705,3 +1705,44 @@ test('E2E-54 应答配对题型效度：表情线索答题前可见；合法但�
     assert.ok(boxOf('May I feed it?').querySelector('.option.is-correct'), 'Sure. 应判对');
   } finally { cleanup(); }
 });
+
+test('E2E-55 本单元语法知识点进孩子侧：Stage2 第 3 步归纳卡，例句带🔊，四阶段模型不变', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, false, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/1');
+    // 1) 第 3 步归纳卡存在，且含本单元 3 条规律
+    const ruleCard = Array.from(window.document.querySelectorAll('.card'))
+      .find((c) => (c.textContent || '').includes('第 3 步 · 我发现了一个规律'));
+    assert.ok(ruleCard, '核心句型页应有第 3 步语法归纳卡');
+    const rules = Array.from(ruleCard.querySelectorAll('.grammar-rule'));
+    assert.equal(rules.length, 3, '应展示本单元 3 条规律');
+    assert.match(ruleCard.textContent, /问「我可以吗」，答「你可以」/);
+    assert.match(ruleCard.textContent, /看表情，定答语/);
+    assert.match(ruleCard.textContent, /问「你能吗」，答「我能」/);
+    // 2) 英语必有播放铁律：每条一问一答两句英文各配 🔊
+    for (const r of rules) {
+      assert.equal(r.querySelectorAll('.grammar-speak').length, 2, '每条规律的两句英文都应有 🔊');
+    }
+    // 3) 纯展示卡：不判分、不加星、不设通关闸门（红线：不留失败痕迹）
+    assert.equal(ruleCard.querySelector('button'), null, '归纳卡不应有答题/通关按钮');
+    const before = persisted(window).progress.u5.stagePassed[1];
+    const beforeStars = persisted(window).stars;
+    rules[0].querySelector('.grammar-speak').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.equal(persisted(window).progress.u5.stagePassed[1], before, '听例句不得判分/改进度');
+    assert.equal(persisted(window).stars, beforeStars, '听例句不得加星');
+    // 4) 超纲语法点不下沉给孩子
+    assert.ok(!/三单|现在进行时|宾格代词/.test(ruleCard.textContent), '孩子侧不得出现超纲语法点');
+    // 5) 学习路径仍是 4 阶段（语法不单列第 5 阶段），且首页可见标识
+    await navigate(window, app, '#/unit/u5');
+    const items = Array.from(window.document.querySelectorAll('.stage-item'));
+    assert.equal(items.length, 4, '不得新增第 5 个阶段，4 阶段进度模型不变');
+    assert.match(mainText(window), /已通过 \d \/ 4 个阶段/, '阶段总数仍为 4');
+    assert.match(items[1].textContent, /语法小规律/, '核心句型卡应标出语法知识点');
+  } finally { cleanup(); }
+});

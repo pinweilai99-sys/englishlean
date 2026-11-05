@@ -190,6 +190,40 @@ export function renderSentence(ctx, unit) {
       }),
     ]));
     wrap.appendChild(cardPair);
+
+    // ───────── 卡片 3：本单元语法归纳（孩子侧） ─────────
+    // 教育决策：语法不单列第 5 阶段，而是挂在 Stage2 末尾，从「刚做过的应答配对例句」里归纳。
+    // 家长中心的 parentCard（三单/进行时/宾格等拓展点）仍只给家长，不下沉给孩子。
+    const childCards = unit.grammar?.childCards || [];
+    if (childCards.length) {
+      const cardRule = h('div', { class: 'card' });
+      cardRule.appendChild(h('div', { class: 'card-title', text: '🔍 第 3 步 · 我发现了一个规律' }));
+      cardRule.appendChild(h('p', { class: 'card-sub', text: '刚做完的对话里藏着 3 个小规律，先自己想一想，再对照看看～' }));
+      childCards.forEach((c, i) => {
+        // 英文例句必有 🔊（英语必有播放铁律）；用 span 而非 button，
+        // 避免被应答配对的题目块定位器（.card > div 且含 button）误匹配。
+        const speak = (text, title) => h('span', {
+          class: 'grammar-speak', text: '🔊', title,
+          style: 'cursor:pointer;margin-left:4px',
+          onclick: () => tts.speak(text),
+        });
+        cardRule.appendChild(h('div', {
+          class: 'grammar-rule',
+          style: 'margin-bottom:12px;padding:10px 12px;border-radius:12px;background:var(--color-background-secondary,#f7f7f5)',
+        }, [
+          h('div', { style: 'font-weight:800;margin-bottom:6px', text: `${i + 1}. ${c.title}` }),
+          h('div', { class: 'story-text', style: 'display:flex;align-items:center;gap:6px;flex-wrap:wrap' }, [
+            document.createTextNode(c.q), speak(c.q, '听这个句子'),
+          ]),
+          h('div', { class: 'story-text', style: 'display:flex;align-items:center;gap:6px;flex-wrap:wrap' }, [
+            document.createTextNode(`↳ ${c.a}`), speak(c.a, '听这个回答'),
+          ]),
+          h('p', { class: 'hint', style: 'color:var(--muted,#666);margin:6px 0 0', text: c.note }),
+        ]));
+      });
+      // 纯展示卡：不判分、不加星、不设通关闸门（成长型思维：不留失败痕迹）
+      wrap.appendChild(cardRule);
+    }
   }
 
   render();

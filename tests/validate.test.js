@@ -1,12 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { validateUnit } from '../js/core/validate.js';
+import { audioSlug } from '../js/services/audio.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const raw = JSON.parse(readFileSync(join(__dirname, '../data/units/u5.json'), 'utf8'));
+const audioSlugs = new Set(JSON.parse(readFileSync(join(__dirname, '../assets/audio/manifest.json'), 'utf8')).slugs);
 
 test('u5.json 通过校验', () => {
   const r = validateUnit(raw);
@@ -240,4 +242,29 @@ test('截图两题防退化：goldfish 组的情境线索与真错干扰项', ()
   assert.ok(q2.opts.includes('OK. Yes, I can.'), '红框 2 的主语错位项保留');
   assert.equal(answerSubject(q2.q, 'OK. Yes, I can.'), 'I');
   assert.equal(expectedSubject(q2.q), 'you', 'May I 问句应答主语必须是 you');
+});
+
+// ── 本单元语法知识点进孩子侧（需求变更：语法不再只归家长中心）────────────
+test('需求变更正反对照：语法归纳卡已进孩子侧，家长深度参考卡保留且超纲点未下沉', () => {
+  // 前置断言：证明旧规格仍在、只是被扩展（不是把家长卡删了搬过来）
+  assert.equal(raw.grammar.parentCard.length, 6, '家长中心 6 条深度参考卡必须保留');
+  const cards = raw.grammar.childCards;
+  assert.ok(Array.isArray(cards) && cards.length === 3, '孩子侧应有 3 条本单元规律归纳卡');
+  // 新规格：孩子侧只讲本单元句型能直接看出的规律，超纲语法点仍只在家长侧
+  const childText = cards.map((c) => `${c.title}${c.note}`).join('');
+  assert.ok(!/三单|进行时|宾格/.test(childText), '三单/进行时/宾格等超纲点不得下沉给孩子');
+  assert.match(childText, /问「.*吗」，答/, '孩子侧应聚焦本单元一问一答的主语互换');
+});
+
+test('孩子侧语法卡铁律：中文规律区无裸英文，英文例句均有预生成音频', () => {
+  for (const c of raw.grammar.childCards) {
+    assert.ok(c.title && c.note && c.q && c.a, '每条规律需有标题/说明/一问一答例句');
+    assert.ok(!/[A-Za-z]/.test(c.title), `规律标题不得含无 🔊 英文：${c.title}`);
+    assert.ok(!/[A-Za-z]/.test(c.note), `规律说明不得含无 🔊 英文：${c.note}`);
+    for (const t of [c.q, c.a]) {
+      const slug = audioSlug(t);
+      assert.ok(audioSlugs.has(slug), `例句缺预生成音频清单：${t}`);
+      assert.ok(existsSync(join(__dirname, '../assets/audio', `${slug}.m4a`)), `例句音频文件缺失：${t}`);
+    }
+  }
 });
