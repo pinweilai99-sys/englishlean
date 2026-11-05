@@ -243,21 +243,27 @@
           "q": "May I have a pet?",
           "a": "Yes, you can.",
           "zh": "我可以养一只宠物吗？——可以。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
           "opts": [
             "Yes, you can.",
             "No, you can't.",
-            "Sure."
-          ]
+            "Yes, I can."
+          ],
+          "rule": "点头＝同意。问『我可以吗』要答『你可以』；答『我能』是主语错，答『不可以』和表情相反。"
         },
         {
           "q": "May I hold it?",
           "a": "Sure.",
           "zh": "我可以抱抱它吗？——当然可以。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
           "opts": [
             "Sure.",
-            "Yes, you can.",
-            "No, you can't."
-          ]
+            "No, you can't.",
+            "OK. Yes, I can."
+          ],
+          "rule": "点头＝可以，用『当然可以』来答；答『我能』是主语错，答『不可以』和表情相反。"
         }
       ],
       "rabbit": [
@@ -265,21 +271,27 @@
           "q": "May I have a rabbit?",
           "a": "Yes, you can.",
           "zh": "我可以养一只兔子吗？——可以。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
           "opts": [
             "Yes, you can.",
             "No, you can't.",
-            "Sure."
-          ]
+            "Yes, I can."
+          ],
+          "rule": "点头＝同意。问『我可以吗』要答『你可以』；答『我能』是主语错，答『不可以』和表情相反。"
         },
         {
           "q": "Can you take good care of it?",
           "a": "OK. Yes, I can.",
           "zh": "你能把它照顾好吗？——好的，我能。",
+          "cue": "yes",
+          "cueZh": "点头：能",
           "opts": [
             "OK. Yes, I can.",
             "Yes, you can.",
-            "No, you can't."
-          ]
+            "No, I can't."
+          ],
+          "rule": "问『你能吗』要答『我能』；答『你可以』是主语错，答『我不能』和表情相反。"
         }
       ],
       "goldfish": [
@@ -287,21 +299,27 @@
           "q": "May I have a goldfish?",
           "a": "No, you can't. But you can feed it.",
           "zh": "我可以养一条金鱼吗？——不行哦，但你可以喂它。",
+          "cue": "no",
+          "cueZh": "摇头：不行",
           "opts": [
             "No, you can't. But you can feed it.",
             "Yes, you can.",
             "Sure."
-          ]
+          ],
+          "rule": "摇头＝不行，要说『不可以』。后半句『但你可以喂它』给了另一件能做的事；答『可以』和表情相反。"
         },
         {
           "q": "May I feed it?",
           "a": "Sure.",
           "zh": "我可以喂喂它吗？——当然可以。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
           "opts": [
             "Sure.",
             "No, you can't.",
             "OK. Yes, I can."
-          ]
+          ],
+          "rule": "点头＝可以喂。问『我可以吗』要答许可；答『我能』是主语错，答『不可以』和表情相反。"
         }
       ],
       "dog": [
@@ -309,21 +327,27 @@
           "q": "May I touch him?",
           "a": "No, you can't. He's working now.",
           "zh": "我可以摸摸它吗？——不行哦，它正在工作呢。",
+          "cue": "no",
+          "cueZh": "摇头：不行",
           "opts": [
             "No, you can't. He's working now.",
             "Sure.",
             "Yes, you can."
-          ]
+          ],
+          "rule": "摇头＝不行。导盲犬正在工作，所以不能摸；答『可以』和表情相反。"
         },
         {
           "q": "Can he help blind people?",
           "a": "Yes, he can.",
           "zh": "它能帮助盲人吗？——能，它可以。",
+          "cue": "yes",
+          "cueZh": "点头：能",
           "opts": [
             "Yes, he can.",
             "Yes, you can.",
-            "Sure."
-          ]
+            "No, he can't."
+          ],
+          "rule": "问『它能吗』要答『它能』；答『你可以』是主语错，答『它不能』和表情相反。"
         }
       ],
       "cat": [
@@ -331,21 +355,27 @@
           "q": "May I have a cat?",
           "a": "Yes, you can.",
           "zh": "我可以养一只小猫吗？——可以。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
           "opts": [
             "Yes, you can.",
             "No, you can't.",
-            "Sure."
-          ]
+            "Yes, I can."
+          ],
+          "rule": "点头＝同意。问『我可以吗』要答『你可以』；答『我能』是主语错，答『不可以』和表情相反。"
         },
         {
           "q": "May I hold it?",
           "a": "Sure.",
           "zh": "我可以抱抱它吗？——当然可以。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
           "opts": [
             "Sure.",
             "No, you can't.",
-            "Yes, you can."
-          ]
+            "OK. Yes, I can."
+          ],
+          "rule": "点头＝可以，用『当然可以』来答；答『我能』是主语错，答『不可以』和表情相反。"
         }
       ],
       "parrot": [
@@ -353,21 +383,27 @@
           "q": "May I have a parrot?",
           "a": "Yes, you can.",
           "zh": "我可以养一只鹦鹉吗？——可以。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
           "opts": [
             "Yes, you can.",
             "No, you can't.",
-            "Sure."
-          ]
+            "Yes, I can."
+          ],
+          "rule": "点头＝同意。问『我可以吗』要答『你可以』；答『我能』是主语错，答『不可以』和表情相反。"
         },
         {
           "q": "Can you take good care of it?",
           "a": "OK. Yes, I can.",
           "zh": "你能把它照顾好吗？——好的，我能。",
+          "cue": "yes",
+          "cueZh": "点头：能",
           "opts": [
             "OK. Yes, I can.",
-            "Sure.",
-            "No, you can't."
-          ]
+            "Yes, you can.",
+            "No, I can't."
+          ],
+          "rule": "问『你能吗』要答『我能』；答『你可以』是主语错，答『我不能』和表情相反。"
         }
       ]
     }
