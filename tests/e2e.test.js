@@ -1699,7 +1699,10 @@ test('E2E-54 应答配对题型效度：表情线索答题前可见；合法但�
     await new Promise((r) => setTimeout(r, 30));
     q2 = boxOf('May I feed it?');
     assert.equal(q2.querySelector('.option.is-correct'), null, '主语错位项不得判对');
-    assert.match(subjectToast, /主语/, '应提示主语人称，而非空泛否定');
+    // 需求变更正反对照：旧提示只丢一个抽象术语「主语」，新规格改为指向可回看的具体对照卡
+    assert.ok(!subjectToast.includes('主语'), '前置对照：抽象术语「主语」已从答错提示移除');
+    assert.match(subjectToast, /答的是别的问题|下面的/, '新规格：答错提示应引导去看具体对照卡');
+    assert.match(q2.querySelector('.answer-feedback')?.textContent || '', /这句英文本身没错/, '应显示中性对照卡，说明句子本身没错');
     click(optBtn(q2, 'Sure.'));
     await new Promise((r) => setTimeout(r, 30));
     assert.ok(boxOf('May I feed it?').querySelector('.option.is-correct'), 'Sure. 应判对');
@@ -1744,5 +1747,53 @@ test('E2E-55 本单元语法知识点进孩子侧：Stage2 第 3 步归纳卡，
     assert.equal(items.length, 4, '不得新增第 5 个阶段，4 阶段进度模型不变');
     assert.match(mainText(window), /已通过 \d \/ 4 个阶段/, '阶段总数仍为 4');
     assert.match(items[1].textContent, /语法小规律/, '核心句型卡应标出语法知识点');
+  } finally { cleanup(); }
+});
+
+test('E2E-56 答错反馈可回看：中性人称对照卡，按题型给具体提示，答对/离开即消失', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, false, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/1');
+    await clickButton(window, 'goldfish');
+    const blocks = () => Array.from(window.document.querySelectorAll('.card > div'));
+    const boxOf = (q) => blocks().find((d) => (d.textContent || '').includes(q) && d.querySelector('.q-speak'));
+    const click = (btn) => btn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    const tick = () => new Promise((r) => setTimeout(r, 30));
+
+    // 1) 红框项 OK. Yes, I can. 答错 → 对照卡讲清「句子没错，只是答错了对象」+ 本题人称规则
+    click(optBtn(boxOf('May I feed it?'), 'OK. Yes, I can.'));
+    await tick();
+    let q2 = boxOf('May I feed it?');
+    const fb = q2.querySelector('.answer-feedback');
+    assert.ok(fb, '答错后应出现可回看的对照卡');
+    assert.match(fb.textContent, /这句英文本身没错/, '不得让孩子误以为课本原句是错句');
+    assert.match(fb.textContent, /问「我可以吗」，回答要说「你可以」/, '应给本题的具体人称规则');
+    assert.ok(fb.textContent.includes('💡'), '对照卡应为中性提示');
+    assert.equal(q2.querySelector('.option.is-wrong'), null, '对照卡不得留下红色错误标记');
+
+    // 2) 答对后对照卡消失，改为规则解说（不留失败痕迹）
+    click(optBtn(q2, 'Sure.'));
+    await tick();
+    q2 = boxOf('May I feed it?');
+    assert.equal(q2.querySelector('.answer-feedback'), null, '答对后对照卡应消失');
+    assert.match(q2.textContent, /💡/, '答对后应显示规则解说');
+
+    // 3) 换题型 Can he...? 的干扰项 → 对照卡应换成「它能」，证明提示按题型生成而非写死
+    await clickButton(window, 'dog');
+    click(optBtn(boxOf('Can he help blind people?'), 'Yes, you can.'));
+    await tick();
+    assert.match(boxOf('Can he help blind people?').querySelector('.answer-feedback').textContent,
+      /问「它能吗」，回答要说「它能」/, 'Can he 题应给对应的人称提示');
+
+    // 4) 离开再回来，答错提示不残留（对照卡只活在当前页，不进持久化存档）
+    await navigate(window, app, '#/unit/u5');
+    await navigate(window, app, '#/unit/u5/stage/1');
+    assert.equal(boxOf('Can he help blind people?').querySelector('.answer-feedback'), null,
+      '重进页面不应残留答错提示');
   } finally { cleanup(); }
 });
