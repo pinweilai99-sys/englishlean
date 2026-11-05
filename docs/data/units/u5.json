@@ -1601,6 +1601,26 @@
       "三单：says / likes / chooses（-s）",
       "现在进行时：be + doing（are walking）",
       "宾格代词：him / her（take him back, likes her）"
+    ],
+    "childCards": [
+      {
+        "title": "问「我可以吗」，答「你可以」",
+        "q": "May I have a rabbit?",
+        "a": "Yes, you can.",
+        "note": "问句里是『我』，回答要换成『你』；说『我能』是答非所问。"
+      },
+      {
+        "title": "看表情，定答语",
+        "q": "May I have a goldfish?",
+        "a": "No, you can't. But you can feed it.",
+        "note": "点头说可以，摇头说不可以；后半句还能补上一件能做的事。"
+      },
+      {
+        "title": "问「你能吗」，答「我能」",
+        "q": "Can you take good care of it?",
+        "a": "OK. Yes, I can.",
+        "note": "这次反过来：问句里是『你』，回答要用『我』。"
+      }
     ]
   }
 }
