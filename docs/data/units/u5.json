@@ -956,8 +956,8 @@
     {
       "id": "II5",
       "type": "listen_pick",
-      "prompt": "听音选图：金鱼缸",
-      "speak": "a goldfish bowl",
+      "prompt": "听音选图：金鱼",
+      "speak": "goldfish",
       "options": [
         "🐠 金鱼",
         "🐱 猫",
@@ -1525,7 +1525,7 @@
       "type": "listen_reverse",
       "prompt": "听答句反推问题",
       "speak": "No, you can't.",
-      "answer": "May I have a pet?"
+      "answer": "May I touch him?"
     },
     {
       "id": "rc4",

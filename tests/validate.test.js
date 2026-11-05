@@ -153,3 +153,15 @@ test('非对象数据 → 报错', () => {
   assert.equal(r.valid, false);
   assert.equal(r.errors.length, 1);
 });
+
+test('II5 听音选图与核心词一致：speak 应为 goldfish（不含超纲 bowl），题干为金鱼', () => {
+  const q = raw.quiz.find((x) => x.id === 'II5');
+  assert.equal(q.speak, 'goldfish', 'II5 应读教材核心词 goldfish，而非 a goldfish bowl');
+  assert.equal(q.prompt, '听音选图：金鱼', 'II5 题干应与选项/音频一致（金鱼）');
+});
+
+test('rc3 听答反推问题：No, you can\'t. 对应 May I touch him?（导盲犬故事）', () => {
+  const c = raw.reviewCards.find((x) => x.id === 'rc3');
+  assert.equal(c.speak, "No, you can't.", 'rc3 听句应为 No, you can\'t.');
+  assert.equal(c.answer, 'May I touch him?', 'rc3 反推问题应对应导盲犬故事里的 May I touch him?');
+});
