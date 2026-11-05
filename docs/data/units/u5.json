@@ -876,41 +876,155 @@
       "explain": "hold 是抱住。"
     },
     {
+      "id": "I4",
+      "type": "listen_choice",
+      "prompt": "听音选词（近音辨析）",
+      "speak": "Mrs",
+      "options": [
+        "Mrs",
+        "Mr",
+        "Miss"
+      ],
+      "answer": 0,
+      "explain": "Mrs 是夫人/太太；Mr 先生；Miss 小姐。"
+    },
+    {
+      "id": "I5",
+      "type": "listen_choice",
+      "prompt": "听音选词（近音辨析）",
+      "speak": "carrot",
+      "options": [
+        "carrot",
+        "clever",
+        "cat"
+      ],
+      "answer": 0,
+      "explain": "carrot 是胡萝卜；clever 聪明；cat 猫。"
+    },
+    {
       "id": "II1",
       "type": "listen_pick",
       "prompt": "听音选图：宠物店",
       "speak": "pet shop",
       "options": [
-        "🐱",
-        "🏦",
-        "👶"
+        "🏪 宠物店",
+        "🐱 小猫",
+        "🚗 汽车"
       ],
-      "answer": 1,
-      "explain": "宠物店里有小宠物。"
+      "answer": 0,
+      "explain": "pet shop 是宠物店，店里可以买到小宠物。"
+    },
+    {
+      "id": "II2",
+      "type": "listen_pick",
+      "prompt": "听音选图：抱宠物的女孩",
+      "speak": "I can hold the pet.",
+      "options": [
+        "🤱 抱宠物",
+        "🐶 小狗",
+        "🥕 胡萝卜"
+      ],
+      "answer": 0,
+      "explain": "女孩抱着宠物，hold 是抱住。"
+    },
+    {
+      "id": "II3",
+      "type": "listen_pick",
+      "prompt": "听音选图：胡萝卜",
+      "speak": "carrots",
+      "options": [
+        "🥕 胡萝卜",
+        "🍎 苹果",
+        "🐟 鱼"
+      ],
+      "answer": 0,
+      "explain": "carrots 是胡萝卜。"
+    },
+    {
+      "id": "II4",
+      "type": "listen_pick",
+      "prompt": "听音选图：男孩与他的狗",
+      "speak": "a boy and his dog",
+      "options": [
+        "🧒🐶 男孩与狗",
+        "🐱 猫",
+        "🏠 家"
+      ],
+      "answer": 0,
+      "explain": "男孩和他的狗。"
+    },
+    {
+      "id": "II5",
+      "type": "listen_pick",
+      "prompt": "听音选图：金鱼缸",
+      "speak": "a goldfish bowl",
+      "options": [
+        "🐠 金鱼",
+        "🐱 猫",
+        "🐶 狗"
+      ],
+      "answer": 0,
+      "explain": "金鱼缸里是金鱼 goldfish。"
     },
     {
       "id": "IV1",
-      "type": "picture_word",
-      "prompt": "看图猜词：🐟",
+      "type": "near_sound",
+      "prompt": "听音辨析：🐭 选正确单词（mouse ≠ mouth）",
+      "speak": "mouse",
       "options": [
-        "goldfish",
-        "rabbit",
-        "parrot"
+        "mouse",
+        "mouth"
       ],
       "answer": 0,
-      "explain": "金鱼 goldfish。"
+      "explain": "mouse 老鼠；mouth 嘴巴。听清 ou 和 ou-th 的区别。"
     },
     {
       "id": "IV2",
-      "type": "picture_word",
-      "prompt": "看图猜词：🐰",
+      "type": "near_sound",
+      "prompt": "听音辨析：🐟 选正确单词（goldfish ≠ rabbit）",
+      "speak": "goldfish",
       "options": [
-        "mouse",
         "goldfish",
         "rabbit"
       ],
-      "answer": 2,
-      "explain": "兔子 rabbit。"
+      "answer": 0,
+      "explain": "goldfish 金鱼；rabbit 兔子。"
+    },
+    {
+      "id": "IV3",
+      "type": "near_sound",
+      "prompt": "听音辨析：🍽 选正确单词（feed ≠ fly）",
+      "speak": "feed",
+      "options": [
+        "feed",
+        "fly"
+      ],
+      "answer": 0,
+      "explain": "feed 喂养；fly 飞。都是课本动词，注意听辨。"
+    },
+    {
+      "id": "IV4",
+      "type": "near_sound",
+      "prompt": "听音辨析：✋ 选正确单词（touch ≠ feed）",
+      "speak": "touch",
+      "options": [
+        "touch",
+        "feed"
+      ],
+      "answer": 0,
+      "explain": "touch 触摸；feed 喂养。"
+    },
+    {
+      "id": "IV5",
+      "type": "near_sound",
+      "prompt": "听音辨析：🤗 选正确单词（hold ≠ touch）",
+      "speak": "hold",
+      "options": [
+        "hold",
+        "touch"
+      ],
+      "answer": 0,
+      "explain": "hold 抱住；touch 触摸。"
     },
     {
       "id": "V1",
@@ -937,6 +1051,42 @@
       "explain": "may 与 can 都是情态动词。"
     },
     {
+      "id": "V3",
+      "type": "same_group",
+      "prompt": "选同类词：go → ?",
+      "options": [
+        "walk",
+        "carrots",
+        "her"
+      ],
+      "answer": 0,
+      "explain": "go 与 walk 都是动词（动作）。"
+    },
+    {
+      "id": "V4",
+      "type": "same_group",
+      "prompt": "选同类词：him → ?",
+      "options": [
+        "her",
+        "clever",
+        "carrots"
+      ],
+      "answer": 0,
+      "explain": "him 与 her 都是宾格代词。"
+    },
+    {
+      "id": "V5",
+      "type": "same_group",
+      "prompt": "选同类词：vegetables → ?",
+      "options": [
+        "carrots",
+        "clever",
+        "her"
+      ],
+      "answer": 0,
+      "explain": "vegetables 与 carrots 都是蔬菜。"
+    },
+    {
       "id": "VII1",
       "type": "true_false",
       "prompt": "图句判断：The girl holds a rabbit. （🐰）",
@@ -946,6 +1096,50 @@
       ],
       "answer": 0,
       "explain": "她抱着的是兔子。"
+    },
+    {
+      "id": "VII2",
+      "type": "true_false",
+      "prompt": "图句判断：The parrot can talk. （🦜）",
+      "options": [
+        "T",
+        "F"
+      ],
+      "answer": 0,
+      "explain": "鹦鹉会说话，课文原句。"
+    },
+    {
+      "id": "VII3",
+      "type": "true_false",
+      "prompt": "图句判断：The cat is in the zoo. （🐱）",
+      "options": [
+        "T",
+        "F"
+      ],
+      "answer": 1,
+      "explain": "小猫在街上/家里被发现，不在动物园。"
+    },
+    {
+      "id": "VII4",
+      "type": "true_false",
+      "prompt": "图句判断：The boy holds a dog. （🧒🐶）",
+      "options": [
+        "T",
+        "F"
+      ],
+      "answer": 0,
+      "explain": "男孩抱着狗。"
+    },
+    {
+      "id": "VII5",
+      "type": "true_false",
+      "prompt": "图句判断：The dog is a guide dog. It helps people. （🦮）",
+      "options": [
+        "T",
+        "F"
+      ],
+      "answer": 0,
+      "explain": "导盲犬帮助盲人，clever and helpful。"
     },
     {
       "id": "VIII1",
@@ -973,6 +1167,45 @@
       "explain": "提议去宠物店，对方会说 Great!"
     },
     {
+      "id": "VIII3",
+      "type": "communicate",
+      "prompt": "情景交际：Do you have a pet? → ?",
+      "options": [
+        "Yes, I do.",
+        "No, I don't.",
+        "It's a rabbit.",
+        "Let's go!"
+      ],
+      "answer": 0,
+      "explain": "问有没有宠物，肯定答 Yes, I do."
+    },
+    {
+      "id": "VIII4",
+      "type": "communicate",
+      "prompt": "情景交际：What's this? → ?",
+      "options": [
+        "It's a rabbit.",
+        "Yes, you can.",
+        "Let's go!",
+        "No, I don't."
+      ],
+      "answer": 0,
+      "explain": "问这是什么，答 It's a..."
+    },
+    {
+      "id": "VIII5",
+      "type": "communicate",
+      "prompt": "情景交际：Can I hold it? → ?",
+      "options": [
+        "Yes, you can.",
+        "It's a rabbit.",
+        "Let's go!",
+        "No, I don't."
+      ],
+      "answer": 0,
+      "explain": "请求抱一抱，答 Yes, you can."
+    },
+    {
       "id": "IX1",
       "type": "imitate",
       "prompt": "仿写：May I have a rabbit? → ?",
@@ -983,6 +1216,30 @@
       ],
       "answer": 0,
       "explain": "把宠物换成 goldfish 即可。"
+    },
+    {
+      "id": "IX2",
+      "type": "imitate",
+      "prompt": "仿写：May I have a dog? → ?",
+      "options": [
+        "May I have a goldfish?",
+        "Yes, I can.",
+        "It's lovely."
+      ],
+      "answer": 0,
+      "explain": "把宠物换成 goldfish。"
+    },
+    {
+      "id": "IX3",
+      "type": "imitate",
+      "prompt": "仿写：May I have a goldfish? → ?",
+      "options": [
+        "May I have a parrot?",
+        "Yes, I can.",
+        "It's lovely."
+      ],
+      "answer": 0,
+      "explain": "把宠物换成 parrot。"
     },
     {
       "id": "X1",
@@ -1019,6 +1276,18 @@
       ],
       "answer": 0,
       "explain": "Mum asks: Can you take good care of it?"
+    },
+    {
+      "id": "X4",
+      "type": "read",
+      "prompt": "阅读理解（Ben & Mia）：他们先去了哪里？",
+      "options": [
+        "a pet shop",
+        "a zoo",
+        "a school"
+      ],
+      "answer": 0,
+      "explain": "They go to a pet shop with their parents."
     },
     {
       "id": "III1",
@@ -1169,6 +1438,70 @@
       ],
       "answer": 1,
       "explain": "我和它一起玩。him 是 he 的宾格。"
+    },
+    {
+      "id": "P1",
+      "type": "phonetic",
+      "prompt": "🔤 语音 ou 发音：听音，选含字母组合 ou（/aʊ/）的单词",
+      "speak": "mouse",
+      "options": [
+        "mouse 🐭",
+        "cat 🐱",
+        "dog 🐶"
+      ],
+      "answer": 0,
+      "explain": "mouse 中 ou 发 /aʊ/（/maʊs/）。"
+    },
+    {
+      "id": "P2",
+      "type": "phonetic",
+      "prompt": "🔤 语音 ou 发音：听音，选含 ou（/aʊ/）的单词",
+      "speak": "house",
+      "options": [
+        "house 🏠",
+        "book 📕",
+        "car 🚗"
+      ],
+      "answer": 0,
+      "explain": "house 中 ou 发 /aʊ/（/haʊs/）。"
+    },
+    {
+      "id": "P3",
+      "type": "phonetic",
+      "prompt": "🔤 语音 ou 发音：听音，选含 ou（/aʊ/）的单词",
+      "speak": "cloud",
+      "options": [
+        "cloud ☁️",
+        "sun ☀️",
+        "tree 🌳"
+      ],
+      "answer": 0,
+      "explain": "cloud 中 ou 发 /aʊ/（/klaʊd/）。"
+    },
+    {
+      "id": "P4",
+      "type": "phonetic",
+      "prompt": "🔤 语音 ou 发音：听音，选含 ou（/aʊ/）的单词",
+      "speak": "shout",
+      "options": [
+        "shout 📣",
+        "fish 🐟",
+        "bird 🐦"
+      ],
+      "answer": 0,
+      "explain": "shout 中 ou 发 /aʊ/（/ʃaʊt/）。"
+    },
+    {
+      "id": "P5",
+      "type": "phonetic",
+      "prompt": "🔤 语音 ou 发音：哪个单词不含 ou（/aʊ/）的发音？",
+      "options": [
+        "mouth 👄",
+        "south 🧭",
+        "cat 🐱"
+      ],
+      "answer": 2,
+      "explain": "mouth、south 含 ou（/aʊ/）音；cat 不含。"
     }
   ],
   "reviewCards": [
