@@ -78,12 +78,14 @@ export function renderSentence(ctx, unit) {
     // ───────── 卡片 2：应答配对（每只动物一组课本对话，举一反三） ─────────
     const cardPair = h('div', { class: 'card' });
     cardPair.appendChild(h('div', { class: 'card-title', text: '↔️ 第 2 步 · 应答配对' }));
-    cardPair.appendChild(h('p', { class: 'card-sub', text: '换一种动物，对话就不一样——选出正确的回答。' }));
+    cardPair.appendChild(h('p', { class: 'card-sub', text: '看表情，选出合适的回答——换一种动物，对话就不一样。' }));
     // 动物 → 该动物的两组对话（全部取自课本：May I have/hold/touch/feed...、take good care of、导盲犬 Can he...）
+    // cue 是「题目条件」而非答案译文：必须答题前可见。课本 C 部分同一问句 Yes/No 两解并列，
+    // 若不给出情境线索，多个选项都是合法答语，题型即失去效度（孩子答对却被判错）。
     const animal = slot || 'pet';
     const dialogues = (s.dialogues && s.dialogues[animal]) || [
-      { q: `May I have a ${animal}?`, a: 'Yes, you can.', zh: `我可以养一只${animal}吗？——可以。`, opts: ['Yes, you can.', "No, you can't.", 'Sure.'] },
-      { q: 'May I hold it?', a: 'Sure.', zh: '我可以抱抱它吗？——当然可以。', opts: ['Sure.', 'Yes, you can.', "No, you can't."] },
+      { q: `May I have a ${animal}?`, a: 'Yes, you can.', zh: `我可以养一只${animal}吗？——可以。`, cue: 'yes', cueZh: '点头：可以', opts: ['Yes, you can.', "No, you can't.", 'Yes, I can.'], rule: '点头＝同意。问『我可以吗』要答『你可以』；答『我能』是主语错。' },
+      { q: 'May I hold it?', a: 'Sure.', zh: '我可以抱抱它吗？——当然可以。', cue: 'yes', cueZh: '点头：可以', opts: ['Sure.', "No, you can't.", 'OK. Yes, I can.'], rule: '点头＝可以，用『当然可以』来答；答『我能』是主语错。' },
     ];
     // 答案按「动物|题干」记录：换动物后所有题目（含第 2 题）自动清空重练；
     // 星标按题干记录：同题干换动物不重复加星（防刷星）
@@ -95,6 +97,14 @@ export function renderSentence(ctx, unit) {
       // 题干行：题干 + 🔊 听题目 + 👀 中文意思（零基础支架：先自己试，卡住再扶）
       const qRow = h('div', { class: 'story-text', style: 'font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap' }, [
         h('span', { text: pair.q }),
+        // 情境线索徽标：答题前就可见（题目条件，不进中文门控）；对齐考点 IX「看图表情定答语」
+        h('span', {
+          class: 'cue-badge',
+          title: '看表情，判断对方是同意还是拒绝',
+          text: `${pair.cue === 'no' ? '🙅' : '😊'} ${pair.cueZh || (pair.cue === 'no' ? '摇头：不行' : '点头：可以')}`,
+          style: 'font-size:0.7em;font-weight:500;padding:3px 9px;border-radius:999px;white-space:nowrap;'
+            + (pair.cue === 'no' ? 'background:#FAECE7;color:#712B13;' : 'background:#E1F5EE;color:#085041;'),
+        }),
         h('button', {
           class: 'q-speak', title: '听题目', text: '🔊',
           style: 'border:none;background:none;cursor:pointer;font-size:inherit',
@@ -132,10 +142,13 @@ export function renderSentence(ctx, unit) {
                 session.starredOk[pair.q] = true;
                 ctx.addStars(1); starFly(1);
               }
-              toast('配对正确！');
+              toast('配对正确！你看懂表情啦～');
             } else {
               ctx.addWrong({ unit: unit.id, type: 'answer_match', q: pair.q, a: pair.a, chosen: ans });
-              toast('再想想看～');
+              // 支架式即时纠正：不剧透答案，只把注意力引回「表情极性」或「主语人称」
+              const isNo = /(^No\b|can't)/.test(ans);
+              const polarityClash = pair.cue === 'no' ? !isNo : isNo;
+              toast(polarityClash ? '看看表情，是点头还是摇头呀？' : '听听谁在问、谁在答，主语对不对？');
             }
             render();
             const ok = dialogues.every((p) => session.answeredOk?.[keyOf(p.q)]);
@@ -157,6 +170,10 @@ export function renderSentence(ctx, unit) {
       });
       if (chosen && !answeredOk) box.querySelector('.story-text').appendChild(h('span', { class: 'hint', text: '（刚才选错了，再试一次）' }));
       box.appendChild(row);
+      // 答对后立刻讲清规则（即时反馈落在规则上，不落在猜答案上）；纯中文，不触发英语朗读铁律
+      if (answeredOk && pair.rule) {
+        box.appendChild(h('p', { class: 'hint', style: 'color:var(--muted,#666);margin:8px 0 0', text: `💡 ${pair.rule}` }));
+      }
       cardPair.appendChild(box);
     });
 

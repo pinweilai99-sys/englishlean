@@ -165,3 +165,79 @@ test('rc3 听答反推问题：No, you can\'t. 对应 May I touch him?（导盲�
   assert.equal(c.speak, "No, you can't.", 'rc3 听句应为 No, you can\'t.');
   assert.equal(c.answer, 'May I touch him?', 'rc3 反推问题应对应导盲犬故事里的 May I touch him?');
 });
+
+// ── 应答配对：题型效度（同一问句不得把课本认可的另一句答语判错）────────────
+// 课本 B/C 部分：May I ...? 的答语由「情境（点头/摇头）」决定，Yes/No 两句都合法。
+// 因此每题必须给出 cue，且干扰项只能是「主语错位」或「与 cue 极性冲突」的真错项。
+function expectedSubject(q) {
+  if (q.startsWith('May I')) return 'you';
+  if (q.startsWith('Can you')) return 'I';
+  if (q.startsWith('Can he')) return 'he';
+  return '?';
+}
+function answerSubject(q, a) {
+  if (q.startsWith('May I') && a.startsWith('Sure.')) return 'you';
+  if (/\bhe\b/.test(a)) return 'he';
+  if (/\bI\b/.test(a)) return 'I';
+  if (/\byou\b/.test(a)) return 'you';
+  return '?';
+}
+function answerPolarity(a) {
+  return /^No\b|can't/.test(a) ? 'no' : 'yes';
+}
+function defensible(q, a, cue) {
+  return answerSubject(q, a) === expectedSubject(q) && answerPolarity(a) === cue;
+}
+function findDefensibleDistractors(dialogues) {
+  const bad = [];
+  for (const [animal, pairs] of Object.entries(dialogues)) {
+    for (const p of pairs) {
+      const tag = `${animal}|${p.q}`;
+      if (p.cue !== 'yes' && p.cue !== 'no') bad.push(`${tag}: 缺 cue 情境线索`);
+      if (!p.cueZh) bad.push(`${tag}: 缺 cueZh`);
+      if (!p.rule) bad.push(`${tag}: 缺 rule 规则解说`);
+      // 英语必有播放铁律：中文解说区不得混入无 🔊 音频的英文文本
+      if (/[A-Za-z]/.test(p.rule || '') || /[A-Za-z]/.test(p.cueZh || '')) {
+        bad.push(`${tag}: cueZh/rule 含英文却无 🔊，违反英语必有播放铁律`);
+      }
+      if (!p.opts.includes(p.a)) bad.push(`${tag}: 正确答案不在选项内`);
+      if (new Set(p.opts).size !== p.opts.length) bad.push(`${tag}: 选项重复`);
+      if (!defensible(p.q, p.a, p.cue)) bad.push(`${tag}: 正确答案本身不可辩护`);
+      for (const o of p.opts) {
+        if (o !== p.a && defensible(p.q, o, p.cue)) bad.push(`${tag}: 合法答语被判错 -> ${o}`);
+      }
+    }
+  }
+  return bad;
+}
+
+test('应答配对 12 题：每题有情境线索，且不存在「合法答语被判错」', () => {
+  const dlg = raw.sentences.dialogues;
+  const total = Object.values(dlg).reduce((n, ps) => n + ps.length, 0);
+  assert.equal(total, 12, '应答配对应保持 12 题（6 动物 × 2 题）');
+  assert.deepEqual(findDefensibleDistractors(dlg), [], '不应存在多个可辩护答案');
+});
+
+test('效度检测器有效：把旧版合法干扰项 Sure. 塞回肯定题，必须被检出（防止测试摆设）', () => {
+  const dlg = structuredClone(raw.sentences.dialogues);
+  dlg.pet[0].opts = ['Yes, you can.', "No, you can't.", 'Sure.'];
+  const bad = findDefensibleDistractors(dlg);
+  assert.ok(bad.some((x) => x.includes('Sure.')), '检测器应能发现旧版多解缺陷');
+});
+
+test('截图两题防退化：goldfish 组的情境线索与真错干扰项', () => {
+  const gf = raw.sentences.dialogues.goldfish;
+  const q1 = gf.find((p) => p.q === 'May I have a goldfish?');
+  // 前置：课本 C 部分 Yes/No 两解并列 → 必须给「摇头」线索，答案才唯一
+  assert.equal(q1.cue, 'no', '金鱼题必须给摇头线索，否则 Yes, you can. 也是合法答语');
+  assert.equal(q1.a, "No, you can't. But you can feed it.");
+  assert.ok(q1.opts.includes('Yes, you can.'), '红框里的 Yes, you can. 保留为干扰项');
+  assert.equal(defensible(q1.q, 'Yes, you can.', q1.cue), false,
+    '有摇头线索后，Yes, you can. 因极性冲突成为明确错项（不是「也对」）');
+  const q2 = gf.find((p) => p.q === 'May I feed it?');
+  assert.equal(q2.cue, 'yes');
+  assert.equal(q2.a, 'Sure.');
+  assert.ok(q2.opts.includes('OK. Yes, I can.'), '红框 2 的主语错位项保留');
+  assert.equal(answerSubject(q2.q, 'OK. Yes, I can.'), 'I');
+  assert.equal(expectedSubject(q2.q), 'you', 'May I 问句应答主语必须是 you');
+});

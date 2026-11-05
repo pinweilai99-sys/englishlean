@@ -1651,3 +1651,57 @@ test("E2E-47 真实输出中文门控：角色扮演(演完出)/Let's Write选�
     assert.ok(main().textContent.includes('我可以进来吗？'), '听整段连读后范文中文应出现');
   } finally { cleanup(); }
 });
+
+test('E2E-54 应答配对题型效度：表情线索答题前可见；合法但极性冲突项不判对；答对给规则解说', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, false, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/1');
+    await clickButton(window, 'goldfish');
+    const blocks = () => Array.from(window.document.querySelectorAll('.card > div'));
+    const boxOf = (q) => blocks().find((d) => (d.textContent || '').includes(q) && d.querySelector('.q-speak'));
+    const click = (btn) => btn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+
+    // 1) 情境线索是「题目条件」，答题前就可见；中文译文仍默认隐藏（主动回忆）
+    let q1 = boxOf('May I have a goldfish?');
+    assert.ok(q1, '应出现金鱼第 1 题');
+    const cue = q1.querySelector('.cue-badge');
+    assert.ok(cue, '题干应有表情线索徽标');
+    assert.match(cue.textContent, /摇头/, '金鱼题应给「摇头」线索');
+    assert.ok(!q1.textContent.includes('我可以养一条金鱼吗'), '整句中文译文仍默认隐藏');
+
+    // 2) 正反对照：旧版被冤枉的合法答语 Yes, you can. 现在因摇头线索成为明确错项
+    const yesBtn = optBtn(q1, 'Yes, you can.');
+    assert.ok(yesBtn, '红框里的 Yes, you can. 应仍在选项中');
+    click(yesBtn);
+    const wrongToast = window.document.getElementById('toast').textContent;
+    await new Promise((r) => setTimeout(r, 30));
+    q1 = boxOf('May I have a goldfish?');
+    assert.equal(q1.querySelector('.option.is-correct'), null, '极性冲突项不得判对');
+    assert.match(wrongToast, /点头还是摇头/, '答错应给指向表情的支架提示，而非空泛「再想想」');
+
+    // 3) 点课本原句 → 判对，并立刻给规则解说
+    click(optBtn(q1, "No, you can't. But you can feed it."));
+    await new Promise((r) => setTimeout(r, 30));
+    q1 = boxOf('May I have a goldfish?');
+    assert.ok(q1.querySelector('.option.is-correct'), '课本原句应判对');
+    assert.match(q1.textContent, /💡/, '答对后应给规则解说');
+
+    // 4) 第 2 题：主语错位项不判对，课本原句判对
+    let q2 = boxOf('May I feed it?');
+    assert.match(q2.querySelector('.cue-badge').textContent, /点头/, '喂金鱼题应给「点头」线索');
+    click(optBtn(q2, 'OK. Yes, I can.'));
+    const subjectToast = window.document.getElementById('toast').textContent;
+    await new Promise((r) => setTimeout(r, 30));
+    q2 = boxOf('May I feed it?');
+    assert.equal(q2.querySelector('.option.is-correct'), null, '主语错位项不得判对');
+    assert.match(subjectToast, /主语/, '应提示主语人称，而非空泛否定');
+    click(optBtn(q2, 'Sure.'));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(boxOf('May I feed it?').querySelector('.option.is-correct'), 'Sure. 应判对');
+  } finally { cleanup(); }
+});
