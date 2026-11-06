@@ -321,19 +321,32 @@ test('孩子侧语法卡铁律：中文规律区无裸英文，英文例句均�
 
 // ── 手机端版式适配（2026-11-06 家长需求"内容都不变，页面改成方便手机阅览的版本"）──
 // 说明：Chrome 在部分沙箱环境无法启动（GPU 进程崩溃），无法做真机截图回归，
-// 因此本组用「CSS 静态断言 + 盒模型算术」锁死关键的手机端约束：
-//   ① 必需的安全区适配（刘海 / 底部横条）
-//   ② 可点区域下限（儿童手指精度）
-//   ③ 关键行宽不溢出 360px 小屏
-//   ④ 内容不被改动（版式调整不得删改学习内容）
-test('手机端适配：样式文件已引入且在 app.css 之后（保证覆盖生效）', () => {
+// 因此本组用「CSS 静态断言 + 盒模型算术」锁死关键的手机端约束。
+//
+// ⚠️ 生效位置：手机端区块**内联在 styles/app.css 末尾**，不单独引 mobile.css。
+// 原因：GitHub Pages 的 CDN 对**新增文件**收录极慢（实测 >7 分钟仍 404），
+// 新文件 404 会让整次上线看起来"没生效"；改存量文件 app.css 则 1-3 分钟即刷新。
+// styles/mobile.css 保留为独立可维护源文件，由 scripts/sync-mobile-css.py 同步。
+test('手机端适配：样式已内联进 app.css（避免新增文件 CDN 404 拖垮上线）', () => {
+  const app = readFileSync(join(__dirname, '../styles/app.css'), 'utf8');
   const html = readFileSync(join(__dirname, '../index.html'), 'utf8');
-  const appIdx = html.indexOf('styles/app.css');
-  const mobIdx = html.indexOf('styles/mobile.css');
-  assert.ok(mobIdx > 0, 'index.html 必须引入 styles/mobile.css');
-  assert.ok(appIdx > 0 && mobIdx > appIdx,
-    'mobile.css 必须在 app.css 之后引入（否则无法覆盖 app.css 的桌面版式）');
-  assert.ok(existsSync(join(__dirname, '../styles/mobile.css')), 'styles/mobile.css 必须存在');
+  assert.match(app, /手机端版式适配（2026-11-06）/,
+    'app.css 必须包含手机端区块（CDN 对新增文件收录慢，改存量文件才稳）');
+  assert.match(app, /@media \(max-width: 640px\)/,
+    'app.css 必须包含手机端断点');
+  // 不得再单独引用 mobile.css（否则它 404 时浏览器会报一串错误）
+  assert.doesNotMatch(html, /styles\/mobile\.css/,
+    'index.html 不应再单独引用 mobile.css（新增文件 CDN 未收录时会 404）');
+  // 同步脚本必须存在（保证源文件与生效副本不会漂移）
+  assert.ok(existsSync(join(__dirname, '../scripts/sync-mobile-css.py')),
+    'scripts/sync-mobile-css.py 必须存在（mobile.css → app.css 的同步脚本）');
+});
+
+test('手机端适配：源文件与生效副本一致（sync-mobile-css.py 可重复执行且幂等）', () => {
+  const mob = readFileSync(join(__dirname, '../styles/mobile.css'), 'utf8').trim();
+  const app = readFileSync(join(__dirname, '../styles/app.css'), 'utf8');
+  assert.ok(app.includes(mob),
+    'app.css 的手机端区块必须与 styles/mobile.css 内容一致（跑 sync-mobile-css.py 同步）');
 });
 
 test('手机端适配：核心内容一个都没少（只改版式，不改内容）', () => {
@@ -344,10 +357,32 @@ test('手机端适配：核心内容一个都没少（只改版式，不改内�
   const hideScrollbar = (css.match(/::-webkit-scrollbar[^{]*\{[^}]*display\s*:\s*none/g) || []).length;
   assert.equal(hidden.length - hideScrollbar, 0,
     '手机端样式不得隐藏内容（发现 ' + (hidden.length - hideScrollbar) + ' 处 display:none）');
-  // 字号不得小于 13px（低于此值孩子看不清）
+  // 字号绝对下限 11px（低于此值孩子看不清）；次要内容（记词分块/拼读拆分）可到此下限
   const sizes = [...css.matchAll(/font-size:\s*(\d+)px/g)].map((m) => Number(m[1]));
-  const tooSmall = sizes.filter((s) => s > 0 && s < 13);
-  assert.equal(tooSmall.length, 0, '手机端字号不得小于 13px，发现：' + tooSmall.join(','));
+  const tooSmall = sizes.filter((s) => s > 0 && s < 11);
+  assert.equal(tooSmall.length, 0, '手机端字号不得小于 11px（绝对可读底线），发现：' + tooSmall.join(','));
+});
+
+test('手机端适配：次要内容（记词分块/拼读拆分/记忆提示）已降级为小字，明显小于单词主体', () => {
+  // 2026-11-06 家长本轮要求："那边不是重点的内容变成小字，比如记词分块/拼读拆分的字变小点"。
+  // 用静态断言锁死：这些次要元素的字号必须是显式的小字，且 < 单词主体 word-text 的字号。
+  const css = readFileSync(join(__dirname, '../styles/mobile.css'), 'utf8');
+  const num = (re) => { const m = css.match(re); return m ? Number(m[1]) : null; };
+  // 单词主体字号取自 ≤640 断点的 --fs-xxl（本文件为 30px）
+  const xxl = num(/:root\s*\{[^}]*--fs-xxl:\s*(\d+)px/);
+  assert.ok(xxl, '应能从 :root 读出单词主体字号 --fs-xxl');
+  const pairs = [
+    ['.memo-title', /\.memo-title\s*\{[^}]*font-size:\s*(\d+)px/],
+    ['.split-title', /\.split-title\s*\{[^}]*font-size:\s*(\d+)px/],
+    ['.memo-hint', /\.memo-hint\s*\{[^}]*font-size:\s*(\d+)px/],
+    ['.chunk-btn', /\.chunk-btn\s*\{[^}]*font-size:\s*(\d+)px/],
+    ['.split-piece', /\.split-piece\s*\{[^}]*font-size:\s*(\d+)px/],
+  ];
+  for (const [name, re] of pairs) {
+    const v = num(re);
+    assert.ok(v != null, `${name} 必须显式设成小字（font-size: Npx）`);
+    assert.ok(v < xxl, `${name}（${v}px）必须小于单词主体 word-text（${xxl}px），即降级为小字`);
+  }
 });
 
 test('手机端适配：可点区域满足儿童手指精度（≥44px）', () => {

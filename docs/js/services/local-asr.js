@@ -59,7 +59,7 @@ export function startBackgroundDownload() {
   state.error = null;
   state.loadingPromise = (async () => {
     try {
-      const { pipeline, env } = await import('../vendor/transformers.min.js?v=1793955596');
+      const { pipeline, env } = await import('../vendor/transformers.min.js?v=1793964518');
       // 模型加载两级 fallback：
       // 1) 同源 ./models/（跟网页同一个域名——家长能打开网页就能下模型，中国直连无依赖）
       // 2) 失败自动回落 hf-mirror.com 镜像

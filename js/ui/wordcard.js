@@ -432,7 +432,7 @@ export function renderWordCard(ctx, unit) {
       },
     }),
     wrap,
-    h('div', { class: 'btn-row' }, [
+    h('div', { class: 'btn-row nav-row' }, [
       h('button', { class: 'btn ghost', text: '👂 去听辨游戏', onclick: () => ctx.navigate(`#/unit/${unit.id}/stage/0/listen`) }),
       h('button', { class: 'btn ghost', text: '🔤 去拼写屋', onclick: () => ctx.navigate(`#/unit/${unit.id}/stage/0/spelling`) }),
       h('button', { class: 'btn ghost', text: '✍️ 去字帖屋', onclick: () => ctx.navigate(`#/unit/${unit.id}/stage/0/handwriting`) }),

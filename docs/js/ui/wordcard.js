@@ -1,12 +1,12 @@
 // 单词图卡：三步学习流（听音 → 认形 → 跟读），跟读达标才点亮
 // 已点亮的词可"🔁 再学一遍"：清空本词星标、从头重学，学完重新点亮；
 // 每词学习遍数（learnCount，存于 reviewCount）落盘并展示。
-import { h, toast, starFly } from './dom.js?v=1793955596';
-import * as tts from '../services/tts.js?v=1793955596';
-import * as recorder from '../services/recorder.js?v=1793955596';
-import * as speech from '../services/speech-match.js?v=1793955596';
-import { scorePronunciation, scoreFeedback } from '../core/scoring.js?v=1793955596';
-import * as localAsr from '../services/local-asr.js?v=1793955596';
+import { h, toast, starFly } from './dom.js?v=1793964518';
+import * as tts from '../services/tts.js?v=1793964518';
+import * as recorder from '../services/recorder.js?v=1793964518';
+import * as speech from '../services/speech-match.js?v=1793964518';
+import { scorePronunciation, scoreFeedback } from '../core/scoring.js?v=1793964518';
+import * as localAsr from '../services/local-asr.js?v=1793964518';
 
 // ── 分块区形态判定（渲染与拼读示范共用，避免两处逻辑漂移）─────────────
 // 2026-11-06 家长截图质疑"记词分块这行是不是可以去掉"。查数据发现 12 词分两类：
@@ -432,7 +432,7 @@ export function renderWordCard(ctx, unit) {
       },
     }),
     wrap,
-    h('div', { class: 'btn-row' }, [
+    h('div', { class: 'btn-row nav-row' }, [
       h('button', { class: 'btn ghost', text: '👂 去听辨游戏', onclick: () => ctx.navigate(`#/unit/${unit.id}/stage/0/listen`) }),
       h('button', { class: 'btn ghost', text: '🔤 去拼写屋', onclick: () => ctx.navigate(`#/unit/${unit.id}/stage/0/spelling`) }),
       h('button', { class: 'btn ghost', text: '✍️ 去字帖屋', onclick: () => ctx.navigate(`#/unit/${unit.id}/stage/0/handwriting`) }),

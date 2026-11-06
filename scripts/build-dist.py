@@ -12,6 +12,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(ROOT, 'docs')
 VER = str(int(time.time()))
 
+# 0) 先同步手机端样式：styles/mobile.css → styles/app.css 末尾区块。
+#    手机端区块内联在 app.css 里而不是单独引 mobile.css，因为
+#    GitHub Pages 的 CDN 对**新增文件**收录极慢（实测 >7 分钟仍 404），
+#    新文件 404 会让整次上线看起来"没生效"；改存量文件 1-3 分钟即刷新。
+_sync = os.path.join(ROOT, 'scripts', 'sync-mobile-css.py')
+if os.path.exists(_sync):
+    import subprocess
+    subprocess.run([sys.executable, _sync], check=True)
+
 # 1) 复制运行时文件（原地覆盖，不整目录删除——受保护目录里 rmtree 会被拦截，
 #    且本项目从不删除运行时文件，覆盖复制即可；如确有改名/删除的旧文件残留，
 #    用 git status docs 对比后手工清理，不放进构建流程）
