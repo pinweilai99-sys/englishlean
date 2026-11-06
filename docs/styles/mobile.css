@@ -1,0 +1,150 @@
+/* ============ 手机端版式适配（2026-11-06）============
+   目标：**内容一个字都不改**，只把版式调成手机上好读好点。
+   设计原则：
+   1) 孩子单手持机、拇指操作 → 可点区域 ≥ 44px，主要操作按钮在手机上撑满一行。
+   2) 顶栏是常驻的 → 压缩它，把屏幕纵向空间还给学习内容。
+   3) 字号只做**温和**收紧（正文 19→18px 之类），单词、音标、例句等学习主体保持大字号，
+      零基础孩子要能一眼看清。
+   4) 刘海屏/底部横条用 env(safe-area-inset-*) 避让，���被刘海或横条盖住。
+   5) 一切长文本（含英文例句、故事）都必须能换行，绝不横向溢出。
+   断点：≤640px 视为手机；≤360px（小屏安卓）再收一档。
+   ===================================================== */
+
+@media (max-width: 640px) {
+  /* ---- 1) 屏幕纵向空间：收紧留白 ---- */
+  :root {
+    /* 正文略收，标题类保持不变（学习主体要醒目） */
+    --fs-xs: 14px;
+    --fs-sm: 17px;
+    --fs-md: 18px;
+    --fs-lg: 22px;
+    --fs-xl: 27px;
+    --fs-xxl: 34px;
+    --sp-1: 5px;
+    --sp-2: 10px;
+    --sp-3: 14px;
+    --sp-4: 18px;
+    --sp-5: 26px;
+    --tap: 50px;   /* 触控最小高度（略降但仍远高于 44px 下限） */
+    --r-md: 16px;
+    --r-lg: 22px;
+  }
+
+  /* 底部浮栏会盖住内容，padding 要够（并避让底部横条） */
+  .app-main {
+    padding: var(--sp-2) var(--sp-2) calc(112px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* ---- 2) 顶栏瘦身：把屏幕还给内容 ---- */
+  .topbar {
+    padding: calc(var(--sp-1) + env(safe-area-inset-top, 0px)) var(--sp-2) var(--sp-1);
+  }
+  .topbar-inner { gap: var(--sp-1); }
+  .brand { font-size: var(--fs-md); gap: 4px; }   /* 26px → 18px，别抢内容的注意力 */
+  .brand-mark { font-size: var(--fs-lg); }
+  .tab {
+    height: 32px;
+    min-width: 34px;
+    padding: 0 9px;
+    font-size: var(--fs-xs);
+  }
+  .tabbar {
+    width: 100%;
+    margin-left: 0;
+    order: 3;
+    justify-content: flex-start;
+    gap: 5px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .tabbar::-webkit-scrollbar { display: none; }  /* 横向滚动条在手机上很占地方 */
+  .chip { height: 34px; padding: 0 11px; font-size: var(--fs-xs); }
+  .icon-btn { width: 42px; height: 42px; font-size: var(--fs-md); }
+
+  /* ---- 3) 卡片与通用排版 ---- */
+  .card { padding: var(--sp-3); border-radius: var(--r-lg); margin-bottom: var(--sp-2); }
+  .card-title { font-size: var(--fs-md); gap: 6px; }
+  .card-sub { font-size: var(--fs-xs); }
+  /* 长英文/长中文一律允许换行，杜绝横向滚动 */
+  .story-text, .option, .hint, .memo-hint, .card-sub, .word-bank-item {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .story-text { line-height: 1.75; padding: var(--sp-2); }
+
+  /* ---- 4) 按钮：手机上撑满，拇指好按 ---- */
+  .btn-row { gap: var(--sp-1); }
+  .btn-row .btn { flex: 1 1 100%; min-height: 52px; }   /* 主要操作独占一行 */
+  .btn { min-height: var(--tap); padding: 0 var(--sp-3); font-size: var(--fs-md); }
+  .option { min-height: 52px; padding: var(--sp-2); font-size: var(--fs-md); margin-bottom: var(--sp-1); }
+  .text-input { min-height: var(--tap); font-size: var(--fs-md); }
+  textarea.text-input { min-height: 120px; }
+
+  /* ---- 5) 首页：单元卡单列，长标题不再被挤成竖条 ---- */
+  .unit-grid { grid-template-columns: 1fr; gap: var(--sp-2); }
+  .unit-card { min-height: 0; padding: var(--sp-3); gap: 4px; }
+  .unit-emoji { font-size: 40px; }
+  .unit-name { font-size: var(--fs-md); }
+  .hero { padding: var(--sp-3); gap: var(--sp-2); }
+  .hero-text h1 { font-size: var(--fs-xl); }
+  .hero-pet { font-size: 48px; }
+  .stat-row { gap: var(--sp-1); margin-top: var(--sp-2); }
+  .stat { padding: var(--sp-1) var(--sp-2); font-size: var(--fs-xs); }
+
+  /* ---- 6) 阶段关卡 ---- */
+  .stage-item { padding: var(--sp-2); gap: var(--sp-2); }
+  .stage-no { width: 40px; height: 40px; font-size: var(--fs-sm); }
+  .stage-meta strong { font-size: var(--fs-sm); }
+  .stage-meta small { font-size: var(--fs-xs); }
+
+  /* ---- 7) 单词卡：图小一点，字大一点（单词是主角） ---- */
+  .word-pic { font-size: 66px; margin: var(--sp-1) 0; }
+  .word-text { font-size: var(--fs-xxl); }        /* 34px 保持大 —— 孩子要看清单词 */
+  .word-ipa { font-size: var(--fs-md); }
+  .word-zh { font-size: var(--fs-sm); }
+  .steps { gap: var(--sp-1); margin: var(--sp-2) 0; }
+  .step { min-height: 40px; padding: 0 var(--sp-2); font-size: var(--fs-xs); }
+  /* 12 个进度点：26px×12 + 间隔 = 超过 360px 屏宽 → 缩小并允许换行 */
+  .word-dot { width: 22px; height: 22px; font-size: 13px; }
+  .word-progress { gap: 5px; margin-top: var(--sp-1); }
+
+  /* ---- 8) 记词分块 / 拼读拆分：手机上块要够大但一行放得下 ---- */
+  .memo-box { padding: var(--sp-2); margin-top: var(--sp-2); max-width: 100%; }
+  .memo-title { font-size: var(--fs-xs); }
+  .chunk-row, .split-row { gap: 5px; margin-top: 6px; }
+  .chunk-btn { padding: 7px 13px; font-size: var(--fs-md); }
+  .split-piece { padding: 6px 12px; font-size: var(--fs-md); }
+  .chunk-dot, .split-dot { font-size: var(--fs-md); }
+  .memo-hint { font-size: var(--fs-xs); margin-top: 6px; }
+  .split-wrap { margin-top: var(--sp-2); padding-top: 8px; }
+
+  /* ---- 9) 底部浮窗：别遮内容，也别太高 ---- */
+  .floatbar { padding: var(--sp-1) var(--sp-2) calc(var(--sp-1) + env(safe-area-inset-bottom, 0px)); }
+  .fab { min-height: 44px; padding: 0 var(--sp-2); font-size: var(--fs-xs); }
+  .toast { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); max-width: 92vw; font-size: var(--fs-sm); }
+
+  /* ---- 10) 弹层：手机上顶到屏幕上沿更好读，避开刘海 ---- */
+  .modal-mask { padding: calc(var(--sp-2) + env(safe-area-inset-top, 0px)) var(--sp-2) var(--sp-2); }
+  .modal { padding: var(--sp-3); max-height: 82vh; border-radius: var(--r-lg); }
+  .modal h3 { font-size: var(--fs-md); }
+
+  /* ---- 11) 其它小组件 ---- */
+  .word-bank { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: var(--sp-1); }
+  .word-bank-item { padding: var(--sp-1); font-size: var(--fs-sm); }
+  .pill { padding: 3px 9px; font-size: var(--fs-xs); }
+  .emoji-xl { font-size: 52px; }
+  .blank-slot { min-width: 92px; }
+}
+
+/* ---- 小屏安卓（≤360px）：再收一档，保证不溢出 ---- */
+@media (max-width: 360px) {
+  :root { --fs-xxl: 30px; --fs-xl: 24px; --sp-3: 12px; }
+  .app-main { padding-left: 8px; padding-right: 8px; }
+  .word-pic { font-size: 56px; }
+  .word-dot { width: 20px; height: 20px; }
+  .hero-pet { font-size: 40px; }
+  .unit-emoji { font-size: 34px; }
+  .chunk-btn, .split-piece { padding: 6px 9px; font-size: var(--fs-sm); }
+}

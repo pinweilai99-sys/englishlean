@@ -1,12 +1,40 @@
 // 单词图卡：三步学习流（听音 → 认形 → 跟读），跟读达标才点亮
 // 已点亮的词可"🔁 再学一遍"：清空本词星标、从头重学，学完重新点亮；
 // 每词学习遍数（learnCount，存于 reviewCount）落盘并展示。
-import { h, toast, starFly } from './dom.js?v=1793944027';
-import * as tts from '../services/tts.js?v=1793944027';
-import * as recorder from '../services/recorder.js?v=1793944027';
-import * as speech from '../services/speech-match.js?v=1793944027';
-import { scorePronunciation, scoreFeedback } from '../core/scoring.js?v=1793944027';
-import * as localAsr from '../services/local-asr.js?v=1793944027';
+import { h, toast, starFly } from './dom.js?v=1793955596';
+import * as tts from '../services/tts.js?v=1793955596';
+import * as recorder from '../services/recorder.js?v=1793955596';
+import * as speech from '../services/speech-match.js?v=1793955596';
+import { scorePronunciation, scoreFeedback } from '../core/scoring.js?v=1793955596';
+import * as localAsr from '../services/local-asr.js?v=1793955596';
+
+// ── 分块区形态判定（渲染与拼读示范共用，避免两处逻辑漂移）─────────────
+// 2026-11-06 家长截图质疑"记词分块这行是不是可以去掉"。查数据发现 12 词分两类：
+//   · 多音节词（rabbit/lovely/goldfish/clever/parrot）：chunks == split（都是音节），
+//     两行渲染出**一模一样的 cle · ver** → 纯视觉冗余；
+//   · 单音节词（may/pet/feed/hold/shop/back）：chunks 只有整词一块，split 才是字母结构；
+//   · Mrs：两者都是整词。
+// 所以不是"删掉一行"，而是**每词各留其所长**：
+//   多音节 → 留「🧩 记词分块」（是按钮，点一下读这一块，有交互价值）
+//   单音节 → 留「🔤 拼读拆分」（m + ay，才是真正的拼读结构）
+//   Mrs    → 两行都不留，只剩 💡 记忆提示
+// 返回 pieces：拼读示范要高亮的块（多音节=音节块，单音节=字母块），空数组=无可高亮。
+export function blockRows(w) {
+  const chunks = Array.isArray(w.chunks) && w.chunks.length ? w.chunks : [];
+  const split = Array.isArray(w.split) && w.split.length ? w.split : [];
+  const multiSyllable = chunks.length > 1;
+  const showChunkRow = multiSyllable;
+  const showSplitRow = !multiSyllable && split.length > 1;
+  return {
+    chunks,
+    split,
+    showChunkRow,
+    showSplitRow,
+    // 高亮目标：多音节点亮音节按钮，单音节点亮字母拆分块
+    pieces: showChunkRow ? chunks : (showSplitRow ? split : []),
+    pieceSelector: showChunkRow ? '.chunk-btn' : '.split-piece',
+  };
+}
 
 export function renderWordCard(ctx, unit) {
   const p = ctx.getUnitProgress(unit.id);
@@ -17,6 +45,11 @@ export function renderWordCard(ctx, unit) {
   if (typeof session.step !== 'number') session.step = 0;
 
   const wrap = h('div', { class: 'card wordcard' });
+  // 渲染代号：每次 renderCard() 重建 DOM 时 +1。
+  // 拼读示范的高亮元素挂在 DOM 上，重建后旧元素已被移除 ——
+  // 若旧示范还活着，它会清掉/点亮**新**卡片的块，与新示范互相打架
+  // （2026-11-06 实测：切词后新词的高亮被旧示范清空）。
+  let renderGen = 0;
 
   function learnTimes(w) {
     // 每次渲染实时读取最新进度（入口捕获的 p 在落盘后会过期）
@@ -25,6 +58,7 @@ export function renderWordCard(ctx, unit) {
   }
 
   function renderCard() {
+    renderGen += 1;
     wrap.innerHTML = '';
     const i = session.wordIndex;
     const w = words[i];
@@ -44,42 +78,38 @@ export function renderWordCard(ctx, unit) {
     wrap.appendChild(h('div', { class: 'word-zh', text: w.zh }));
     wrap.appendChild(h('div', {}, [h('span', { class: `tier-tag ${w.tier}`, text: w.tier === 'four' ? '四会词（会读会写）' : '认读词（会读会认）' })]));
 
-    // 🧩 记词分块：读音分块（点击可分块发音）+ 一句记忆提示（音节/合成词/字母组合）
-    const chunks = Array.isArray(w.chunks) && w.chunks.length ? w.chunks : [w.w];
+    // ── 分块区：按词的形态自适应，**每词只显示有信息增量的那一行** ──
+    // 判定规则见模块级 blockRows()（渲染与拼读示范共用同一套逻辑）。
+    const { chunks, split, showChunkRow, showSplitRow } = blockRows(w);
+
     const chunkBtns = h('div', { class: 'chunk-row' });
-    const chunkBtnEls = [];
     chunks.forEach((c, ci) => {
       if (ci > 0) chunkBtns.appendChild(h('span', { class: 'chunk-dot', text: '·' }));
-      const btn = h('button', {
+      chunkBtns.appendChild(h('button', {
         class: 'chunk-btn',
         text: c,
         'aria-label': `读 ${c}`,
         onclick: () => tts.speak(c.toLowerCase()),
-      });
-      chunkBtnEls.push(btn);
-      chunkBtns.appendChild(btn);
+      }));
     });
 
     // 🔤 拼读拆分：把单词按"怎么拼出来的"拆开（may → m + ay）。
-    // 这是孩子真正需要的拼读结构：只有音块（rab·bit）时看不出单音节词怎么拼。
     // 拆分块**只做展示 + 高亮**，不单独发音——单个字母交给 TTS 会被念成字母名
     //（em / ay），会把孩子教成"念字母名"而不是"读音"，反而错。
-    const split = Array.isArray(w.split) && w.split.length ? w.split : null;
     const splitRow = h('div', { class: 'split-row' });
-    const splitEls = [];
-    if (split && split.length > 1) {
+    if (showSplitRow) {
       split.forEach((p, pi) => {
         if (pi > 0) splitRow.appendChild(h('span', { class: 'split-dot', text: '+' }));
-        const el = h('span', { class: 'split-piece', text: p });
-        splitEls.push(el);
-        splitRow.appendChild(el);
+        splitRow.appendChild(h('span', { class: 'split-piece', text: p }));
       });
     }
 
     wrap.appendChild(h('div', { class: 'memo-box' }, [
-      h('p', { class: 'memo-title', text: '🧩 记词分块（点一块读一块）' }),
-      chunkBtns,
-      split && split.length > 1
+      showChunkRow
+        ? h('p', { class: 'memo-title', text: '🧩 记词分块（点一块读一块）' })
+        : null,
+      showChunkRow ? chunkBtns : null,
+      showSplitRow
         ? h('div', { class: 'split-wrap' }, [
           h('p', { class: 'split-title', text: '🔤 拼读拆分（这个词是这样拼出来的）' }),
           splitRow,
@@ -220,41 +250,68 @@ export function renderWordCard(ctx, unit) {
   //     声音始终在响、高亮跟着走，全程没有任何无声空档。
   async function playBlend(w) {
     const seq = session.blendSeq || 0;
+    const gen = renderGen; // 本次示范绑定的渲染代号
     const word = w.tts || w.w;
-    const chunks = Array.isArray(w.chunks) && w.chunks.length ? w.chunks : [];
-    const split = Array.isArray(w.split) && w.split.length ? w.split : [];
+    // 与渲染共用同一套判定（blockRows）：
+    // 多音节词的高亮目标是「音节按钮 .chunk-btn」，单音节词是「字母拆分块 .split-piece」。
+    const { chunks, split, pieces, pieceSelector } = blockRows(w);
     // 每次高亮都重新取元素：卡片可能已重渲染（步骤推进会重建 DOM）
     const els = (sel) => Array.from(wrap.querySelectorAll(sel));
     const clearHi = () => {
       els('.split-piece').forEach((el) => el.classList.remove('is-speaking'));
       els('.chunk-btn').forEach((el) => el.classList.remove('is-speaking'));
     };
-    const hiSplit = (i) => {
+    // 高亮第 i 块（目标随词形自适应）
+    // 代号保护：卡片已重渲染时旧示范不得再动新卡片的高亮
+    const hiPiece = (i) => {
+      if (renderGen !== gen) return;
       clearHi();
-      const el = els('.split-piece')[i];
+      const el = els(pieceSelector)[i];
       if (el) el.classList.add('is-speaking');
     };
-    const hiChunk = (i) => {
-      clearHi();
-      const el = els('.chunk-btn')[i];
-      if (el) el.classList.add('is-speaking');
+    // 已被新动作取代（换词/进跟读/离开页面/重新渲染）→ 立刻收声
+    // gen 检查不可省：renderCard() 重建 DOM 后旧元素已移除，
+    // 旧示范若继续运行会清掉新卡片的高亮（切词后高亮消失的根因）。
+    const alive = () => (session.blendSeq || 0) === seq
+      && renderGen === gen
+      && wrap.isConnected !== false;
+    // 慢速整词播放期间，按进度比例同步点亮对应块（声音不断，无静音空档）
+    //
+    // 兜底节拍器（2026-11-06）：降级到 speechSynthesis 时没有真实进度回调
+    // （手机无英语 TTS 引擎的设备走的就是这条路），高亮会停在第一块不动。
+    // 关键：**节拍器与播放结束解耦** —— 播放提前结束（降级路径的 TTS 立即返回）
+    // 也不能让它停，否则高亮只亮第一块。节拍器按块数均分走完，或被真实进度接管。
+    const slowWithSyncHi = () => {
+      let progressed = false;
+      const per = 420; // 每块约 420ms（慢速语速下 2 块 ≈ 840ms，与真实音频接近）
+      let idx = 0;
+      const beat = setInterval(() => {
+        if (!alive()) { clearInterval(beat); return; }
+        if (progressed) return; // 真实进度已接管，停掉兜底
+        idx += 1;
+        if (idx >= pieces.length) { clearInterval(beat); return; }
+        hiPiece(idx);
+      }, per);
+      const stop = () => clearInterval(beat);
+      return tts.speakSlow(word, {
+        rate: 0.62,
+        onProgress: (cur, dur) => {
+          if (!alive() || !dur || !pieces.length) return;
+          progressed = true;
+          stop();
+          const ratio = Math.min(0.999, Math.max(0, cur / dur));
+          hiPiece(Math.min(pieces.length - 1, Math.floor(ratio * pieces.length)));
+        },
+      }).finally(() => {
+        // 不在这里停节拍器：降级路径播放会立即结束，但高亮仍需走完
+        if (progressed) stop();
+      });
     };
-    // 已被新动作取代（换词/进跟读/离开页面）→ 立刻收声
-    const alive = () => (session.blendSeq || 0) === seq && wrap.isConnected !== false;
-    // 单音节词：慢速整词播放期间，按进度比例同步点亮拆分块（声音不断，无静音空档）
-    const slowWithSyncHi = () => tts.speakSlow(word, {
-      rate: 0.62,
-      onProgress: (cur, dur) => {
-        if (!alive() || !dur) return;
-        const ratio = Math.min(0.999, Math.max(0, cur / dur));
-        hiSplit(Math.min(split.length - 1, Math.floor(ratio * split.length)));
-      },
-    });
 
     try {
-      // ① 慢速读整词（高亮拆分结构，孩子先听见整体）
-      hiSplit(0);
-      if (split.length > 1) await slowWithSyncHi();
+      // ① 慢速读整词（高亮分块结构，孩子先听见整体）
+      hiPiece(0);
+      if (pieces.length > 1) await slowWithSyncHi();
       else await tts.speakSlow(word);
       if (!alive()) return;
 
@@ -262,7 +319,7 @@ export function renderWordCard(ctx, unit) {
       if (chunks.length > 1) {
         for (let i = 0; i < chunks.length; i++) {
           if (!alive()) return;
-          hiChunk(i);
+          hiPiece(i);
           // eslint-disable-next-line no-await-in-loop
           await tts.speak(chunks[i].toLowerCase());
           // eslint-disable-next-line no-await-in-loop
@@ -280,7 +337,9 @@ export function renderWordCard(ctx, unit) {
       // eslint-disable-next-line no-await-in-loop
       await tts.speak(word);
     } finally {
-      clearHi();
+      // 只清理自己这一代的高亮：若卡片已重渲染（renderGen 变了），
+      // 此时的 clearHi() 会误清掉**新**卡片的高亮。
+      if (renderGen === gen) clearHi();
     }
   }
 
