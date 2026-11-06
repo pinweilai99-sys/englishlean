@@ -200,7 +200,7 @@ export function renderWordCard(ctx, unit) {
 
   // ── 拼读示范（拆音 → 合音）────────────────────────────────────────
   // 2026-11-06 家长提问："听一听的时候，能不能把拼读拆分也加进去？"
-  // 原行为：「听一听」只孤立播一遍整词，孩子听到 /meɪ/ 却不知道它由 m+ay 拼成；
+  // 原行为：「听一听」只孤立播一遍整词，孩子听到 /meɪ/ 却不知道它由什么拼成；
   //         拼读拆分区只能单独点，与"听"这一步割裂。
   // 定版做法（自然拼读教学标准三步）：
   //   ① 慢速读整词 —— 放慢后词内边界更清楚，孩子听出"里面由几块拼成"
@@ -208,11 +208,16 @@ export function renderWordCard(ctx, unit) {
   //   ③ 合回整词   —— 再听一遍正常语速的整词，孩子确认"拼起来就是这个词"
   // 播放过程中同步高亮：拼读拆分块（split）+ 音节块（chunks），孩子看着"哪块在响"。
   //
-  // 两个关键工程约定：
+  // 三个关键工程约定：
   //  1) **不阻塞步骤推进**：示范是"加料"不是"门禁"。点「听一听」立即进入②认形，
   //     示范在后台播；即使全程无声（手机无 TTS 引擎），也只是没有声音，绝不卡住学习。
   //  2) **可被打断**：用 session.blendSeq 做代号，孩子切词/进入跟读/离开页面后，
   //     正在播的示范立刻收声，不会在孩子录音时把麦里的声音污染（影响发音评分）。
+  //  3) **不留静音空等**（2026-11-06 家长反馈"有时候要等好久"）：
+  //     旧实现单音节词（may → m + ay）在拆读阶段是 620ms × 块数 的**纯静音等待**，
+  //     pet/feed 三个块 = 1.9 秒一声不吭 → 听起来就是"卡住了/读不出来"。
+  //     现在单音节词改为：慢速整词播放**期间**按播放进度同步推进高亮，
+  //     声音始终在响、高亮跟着走，全程没有任何无声空档。
   async function playBlend(w) {
     const seq = session.blendSeq || 0;
     const word = w.tts || w.w;
@@ -236,12 +241,21 @@ export function renderWordCard(ctx, unit) {
     };
     // 已被新动作取代（换词/进跟读/离开页面）→ 立刻收声
     const alive = () => (session.blendSeq || 0) === seq && wrap.isConnected !== false;
-    const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+    // 单音节词：慢速整词播放期间，按进度比例同步点亮拆分块（声音不断，无静音空档）
+    const slowWithSyncHi = () => tts.speakSlow(word, {
+      rate: 0.62,
+      onProgress: (cur, dur) => {
+        if (!alive() || !dur) return;
+        const ratio = Math.min(0.999, Math.max(0, cur / dur));
+        hiSplit(Math.min(split.length - 1, Math.floor(ratio * split.length)));
+      },
+    });
 
     try {
       // ① 慢速读整词（高亮拆分结构，孩子先听见整体）
       hiSplit(0);
-      await tts.speakSlow(word);
+      if (split.length > 1) await slowWithSyncHi();
+      else await tts.speakSlow(word);
       if (!alive()) return;
 
       // ② 逐块拆读：只有音节级音块才念（单字母念出来是字母名，会教错音）
@@ -252,21 +266,12 @@ export function renderWordCard(ctx, unit) {
           // eslint-disable-next-line no-await-in-loop
           await tts.speak(chunks[i].toLowerCase());
           // eslint-disable-next-line no-await-in-loop
-          await pause(320);
+          await new Promise((r) => setTimeout(r, 220));
         }
       } else if (split.length > 1) {
-        // 单音节词（may → m + ay）：逐块点亮 + 慢速重播整词，
-        // 让"这块在这个词里"建立映射；**不单独念字母**（避免念成 em/ay 教错音）。
-        for (let i = 0; i < split.length; i++) {
-          if (!alive()) return;
-          hiSplit(i);
-          // eslint-disable-next-line no-await-in-loop
-          await pause(620);
-        }
-        if (!alive()) return;
-        hiSplit(0);
-        // eslint-disable-next-line no-await-in-loop
-        await tts.speakSlow(word);
+        // 单音节词（may → m + ay）：**不单独念字母**（避免念成 em/ay 教错音），
+        // 改为慢速整词再走一遍，拆分高亮随声音同步推进。
+        await slowWithSyncHi();
       }
 
       // ③ 合回整词：正常语速的完整音，孩子确认"拼起来就是这个词"
