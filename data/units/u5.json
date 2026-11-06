@@ -1625,6 +1625,8 @@
         "title": "看表情，定答语",
         "q": "May I have a goldfish?",
         "a": "No, you can't. But you can feed it.",
+        "cue": "no",
+        "cueZh": "摇头：不行",
         "note": "点头说可以，摇头说不可以；后半句还能补上一件能做的事。"
       },
       {

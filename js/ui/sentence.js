@@ -233,6 +233,15 @@ export function renderSentence(ctx, unit) {
         }, [
           h('div', { style: 'font-weight:800;margin-bottom:6px', text: `${i + 1}. ${c.title}` }),
           h('div', { class: 'story-text', style: 'display:flex;align-items:center;gap:6px;flex-wrap:wrap' }, [
+            // 归纳卡若带 cue（如「看表情，定答语」），把表情徽标显示在问句前，
+            // 和应答配对题保持一致，让孩子在卡片上也能直接看到该点头还是摇头
+            ...(c.cue ? [h('span', {
+              class: 'cue-badge',
+              title: '看表情，判断对方是同意还是拒绝',
+              text: `${c.cue === 'no' ? '🙅' : '😊'} ${c.cueZh || (c.cue === 'no' ? '摇头：不行' : '点头：可以')}`,
+              style: 'font-size:0.7em;font-weight:500;padding:3px 9px;border-radius:999px;white-space:nowrap;margin-right:2px;'
+                + (c.cue === 'no' ? 'background:#FAECE7;color:#712B13;' : 'background:#E1F5EE;color:#085041;'),
+            })] : []),
             document.createTextNode(c.q), speak(c.q, '听这个句子'),
           ]),
           h('div', { class: 'story-text', style: 'display:flex;align-items:center;gap:6px;flex-wrap:wrap' }, [

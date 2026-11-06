@@ -1736,6 +1736,12 @@ test('E2E-55 本单元语法知识点进孩子侧：Stage2 第 3 步归纳卡，
     assert.match(ruleCard.textContent, /问「我可以吗」，答「你可以」/);
     assert.match(ruleCard.textContent, /看表情，定答语/);
     assert.match(ruleCard.textContent, /问「你能吗」，答「我能」/);
+    // 2.1) 「看表情，定答语」卡带 cue 字段，渲染出表情徽标（对齐配对题；标题说看表情就不能没表情）
+    const cueRule = rules.find((r) => (r.textContent || '').includes('看表情，定答语'));
+    assert.ok(cueRule, '应有「看表情，定答语」这张归纳卡');
+    const badge = cueRule.querySelector('.cue-badge');
+    assert.ok(badge, '带 cue 的归纳卡应在问句前显示表情徽标');
+    assert.match(badge.textContent, /摇头/, 'goldfish 题 cue=no，徽标应显示「摇头」');
     // 2) 英语必有播放铁律：每条一问一答两句英文各配 🔊
     for (const r of rules) {
       assert.equal(r.querySelectorAll('.grammar-speak').length, 2, '每条规律的两句英文都应有 🔊');
