@@ -1859,3 +1859,53 @@ test('E2E-58 拼读示范可被打断：进入跟读时后台示范立刻收声�
       '拼读拆分高亮不应残留');
   } finally { cleanup(); }
 });
+
+test('E2E-59 拼读示范不得出现静音空等（2026-11-06 家长反馈"有时候读不出来/要等好久"）', async () => {
+  const { window, app, cleanup } = await freshApp();
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0');
+
+    // 记录每次朗读的时刻，用来检测"声音之间的空档"
+    const stamps = [];
+    const origSpeak = window.speechSynthesis.speak;
+    window.speechSynthesis.speak = function (u) {
+      stamps.push(Date.now());
+      return origSpeak.call(this, u);
+    };
+
+    // 单音节词 may（chunks 只有整词，split = m + ay）
+    await clickButton(window, '听一听');
+    await new Promise((r) => setTimeout(r, 2500));
+
+    assert.ok(stamps.length >= 2,
+      'may 至少应朗读两次（慢速 + 合音），实际 ' + stamps.length + ' 次');
+
+    // 旧实现：慢速整词 → 620ms × 2 块纯静音 → 慢速整词 → 整词
+    // 两次朗读之间曾出现 1.24 秒一声不吭的空档（听起来就是"卡住了"）
+    let maxGap = 0;
+    for (let i = 1; i < stamps.length; i++) {
+      maxGap = Math.max(maxGap, stamps[i] - stamps[i - 1]);
+    }
+    assert.ok(maxGap < 700,
+      '两次朗读之间的空档必须短（不得有静音等待），实际最大空档 ' + maxGap + 'ms');
+
+    // 整轮示范的总时长也必须有上限（旧实现单音节词约 4.6 秒）
+    const total = stamps[stamps.length - 1] - stamps[0];
+    assert.ok(total < 3000, '整轮示范不应超过 3 秒，实际 ' + total + 'ms');
+  } finally { cleanup(); }
+});
+
+test('E2E-60 音频层可靠性：取消后不得再出声；清单未就绪不得直接无声', async () => {
+  const { window, app, cleanup } = await freshApp();
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0');
+    // 取消（进入跟读会触发 tts.cancel）之后不得再有声音
+    await clickButton(window, '听一听');
+    await new Promise((r) => setTimeout(r, 50));
+    await clickButton(window, '我会认这个词');
+    const before = window.speechSynthesis.__spoken.length;
+    await new Promise((r) => setTimeout(r, 1200));
+    assert.equal(window.speechSynthesis.__spoken.length, before,
+      '取消后不得再退回 TTS 补一声（会出现"停了又响"）');
+  } finally { cleanup(); }
+});

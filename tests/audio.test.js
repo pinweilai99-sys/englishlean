@@ -1,12 +1,12 @@
 // 预生成音频服务测试：slug 纯函数 + 有/无音频两条路径的正反对照
 // 背景：手机浏览器无英语 TTS 引擎时 speechSynthesis 静默失败（家长反馈"发音播不出"），
 // 修复 = 播放优先音频文件（assets/audio/*.m4a），TTS 只作兜底。本文件锁死该行为。
-import { test, describe } from 'node:test';
+import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { audioSlug, hasAudio, initAudio, playAudio, _debugSetAvailable } from '../js/services/audio.js';
+import { audioSlug, hasAudio, initAudio, playAudio, stopAudio, ensureReady, _debugSetAvailable, _debugClearPool, _debugResetManifest } from '../js/services/audio.js';
 import * as tts from '../js/services/tts.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -97,6 +97,164 @@ describe('音频清单与播放降级', () => {
     assert.ok(r instanceof Set, '应返回 Set');
     assert.equal(r.size, 0, '拉不到清单应为空集');
     assert.equal(hasAudio('pet'), false);
+  });
+});
+
+// ── 2026-11-06 家长反馈"有时候读不出来 / 有时候要等好久"：根因修复的正反对照 ──
+// 背景：四个真缺陷都在音频层，
+//   ① 播放超时固定 20 秒 → 一次「听一听」可能干等 20 秒；
+//   ② stopAudio() 把 onended 置空 → 上层 await playAudio() 永久悬挂；
+//   ③ 清单未就绪就直接退 speechSynthesis → 手机无英语引擎 = 彻底无声；
+//   ④ 每次 new Audio() 重新下载 → 弱网下每次点按都要等。
+// 本组测试逐条锁死修复后的行为。
+const FAKE_INSTANCES = [];
+
+describe('音频可靠性（2026-11-06 修复）', () => {
+  // 造一个可控的假 Audio：模拟"onended 不触发"（个别内核的真实表现）
+  function fakeAudioClass(behavior) {
+    return class FakeAudio {
+      constructor(src) {
+        this.src = src;
+        this.playbackRate = 1;
+        this.currentTime = 0;
+        this.duration = NaN;
+        this.readyState = 0;
+        this.preload = '';
+        this._handlers = {};
+        FAKE_INSTANCES.push(this);
+      }
+      addEventListener(t, fn) { (this._handlers[t] ||= []).push(fn); }
+      removeEventListener(t, fn) {
+        this._handlers[t] = (this._handlers[t] || []).filter((x) => x !== fn);
+      }
+      _emit(t) { (this._handlers[t] || []).forEach((fn) => fn()); }
+      play() {
+        if (behavior.onPlay) behavior.onPlay(this);
+        return Promise.resolve();
+      }
+      pause() { this.paused = true; }
+    };
+  }
+
+  let savedAudio;
+  beforeEach(() => {
+    savedAudio = globalThis.Audio;
+    FAKE_INSTANCES.length = 0;
+    _debugClearPool(); // 元素池跨用例残留会污染"复用"断言
+  });
+  afterEach(() => {
+    if (savedAudio === undefined) delete globalThis.Audio;
+    else globalThis.Audio = savedAudio;
+    _debugSetAvailable([]);
+  });
+
+  test('AUD-9 stopAudio 必须结算挂起的等待者（旧实现：Promise 永不 resolve → 上层永久卡死）', async () => {
+    const behavior = { onPlay: () => {} }; // 永远不触发 onended
+    globalThis.Audio = fakeAudioClass(behavior);
+    _debugSetAvailable(['pet']);
+    let settled = false;
+    const p = playAudio('pet').then((r) => { settled = true; return r; });
+    await new Promise((r) => setTimeout(r, 30));
+    assert.equal(settled, false, '播放中不应提前结算');
+    stopAudio();
+    const r = await Promise.race([
+      p,
+      new Promise((res) => setTimeout(() => res('TIMEOUT'), 300)),
+    ]);
+    assert.notEqual(r, 'TIMEOUT', 'stopAudio 后等待者必须被结算（否则上层 await 永久卡死）');
+    assert.equal(settled, true, '等待者必须已结算');
+  });
+
+  test('AUD-10 播放超时必须自适应，不得固定等 20 秒（旧实现最长干等 20 秒）', async () => {
+    // 模拟：metadata 已知时长 0.8 秒，但 onended 永不触发
+    const behavior = {
+      onPlay(el) {
+        el.duration = 0.8;
+        el.readyState = 1;
+        el._emit('loadedmetadata');
+      },
+    };
+    globalThis.Audio = fakeAudioClass(behavior);
+    _debugSetAvailable(['pet']);
+    const t0 = Date.now();
+    const r = await playAudio('pet');
+    const cost = Date.now() - t0;
+    assert.equal(r, true, '超时按已播放处理');
+    assert.ok(cost < 4000, `0.8 秒音频的等待应远短于 20 秒（实际 ${cost}ms）`);
+  });
+
+  test('AUD-11 metadata 迟迟不来时也必须有上限（不得无限等待）', async () => {
+    const behavior = { onPlay: () => {} }; // 无 metadata、无 onended
+    globalThis.Audio = fakeAudioClass(behavior);
+    _debugSetAvailable(['pet']);
+    const t0 = Date.now();
+    await playAudio('pet');
+    const cost = Date.now() - t0;
+    assert.ok(cost <= 9000, `兜底上限必须生效（实际 ${cost}ms）`);
+  });
+
+  test('AUD-12 同一 slug 复用 Audio 元素（避免每次点按都重新下载/连接）', async () => {
+    const behavior = { onPlay: (el) => { el.duration = 0.5; el.readyState = 1; el.onended && el.onended(); } };
+    globalThis.Audio = fakeAudioClass(behavior);
+    _debugSetAvailable(['pet']);
+    await playAudio('pet');
+    await playAudio('pet');
+    assert.equal(FAKE_INSTANCES.length, 1, `同一文本应复用同一个 Audio 元素（实际新建 ${FAKE_INSTANCES.length} 个）`);
+    assert.equal(FAKE_INSTANCES[0].preload, 'auto', '元素应开启预加载');
+  });
+
+  test('AUD-13 清单未就绪时 ensureReady 会等待它，而不是立刻退 TTS（旧行为=手机端彻底无声）', async () => {
+    // 前置：清单**尚未加载**（与真实首屏一致：available === null）
+    _debugResetManifest();
+    assert.equal(hasAudio('pet'), false, '前置：清单未就绪时 hasAudio=false');
+    // 模拟"清单随后到达"：ensureReady 应等到它
+    const p = ensureReady(2000);
+    setTimeout(() => _debugSetAvailable(['pet']), 60);
+    await p;
+    assert.equal(hasAudio('pet'), true, '清单到达后应能命中音频');
+  });
+
+  test('AUD-14 speak 在清单未就绪时会等待清单，而不是直接走无声的 TTS 兜底', async () => {
+    _debugResetManifest();
+    const spoken = [];
+    globalThis.window = {
+      speechSynthesis: {
+        getVoices: () => [{ lang: 'en-GB', name: 'Daniel' }],
+        speak(u) { spoken.push(u.text); setTimeout(() => u.onend && u.onend(), 0); },
+        cancel() {},
+      },
+      SpeechSynthesisUtterance: class { constructor(t) { this.text = t; } },
+    };
+    const behavior = { onPlay: (el) => { el.duration = 0.5; el.readyState = 1; el.onended && el.onended(); } };
+    globalThis.Audio = fakeAudioClass(behavior);
+    // 清单在 50ms 后到达 —— speak 必须等到那时才决定走音频
+    setTimeout(() => _debugSetAvailable(['pet']), 50);
+    const r = await tts.speak('pet', { readyTimeoutMs: 2000 });
+    assert.equal(r.ok, true, '应成功播放');
+    assert.equal(r.via, 'audio', '清单到达后必须走预生成音频（而非 TTS 兜底）');
+    assert.deepEqual(spoken, [], '命中音频时不得再走 TTS（否则会出现双声/延迟）');
+  });
+
+  test('AUD-15 取消后不得再出声（cancel 打断播放时不得退回 TTS 补一声）', async () => {
+    _debugSetAvailable(['pet']);
+    const spoken = [];
+    globalThis.window = {
+      speechSynthesis: {
+        getVoices: () => [{ lang: 'en-GB', name: 'Daniel' }],
+        speak(u) { spoken.push(u.text); setTimeout(() => u.onend && u.onend(), 0); },
+        cancel() {},
+      },
+      SpeechSynthesisUtterance: class { constructor(t) { this.text = t; } },
+    };
+    const behavior = { onPlay: () => {} }; // onended 不触发
+    globalThis.Audio = fakeAudioClass(behavior);
+    const p = tts.speak('pet');
+    await new Promise((r) => setTimeout(r, 30));
+    tts.cancel();
+    const r = await p;
+    assert.equal(r.ok, false, '被取消的播放应返回失败');
+    assert.equal(r.reason, 'cancelled', '应标记为 cancelled');
+    assert.deepEqual(spoken, [], '取消后不得再退回 TTS 出声（会造成"停了又响"）');
   });
 });
 
