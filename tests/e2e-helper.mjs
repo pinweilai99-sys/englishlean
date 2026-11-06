@@ -13,7 +13,7 @@ const unitData = JSON.parse(readFileSync(join(root, 'data/units/u5.json'), 'utf8
 
 let bootSeq = 0;
 
-export async function freshApp({ seed = null, stubAudio = true } = {}) {
+export async function freshApp({ seed = null, stubAudio = true, realAudio = false } = {}) {
   bootSeq += 1;
   const dom = new JSDOM(html, { url: 'http://localhost:8080/', pretendToBeVisual: true });
   const { window } = dom;
@@ -41,6 +41,47 @@ export async function freshApp({ seed = null, stubAudio = true } = {}) {
       cancel() {},
     };
     window.SpeechSynthesisUtterance = class { constructor(t) { this.text = t; } };
+    // realAudio=true：模拟**预生成音频**的真实播放（有时长、推进 timeupdate 进度），
+    // 用于验证"拼读示范高亮跟着声音走"这类只有真实播放路径才有的行为。
+    // 默认 false（走 TTS 兜底，立即结束），保持既有断言的稳定。
+    if (realAudio) {
+      window.HTMLMediaElement = class {};
+      globalThis.Audio = class {
+        constructor(src) {
+          this.src = src;
+          this.playbackRate = 1;
+          this.currentTime = 0;
+          this.duration = 0.9; // 单词音频典型时长
+          this.readyState = 1;
+          this.preload = 'auto';
+          this._h = {};
+        }
+        addEventListener(t, fn) { (this._h[t] ||= []).push(fn); }
+        removeEventListener(t, fn) { this._h[t] = (this._h[t] || []).filter((x) => x !== fn); }
+        _emit(t) { (this._h[t] || []).forEach((fn) => fn()); }
+        play() {
+          const dur = (this.duration / (this.playbackRate || 1)) * 1000;
+          const step = 100;
+          let elapsed = 0;
+          this._timer = setInterval(() => {
+            elapsed += step;
+            this.currentTime = Math.min(this.duration, elapsed / 1000);
+            this._emit('timeupdate');
+            if (elapsed >= dur) {
+              clearInterval(this._timer);
+              this._emit('ended');
+              if (this.onended) this.onended();
+            }
+          }, step);
+          return Promise.resolve();
+        }
+        pause() { clearInterval(this._timer); }
+      };
+      // 让清单命中（hasAudio=true）
+      const { _debugSetAvailable } = await import('../js/services/audio.js');
+      const manifest = JSON.parse(readFileSync(join(root, 'assets/audio/manifest.json'), 'utf8'));
+      _debugSetAvailable(manifest.slugs);
+    }
     window.__nextTranscript = null;
     window.SpeechRecognition = class {
       constructor() { this.lang = ''; }

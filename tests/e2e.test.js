@@ -958,8 +958,13 @@ test('E2E-29 单词卡记词分块：分块按钮可点读 + 记忆提示展示'
   const { window, app, cleanup } = await freshApp();
   try {
     await navigate(window, app, '#/unit/u5/stage/0');
-    // 默认第 1 词 may：应有分块区与记忆提示
-    assert.match(mainText(window), /记词分块/, '单词卡应展示记词分块区');
+    // 2026-11-06 需求变更：分块区改为「每词只显示有信息增量的那一行」。
+    // may 是单音节词 → 只显示「🔤 拼读拆分」（m + ay），不再显示「🧩 记词分块」
+    // （它的 chunks 只有整词一块，点了也只是再读一遍整词，零信息增量）。
+    // 正反对照：单音节词**不得**出现记词分块区；记忆提示必须仍在。
+    assert.doesNotMatch(mainText(window), /记词分块/,
+      '单音节词 may 不应再显示「记词分块」区（旧口径与「拼读拆分」内容重复/零增量）');
+    assert.match(mainText(window), /拼读拆分/, '单音节词应显示「拼读拆分」区');
     assert.match(mainText(window), /拼音 mei/, 'may 的记忆提示应展示');
     // 跳到 clever（多音节拆分 cle·ver）
     app.state.session.wordIndex = 8;
@@ -967,6 +972,10 @@ test('E2E-29 单词卡记词分块：分块按钮可点读 + 记忆提示展示'
     await new Promise((r) => setTimeout(r, 20));
     const text = mainText(window);
     assert.match(text, /双音节 cle·ver/, 'clever 的记忆提示应展示');
+    // 多音节词：chunks == split（都是音节），只显示「🧩 记词分块」，不再重复显示拼读拆分
+    assert.match(text, /记词分块/, '多音节词 clever 应显示「记词分块」区');
+    assert.doesNotMatch(text, /拼读拆分/,
+      '多音节词 clever 不应再显示「拼读拆分」区（旧口径两行渲染出完全相同的 cle · ver）');
     const chunkBtns = buttons(window).filter((b) => b.classList.contains('chunk-btn'));
     assert.deepEqual(chunkBtns.map((b) => b.textContent.trim()), ['cle', 'ver'], '应有 cle / ver 两个分块按钮');
     // 点分块按钮 → 分块发音（旧口径无此功能）
@@ -1907,5 +1916,102 @@ test('E2E-60 音频层可靠性：取消后不得再出声；清单未就绪不�
     await new Promise((r) => setTimeout(r, 1200));
     assert.equal(window.speechSynthesis.__spoken.length, before,
       '取消后不得再退回 TTS 补一声（会出现"停了又响"）');
+  } finally { cleanup(); }
+});
+
+test('E2E-61 分块区自适应（2026-11-06 家长截图"红框是不是可以去掉"）：每词只显示有信息增量的一行', async () => {
+  const { window, app, cleanup } = await freshApp();
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0');
+    const idx = { may: 0, pet: 1, rabbit: 2, feed: 3, hold: 4, Mrs: 5, lovely: 6, goldfish: 7, clever: 8, shop: 9, parrot: 10, back: 11 };
+
+    // 1) 逐词检查：任何一词都**不得同时**出现两行分块区（那正是家长截图里的重复）
+    for (const [word, i] of Object.entries(idx)) {
+      app.state.session.wordIndex = i;
+      app.state.session.step = 0;
+      app.render();
+      await new Promise((r) => setTimeout(r, 20));
+      const t = mainText(window);
+      const hasChunk = /记词分块/.test(t);
+      const hasSplit = /拼读拆分/.test(t);
+      assert.ok(!(hasChunk && hasSplit),
+        `${word} 同时显示了两行分块区（重复渲染）——每词只应显示一行`);
+    }
+
+    // 2) 单音节词 → 显示「拼读拆分」（m + ay 才是真正的拼读结构）
+    app.state.session.wordIndex = idx.may;
+    app.render();
+    await new Promise((r) => setTimeout(r, 20));
+    assert.match(mainText(window), /拼读拆分/, 'may 应显示拼读拆分');
+    const pieces = Array.from(window.document.querySelectorAll('.split-piece'))
+      .map((e) => e.textContent.trim());
+    assert.deepEqual(pieces, ['m', 'ay'], 'may 的拆分块应为 m + ay');
+    assert.equal(window.document.querySelectorAll('.chunk-btn').length, 0,
+      '单音节词不应有音节分块按钮（它的 chunks 只有整词一块，零信息增量）');
+
+    // 3) 多音节词 → 显示「记词分块」（可点读的音节按钮）
+    app.state.session.wordIndex = idx.clever;
+    app.render();
+    await new Promise((r) => setTimeout(r, 20));
+    const chunkBtns = Array.from(window.document.querySelectorAll('.chunk-btn'))
+      .map((e) => e.textContent.trim());
+    assert.deepEqual(chunkBtns, ['cle', 'ver'], 'clever 应有 cle / ver 两个音节按钮');
+    assert.equal(window.document.querySelectorAll('.split-piece').length, 0,
+      '多音节词不应重复渲染拼读拆分块（内容与音节块完全相同）');
+
+    // 4) Mrs（chunks 与 split 都是整词）→ 两行都不显示，只留记忆提示
+    app.state.session.wordIndex = idx.Mrs;
+    app.render();
+    await new Promise((r) => setTimeout(r, 20));
+    const t = mainText(window);
+    assert.doesNotMatch(t, /记词分块/, 'Mrs 不应显示记词分块');
+    assert.doesNotMatch(t, /拼读拆分/, 'Mrs 不应显示拼读拆分');
+    assert.match(t, /尊称缩写/, 'Mrs 仍应显示记忆提示');
+  } finally { cleanup(); }
+});
+
+test('E2E-62 拼读示范高亮跟随可见的分块行（多音节词高亮音节按钮，单音节词高亮字母块）', async () => {
+  // 用真实音频桩（realAudio）：预生成音频路径才有真实时长与 timeupdate 进度，
+  // 高亮"跟着声音走"这个行为只有在这条路径上才可观测。
+  const { window, app, cleanup } = await freshApp({ realAudio: true });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0');
+
+    // 多音节词 clever：拆分阶段应高亮 .chunk-btn（音节按钮）
+    app.state.session.wordIndex = 8;
+    app.state.session.step = 0;
+    app.render();
+    await new Promise((r) => setTimeout(r, 20));
+    const chunkSeen = new Set();
+    const splitSeen = new Set();
+    const obs = new window.MutationObserver(() => {
+      window.document.querySelectorAll('.chunk-btn.is-speaking').forEach((el) => chunkSeen.add(el.textContent.trim()));
+      window.document.querySelectorAll('.split-piece.is-speaking').forEach((el) => splitSeen.add(el.textContent.trim()));
+    });
+    obs.observe(window.document.body, { subtree: true, attributes: true, attributeFilter: ['class'] });
+    await clickButton(window, '听一听');
+    await new Promise((r) => setTimeout(r, 1800));
+    obs.disconnect();
+    assert.ok(chunkSeen.size >= 2,
+      '多音节词拆分时应逐个高亮音节按钮，实际高亮过：' + JSON.stringify([...chunkSeen]));
+    assert.equal(splitSeen.size, 0, '多音节词不应高亮不存在的拆分块');
+
+    // 单音节词 may：拆分阶段应高亮 .split-piece（字母块），且必须逐块走过
+    app.state.session.wordIndex = 0;
+    app.state.session.step = 0;
+    app.render();
+    await new Promise((r) => setTimeout(r, 20));
+    // 用 MutationObserver 记录"曾被高亮过"的块（事件驱动，不受采样时机影响）
+    const pieceSeen = new Set();
+    const obs2 = new window.MutationObserver(() => {
+      window.document.querySelectorAll('.split-piece.is-speaking')
+        .forEach((el) => pieceSeen.add(el.textContent.trim()));
+    });
+    obs2.observe(window.document.body, { subtree: true, attributes: true, attributeFilter: ['class'] });
+    await clickButton(window, '听一听');
+    await new Promise((r) => setTimeout(r, 1200));
+    obs2.disconnect();
+    assert.ok(pieceSeen.size >= 2,
+      '单音节词的拆分高亮必须逐块推进（不能停在第一块），实际高亮过：' + JSON.stringify([...pieceSeen]));
   } finally { cleanup(); }
 });

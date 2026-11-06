@@ -318,3 +318,90 @@ test('孩子侧语法卡铁律：中文规律区无裸英文，英文例句均�
     }
   }
 });
+
+// ── 手机端版式适配（2026-11-06 家长需求"内容都不变，页面改成方便手机阅览的版本"）──
+// 说明：Chrome 在部分沙箱环境无法启动（GPU 进程崩溃），无法做真机截图回归，
+// 因此本组用「CSS 静态断言 + 盒模型算术」锁死关键的手机端约束：
+//   ① 必需的安全区适配（刘海 / 底部横条）
+//   ② 可点区域下限（儿童手指精度）
+//   ③ 关键行宽不溢出 360px 小屏
+//   ④ 内容不被改动（版式调整不得删改学习内容）
+test('手机端适配：样式文件已引入且在 app.css 之后（保证覆盖生效）', () => {
+  const html = readFileSync(join(__dirname, '../index.html'), 'utf8');
+  const appIdx = html.indexOf('styles/app.css');
+  const mobIdx = html.indexOf('styles/mobile.css');
+  assert.ok(mobIdx > 0, 'index.html 必须引入 styles/mobile.css');
+  assert.ok(appIdx > 0 && mobIdx > appIdx,
+    'mobile.css 必须在 app.css 之后引入（否则无法覆盖 app.css 的桌面版式）');
+  assert.ok(existsSync(join(__dirname, '../styles/mobile.css')), 'styles/mobile.css 必须存在');
+});
+
+test('手机端适配：核心内容一个都没少（只改版式，不改内容）', () => {
+  const css = readFileSync(join(__dirname, '../styles/mobile.css'), 'utf8');
+  // 不得用 display:none 隐藏学习内容
+  const hidden = css.match(/display\s*:\s*none/g) || [];
+  // 唯一允许的用途：隐藏横向滚动条（.tabbar::-webkit-scrollbar）
+  const hideScrollbar = (css.match(/::-webkit-scrollbar[^{]*\{[^}]*display\s*:\s*none/g) || []).length;
+  assert.equal(hidden.length - hideScrollbar, 0,
+    '手机端样式不得隐藏内容（发现 ' + (hidden.length - hideScrollbar) + ' 处 display:none）');
+  // 字号不得小于 13px（低于此值孩子看不清）
+  const sizes = [...css.matchAll(/font-size:\s*(\d+)px/g)].map((m) => Number(m[1]));
+  const tooSmall = sizes.filter((s) => s > 0 && s < 13);
+  assert.equal(tooSmall.length, 0, '手机端字号不得小于 13px，发现：' + tooSmall.join(','));
+});
+
+test('手机端适配：可点区域满足儿童手指精度（≥44px）', () => {
+  const css = readFileSync(join(__dirname, '../styles/mobile.css'), 'utf8');
+  const tap = css.match(/--tap:\s*(\d+)px/);
+  assert.ok(tap, 'mobile.css 必须覆盖 --tap');
+  assert.ok(Number(tap[1]) >= 44, '--tap 应 ≥44px，实际 ' + tap[1] + 'px');
+  // 可点元素（按钮/选项/输入框/浮窗按钮）的 min-height 不得低于 44px；
+  // 纯展示元素（如 .step 步骤标签）不受此限。
+  const clickable = ['.btn', '.option', '.text-input', '.fab', '.icon-btn', '.tab'];
+  for (const sel of clickable) {
+    const re = new RegExp(sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*\\{[^}]*min-height:\\s*(\\d+)px');
+    const m = css.match(re);
+    if (m) {
+      assert.ok(Number(m[1]) >= 44,
+        sel + ' 的 min-height 不得低于 44px（儿童手指精度），实际 ' + m[1] + 'px');
+    }
+  }
+});
+
+test('手机端适配：安全区适配齐全（刘海屏 + 底部横条）', () => {
+  const css = readFileSync(join(__dirname, '../styles/mobile.css'), 'utf8');
+  assert.match(css, /env\(safe-area-inset-top/, '顶栏必须避让刘海（safe-area-inset-top）');
+  assert.match(css, /env\(safe-area-inset-bottom/, '底部必须避让横条（safe-area-inset-bottom）');
+  // 底部浮窗是 fixed，若内容区 padding 没算上横条，横条会盖住最后一行内容
+  const mainPad = css.match(/\.app-main\s*\{[^}]*padding:[^;]*env\(safe-area-inset-bottom/);
+  assert.ok(mainPad, '.app-main 的底部 padding 必须计入 safe-area-inset-bottom（否则内容被横条盖住）');
+});
+
+test('手机端适配：360px 小屏不横向溢出（盒模型算术）', () => {
+  const css = readFileSync(join(__dirname, '../styles/mobile.css'), 'utf8');
+  const num = (re, dflt) => {
+    const m = css.match(re);
+    return m ? Number(m[1]) : dflt;
+  };
+  const screenW = 360;
+  const mainPadX = num(/\.app-main\s*\{[^}]*padding:\s*[\d.]+px\s+([\d.]+)px/, 8);
+  const contentW = screenW - mainPadX * 2;
+  assert.ok(contentW > 300, '内容区宽度应足够（' + contentW + 'px）');
+  // 主按钮独占一行 → 不会并排挤爆
+  assert.match(css, /\.btn-row \.btn\s*\{[^}]*flex:\s*1 1 100%/, '主按钮在手机上应独占一行');
+  // 单元卡单列 → 每格宽度 = 内容宽，不会被挤成竖条
+  assert.match(css, /\.unit-grid\s*\{\s*grid-template-columns:\s*1fr/, '单元卡在手机上应为单列（长标题不再挤压）');
+  // 单词进度点允许换行（flex-wrap 已开），但单个点不能过大
+  const dot = num(/\.word-dot\s*\{[^}]*width:\s*(\d+)px/, 22);
+  assert.ok(dot <= 26, '单词进度点直径应 ≤26px（12 个才排得下），实际 ' + dot + 'px');
+  // 单词图不能太大（否则一屏只剩一张图）
+  const pic = num(/\.word-pic\s*\{[^}]*font-size:\s*(\d+)px/, 66);
+  assert.ok(pic <= 70, '单词图片字号应 ≤70px（手机上别把一屏占满），实际 ' + pic + 'px');
+});
+
+test('手机端适配：长文本可换行（英文例句/故事不横向滚动）', () => {
+  const css = readFileSync(join(__dirname, '../styles/mobile.css'), 'utf8');
+  assert.match(css, /overflow-wrap:\s*anywhere/, '必须允许长文本换行（避免横向滚动）');
+  assert.match(css, /word-break:\s*break-word/, '必须允许长单词折行');
+  assert.match(css, /\.modal\s*\{[^}]*max-height/, '弹层必须限制高度（手机上超出会难滚动）');
+});
