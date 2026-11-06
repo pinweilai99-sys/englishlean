@@ -135,13 +135,36 @@ function speakSynth(text, opts = {}) {
   stopCurrent();
   return new Promise((resolve) => {
     let done = false;
+    let progressTimer = null;
+    // 进度模拟（2026-11-06）：降级到 TTS 时 speechSynthesis 没有真实进度回调，
+    // 若不模拟，拼读示范的"同步高亮"会卡在第一块不动——而手机无英语 TTS 引擎时
+    // 走的恰恰就是这条降级路（家长反馈"读不出来"的那批设备）。
+    // 按估算时长推进进度，保证降级路径下高亮照样跟声音走。
+    const maxMs = Math.min(8000, 900 + String(text).length * 80);
+    if (typeof opts.onProgress === 'function') {
+      const step = 120;
+      let elapsed = 0;
+      progressTimer = setInterval(() => {
+        elapsed += step;
+        try {
+          opts.onProgress(Math.min(elapsed, maxMs) / 1000, maxMs / 1000);
+        } catch (e) { /* 忽略 */ }
+        if (elapsed >= maxMs) clearInterval(progressTimer);
+      }, step);
+    }
     const finish = (ok) => {
       if (done) return;
       done = true;
+      if (progressTimer) clearInterval(progressTimer);
+      // 结束时补一次终态进度：保证"同步高亮"至少被触发过
+      // （真实 TTS 朗读约 0.8s，但某些内核/测试桩会立即 onend，
+      //   不补这一次，高亮会停在第一块不动）。
+      if (typeof opts.onProgress === 'function') {
+        try { opts.onProgress(maxMs / 1000, maxMs / 1000); } catch (e) { /* 忽略 */ }
+      }
       state.current = null;
       resolve({ ok });
-    };
-    try {
+    };    try {
       const utter = new window.SpeechSynthesisUtterance(String(text));
       utter.rate = rate;
       utter.pitch = pitch;
@@ -155,7 +178,6 @@ function speakSynth(text, opts = {}) {
       // 兜底：某些浏览器不触发 onend。
       // 2026-11-06 修复：旧实现最长等 12 秒（家长反馈"要等好久"）。
       // 现在按文本长度估算，短词最多等 ~2.5 秒，长句按比例放宽但设上限。
-      const maxMs = Math.min(8000, 900 + String(text).length * 80);
       setTimeout(() => finish(true), maxMs);
     } catch (e) {
       finish(false);
