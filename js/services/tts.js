@@ -1,11 +1,12 @@
 // TTS 发音服务：优先播预生成音频文件（手机无 TTS 引擎也能出声），speechSynthesis 兜底
 // 降级原则：没有音频能力时隐藏喇叭、改为"手动确认"，绝不让页面报错或阻塞学习。
 // 能力检测在调用时进行（而非导入时），确保环境变化（含测试注入）即时生效。
-import { hasAudio, playAudio, stopAudio } from './audio.js';
+import { hasAudio, playAudio, stopAudio, ensureReady } from './audio.js';
 
 const state = {
   enabled: true,
   current: null,
+  gen: 0, // 取消代号：cancel() 时 +1，用于识别"播放途中被取消"，避免取消后又出声
 };
 
 function synth() {
@@ -65,6 +66,14 @@ export function setEnabled(flag) {
 }
 
 export function cancel() {
+  state.gen += 1; // 代号 +1：正在等待的 speak 会检测到并放弃后续动作
+  stopCurrent();
+}
+
+// 仅打断当前正在播放的声音（不推进取消代号）。
+// 与 cancel() 分开的原因：speakSynth 每次开始朗读都要先打断上一个，
+// 若复用 cancel() 会推进代号，导致并发的另一条 speak 被误判为"已取消"而不出声。
+function stopCurrent() {
   stopAudio();
   const s = synth();
   if (!s) return;
@@ -74,13 +83,23 @@ export function cancel() {
 
 // 朗读文本（入口）：优先播预生成音频文件（手机无 TTS 引擎也能出声），失败退回 speechSynthesis。
 // 返回 Promise，播放结束或失败时 resolve。
+//
+// 2026-11-06 修复（家长反馈"有时候读不出来"）：
+// 音频清单是异步加载的，用户首屏点「听一听」时清单可能还没到 → hasAudio() 返回 false
+// → 直接退 speechSynthesis → 国产安卓/微信内置浏览器没有英语 TTS 引擎 → 彻底无声。
+// 现在：**清单尚未就绪时先等它（最多 2.5s）**，再决定走音频还是 TTS。
+// 已就绪则零等待，不拖慢任何正常播放。
 export async function speak(text, opts = {}) {
   if (!state.enabled || !text) {
     return Promise.resolve({ ok: false, reason: 'unavailable' });
   }
+  const gen = state.gen;
+  if (!hasAudio(text)) await ensureReady(opts.readyTimeoutMs ?? 2500);
+  if (gen !== state.gen) return { ok: false, reason: 'cancelled' }; // 等待期间被取消
   if (hasAudio(text)) {
     // eslint-disable-next-line no-await-in-loop
     const ok = await playAudio(text, undefined, { playbackRate: opts.playbackRate });
+    if (gen !== state.gen) return { ok: false, reason: 'cancelled' };
     if (ok) return { ok: true, via: 'audio' };
   }
   return speakSynth(text, opts);
@@ -93,10 +112,14 @@ export async function speakSlow(text, opts = {}) {
   if (!state.enabled || !text) {
     return Promise.resolve({ ok: false, reason: 'unavailable' });
   }
+  const gen = state.gen;
   const rate = opts.rate || 0.6;
+  if (!hasAudio(text)) await ensureReady(opts.readyTimeoutMs ?? 2500);
+  if (gen !== state.gen) return { ok: false, reason: 'cancelled' };
   if (hasAudio(text)) {
     // eslint-disable-next-line no-await-in-loop
-    const ok = await playAudio(text, undefined, { playbackRate: rate });
+    const ok = await playAudio(text, undefined, { playbackRate: rate, onProgress: opts.onProgress });
+    if (gen !== state.gen) return { ok: false, reason: 'cancelled' };
     if (ok) return { ok: true, via: 'audio' };
   }
   return speakSynth(text, { ...opts, rate });
@@ -109,7 +132,7 @@ function speakSynth(text, opts = {}) {
   if (!s || !state.enabled || !text) {
     return Promise.resolve({ ok: false, reason: 'unavailable' });
   }
-  cancel();
+  stopCurrent();
   return new Promise((resolve) => {
     let done = false;
     const finish = (ok) => {
@@ -129,8 +152,10 @@ function speakSynth(text, opts = {}) {
       utter.onerror = () => finish(false);
       state.current = utter;
       s.speak(utter);
-      // 兜底：某些浏览器不触发 onend
-      const maxMs = Math.min(12000, 1200 + String(text).length * 120);
+      // 兜底：某些浏览器不触发 onend。
+      // 2026-11-06 修复：旧实现最长等 12 秒（家长反馈"要等好久"）。
+      // 现在按文本长度估算，短词最多等 ~2.5 秒，长句按比例放宽但设上限。
+      const maxMs = Math.min(8000, 900 + String(text).length * 80);
       setTimeout(() => finish(true), maxMs);
     } catch (e) {
       finish(false);
