@@ -1,6 +1,6 @@
 // 回忆卡中心（模块⑥）：May I 秒答 / 听答反推 / 看图说词 / 复述 / ou 归类
-import { h, toast, starFly, stage3Nav } from './dom.js?v=1793955596';
-import * as tts from '../services/tts.js?v=1793955596';
+import { h, toast, starFly, stage3Nav } from './dom.js?v=1793964518';
+import * as tts from '../services/tts.js?v=1793964518';
 
 // 看图卡插画（内联 SVG，代码绘制：零成本、离线可用、随主题缩放）
 const PIC_SVGS = {
