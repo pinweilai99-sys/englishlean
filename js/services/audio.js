@@ -53,14 +53,19 @@ export function hasAudio(text) {
   return !!available && available.has(audioSlug(text));
 }
 
-// 播放预生成音频；resolve(true)=已播放，false=失败（调用方应退回 TTS）。
+// 播放预生成音频；resolve(true)=已播��，false=失败（调用方应退回 TTS）。
 // 测试/Node 环境（无 Audio 构造器）直接 resolve(false)，保证行为可预测。
-export function playAudio(text, base = AUDIO_BASE) {
+// opts.playbackRate：慢速拼读用（0.62 左右）。预生成音频是整词录音，
+// 放慢后音素边界更清楚，孩子能听出"这个词是由几块拼出来的"。
+export function playAudio(text, base = AUDIO_BASE, opts = {}) {
   return new Promise((resolve) => {
     try {
       if (typeof Audio === 'undefined') return resolve(false);
       stopAudio();
       const el = new Audio(`${base}${audioSlug(text)}.m4a`);
+      if (opts.playbackRate && opts.playbackRate > 0) {
+        try { el.playbackRate = opts.playbackRate; } catch (e) { /* 忽略 */ }
+      }
       let done = false;
       const finish = (ok) => {
         if (done) return;

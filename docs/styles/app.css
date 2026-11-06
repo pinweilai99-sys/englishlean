@@ -246,3 +246,12 @@ textarea.text-input { min-height: 140px; resize: vertical; }
 .chunk-btn:active { background: #f3e9c8; }
 .chunk-dot { color: #b58900; font-weight: 900; font-size: var(--fs-lg); }
 .memo-hint { text-align: center; margin: 8px 0 0; font-size: var(--fs-sm); color: #6b6b6b; }
+
+/* ============ 拼读拆分（单词卡：这个词是怎么拼出来的） ============ */
+.split-wrap { margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e0d5b4; }
+.split-title { text-align: center; font-weight: 800; color: #8a6d1a; margin: 0 0 6px; font-size: var(--fs-sm); }
+.split-row { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
+.split-piece { background: #fff; border: 2px solid #c9b57a; border-radius: 12px; padding: 5px 14px; font-weight: 900; font-size: var(--fs-md); letter-spacing: 1px; color: var(--ink, #2b2b2b); font-family: "Times New Roman", serif; transition: transform .18s ease, background .18s ease, border-color .18s ease; }
+.split-dot { color: #b58900; font-weight: 900; font-size: var(--fs-lg); }
+/* 正在发声的块：放大 + 高亮，孩子看着"哪一块在响" */
+.split-piece.is-speaking, .chunk-btn.is-speaking { background: #ffe9a8; border-color: #d99b12; transform: scale(1.14); box-shadow: 0 2px 8px rgba(184, 137, 0, .28); }

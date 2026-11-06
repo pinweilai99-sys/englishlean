@@ -18,6 +18,7 @@
       "chunks": [
         "may"
       ],
+      "split": [ "m", "ay" ],
       "memo": "单音节 m-ay：ay 读 /eɪ/，和拼音 mei 的韵母一样"
     },
     {
@@ -30,6 +31,7 @@
       "chunks": [
         "pet"
       ],
+      "split": [ "p", "e", "t" ],
       "memo": "单音节 p-e-t：三个字母各读各的音，直接拼"
     },
     {
@@ -43,6 +45,7 @@
         "rab",
         "bit"
       ],
+      "split": [ "rab", "bit" ],
       "memo": "双音节 rab·bit：bb 相连只读一个 /b/"
     },
     {
@@ -55,6 +58,7 @@
       "chunks": [
         "feed"
       ],
+      "split": [ "f", "ee", "d" ],
       "memo": "ee 组合读长音 /iː/（衣——）：see / tree / three 同族"
     },
     {
@@ -67,6 +71,7 @@
       "chunks": [
         "hold"
       ],
+      "split": [ "h", "old" ],
       "memo": "old 组合读 /əʊld/：gold / told 同族（goldfish 里就有 gold）"
     },
     {
@@ -79,6 +84,7 @@
       "chunks": [
         "Mrs"
       ],
+      "split": [ "Mrs" ],
       "memo": "尊称缩写，读 /ˈmɪsɪz/（音近「米西兹」），别按字母读 M-r-s"
     },
     {
@@ -92,6 +98,7 @@
         "love",
         "ly"
       ],
+      "split": [ "love", "ly" ],
       "memo": "love（爱）+ ly（…的）= 可爱的"
     },
     {
@@ -105,6 +112,7 @@
         "gold",
         "fish"
       ],
+      "split": [ "gold", "fish" ],
       "memo": "合成词：gold（金色）+ fish（鱼）= 金鱼，两块都能单独读"
     },
     {
@@ -118,6 +126,7 @@
         "cle",
         "ver"
       ],
+      "split": [ "cle", "ver" ],
       "memo": "双音节 cle·ver：c 读 /k/，结尾 -er 读轻声 /ə/"
     },
     {
@@ -130,6 +139,7 @@
       "chunks": [
         "shop"
       ],
+      "split": [ "sh", "op" ],
       "memo": "sh 组合读 /ʃ/（像「嘘——」）：she / ship 同族"
     },
     {
@@ -143,6 +153,7 @@
         "par",
         "rot"
       ],
+      "split": [ "par", "rot" ],
       "memo": "双音节 par·rot：rr 相连只读一个 /r/，和 rabbit 的 bb 一样"
     },
     {
@@ -155,6 +166,7 @@
       "chunks": [
         "back"
       ],
+      "split": [ "b", "ack" ],
       "memo": "ck 组合只读一个 /k/：black / clock 同族"
     }
   ],

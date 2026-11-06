@@ -80,10 +80,26 @@ export async function speak(text, opts = {}) {
   }
   if (hasAudio(text)) {
     // eslint-disable-next-line no-await-in-loop
-    const ok = await playAudio(text);
+    const ok = await playAudio(text, undefined, { playbackRate: opts.playbackRate });
     if (ok) return { ok: true, via: 'audio' };
   }
   return speakSynth(text, opts);
+}
+
+// 慢速朗读整词（拼读示范用）：预生成音频放慢，没有音频时退到慢速 TTS。
+// 为什么需要慢速：预生成音频是整词正常语速的录音，
+// 孩子只听到一个"整体音"，听不出里面由哪几块拼成；放慢后音素边界更清楚。
+export async function speakSlow(text, opts = {}) {
+  if (!state.enabled || !text) {
+    return Promise.resolve({ ok: false, reason: 'unavailable' });
+  }
+  const rate = opts.rate || 0.6;
+  if (hasAudio(text)) {
+    // eslint-disable-next-line no-await-in-loop
+    const ok = await playAudio(text, undefined, { playbackRate: rate });
+    if (ok) return { ok: true, via: 'audio' };
+  }
+  return speakSynth(text, { ...opts, rate });
 }
 
 // speechSynthesis 兜底通道（原实现）
@@ -127,5 +143,28 @@ export async function speakSequence(items, opts = {}) {
   for (const it of items) {
     // eslint-disable-next-line no-await-in-loop
     await speak(it, opts);
+  }
+}
+
+// 拼读示范（拆音 → 合音）：按音块逐段朗读，每段开始时回调 onSegment(段索引)，
+// 让 UI 能同步高亮正在发声的音块（孩子看着"哪一块在响"，而不是干听）。
+// 设计取舍（2026-11-06 家长提问后定版）：
+//  - 只拆"音节级"音块（chunks 已是音节切分，如 rab·bit），**不拆单字母**。
+//    单字母交给 TTS 会被念成字母名（em / ay），把孩子教成"念字母名"而不是"读音"，反而错。
+//  - 顺序 = 整词先听一遍（建立目标音）→ 拆开逐块听 → 合回整词，
+//    这是自然拼读教学的标准三步（听整词 → 拆音 → 合音）。
+export async function speakBlend(parts, { onSegment, gapMs = 420 } = {}) {
+  const list = Array.isArray(parts) ? parts : [];
+  for (let i = 0; i < list.length; i++) {
+    const text = list[i];
+    if (typeof onSegment === 'function') onSegment(i, text);
+    // eslint-disable-next-line no-await-in-loop
+    await speak(text);
+    // 段间留白，孩子听得清"这是两块"
+    // eslint-disable-next-line no-await-in-loop
+    if (i < list.length - 1 && gapMs > 0) {
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((r) => setTimeout(r, gapMs));
+    }
   }
 }

@@ -109,6 +109,56 @@ test('记词分块：每词都有 chunks（分块字母拼合=单词本身）与
   }
 });
 
+test('拼读拆分 split（2026-11-06 家长提问新增）：每词都有、拼合=单词本身', () => {
+  raw.words.forEach((w) => {
+    assert.ok(Array.isArray(w.split) && w.split.length >= 1, `${w.w} 缺少 split 拼读拆分`);
+    const joined = w.split.join('').toLowerCase().replace(/[^a-z]/g, '');
+    assert.equal(joined, w.w.toLowerCase().replace(/[^a-z]/g, ''),
+      `${w.w} 的拼读拆分 ${JSON.stringify(w.split)} 拼合后应等于单词本身`);
+    w.split.forEach((p, i) => {
+      assert.equal(typeof p, 'string', `${w.w}.split[${i}] 应为字符串`);
+      assert.ok(p.trim().length > 0, `${w.w}.split[${i}] 不应为空`);
+    });
+  });
+  // 关键回归点：may 原先 chunks=['may']（整词当一块，等于没拆），
+  // 现在必须拆出真实的拼读结构 m + ay，否则"拼读拆分"对单音节词毫无意义。
+  const may = raw.words.find((w) => w.w === 'may');
+  assert.deepEqual(may.split, ['m', 'ay'], 'may 应拆成 m + ay（提示里写明"单音节 m-ay"）');
+  const pet = raw.words.find((w) => w.w === 'pet');
+  assert.deepEqual(pet.split, ['p', 'e', 't'], 'pet 应拆成 p + e + t（提示里写明"三个字母各读各的音"）');
+  // 多音节词的拼读拆分应与音节级音块一致（音节=可独立发音的块）
+  raw.words.forEach((w) => {
+    if (w.chunks.length > 1) {
+      assert.deepEqual(w.split, w.chunks, `${w.w} 的 split 应与音节级 chunks 一致`);
+    }
+  });
+  // Mrs 是尊称缩写，按单词整体记（拆成 M-r-s 会教错）
+  const mrs = raw.words.find((w) => w.w === 'Mrs');
+  assert.deepEqual(mrs.split, ['Mrs'], 'Mrs 应按整体记，不拆成字母');
+});
+
+test('拼读拆分不引入超纲朗读文本：只有音节级音块才有预生成音频，单字母不单独发音', () => {
+  // 自然拼读的经典陷阱：单字母交给 TTS 会被念成字母名（em / ay），
+  // 教成"念字母名"而不是"读音"。因此拆音阶段只念音节级音块。
+  raw.words.forEach((w) => {
+    (w.chunks || []).forEach((c) => {
+      const slug = audioSlug(String(c).toLowerCase());
+      assert.ok(audioSlugs.has(slug), `${w.w} 的音块「${c}」缺预生成音频（拆音阶段要念它）`);
+    });
+  });
+  // 反向对照：单字母拆分块（m/ay/p/e/t…）**不应**被当成可朗读音块
+  const letterSplits = raw.words.flatMap((w) => (w.split || []).filter((p) => p.length === 1));
+  assert.ok(letterSplits.length > 0, '应有单字母拆分块（may=m+ay 等）');
+  raw.words.forEach((w) => {
+    (w.split || []).forEach((p) => {
+      if (p.length === 1) {
+        assert.ok(!w.chunks.includes(p),
+          `${w.w} 的单字母拆分「${p}」不应同时出现在 chunks（否则会被单独念成字母名）`);
+      }
+    });
+  });
+});
+
 test('音标必须与课本词表逐词一致（2026-11-03 家长定版：以课本英式音标为准）', () => {
   // 课本 Unit 5 词表逐词音标（2026-11-03 家长拍照核对，勿改动）
   const BOOK = {

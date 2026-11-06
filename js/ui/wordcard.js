@@ -47,18 +47,44 @@ export function renderWordCard(ctx, unit) {
     // 🧩 记词分块：读音分块（点击可分块发音）+ 一句记忆提示（音节/合成词/字母组合）
     const chunks = Array.isArray(w.chunks) && w.chunks.length ? w.chunks : [w.w];
     const chunkBtns = h('div', { class: 'chunk-row' });
+    const chunkBtnEls = [];
     chunks.forEach((c, ci) => {
       if (ci > 0) chunkBtns.appendChild(h('span', { class: 'chunk-dot', text: '·' }));
-      chunkBtns.appendChild(h('button', {
+      const btn = h('button', {
         class: 'chunk-btn',
         text: c,
         'aria-label': `读 ${c}`,
         onclick: () => tts.speak(c.toLowerCase()),
-      }));
+      });
+      chunkBtnEls.push(btn);
+      chunkBtns.appendChild(btn);
     });
+
+    // 🔤 拼读拆分：把单词按"怎么拼出来的"拆开（may → m + ay）。
+    // 这是孩子真正需要的拼读结构：只有音块（rab·bit）时看不出单音节词怎么拼。
+    // 拆分块**只做展示 + 高亮**，不单独发音——单个字母交给 TTS 会被念成字母名
+    //（em / ay），会把孩子教成"念字母名"而不是"读音"，反而错。
+    const split = Array.isArray(w.split) && w.split.length ? w.split : null;
+    const splitRow = h('div', { class: 'split-row' });
+    const splitEls = [];
+    if (split && split.length > 1) {
+      split.forEach((p, pi) => {
+        if (pi > 0) splitRow.appendChild(h('span', { class: 'split-dot', text: '+' }));
+        const el = h('span', { class: 'split-piece', text: p });
+        splitEls.push(el);
+        splitRow.appendChild(el);
+      });
+    }
+
     wrap.appendChild(h('div', { class: 'memo-box' }, [
       h('p', { class: 'memo-title', text: '🧩 记词分块（点一块读一块）' }),
       chunkBtns,
+      split && split.length > 1
+        ? h('div', { class: 'split-wrap' }, [
+          h('p', { class: 'split-title', text: '🔤 拼读拆分（这个词是这样拼出来的）' }),
+          splitRow,
+        ])
+        : null,
       h('p', { class: 'memo-hint', text: `💡 ${w.memo || ''}` }),
     ]));
 
@@ -76,10 +102,12 @@ export function renderWordCard(ctx, unit) {
     if (step === 0) {
       actions.appendChild(h('button', {
         class: 'btn', text: '🔊 听一听',
-        onclick: async () => {
-          await tts.speak(w.tts || w.w);
+        onclick: () => {
+          // 步骤立即推进（学习不被示范时长卡住），拼读示范在后台播
           session.step = 1;
           renderCard();
+          session.blendSeq = (session.blendSeq || 0) + 1;
+          void playBlend(w);
         },
       }));
     } else if (step === 1) {
@@ -89,7 +117,14 @@ export function renderWordCard(ctx, unit) {
       }));
       actions.appendChild(h('button', {
         class: 'btn leaf', text: '我会认这个词 →',
-        onclick: () => { session.step = 2; renderCard(); },
+        onclick: () => {
+          // 进入跟读＝要录孩子的音了：必须停掉后台拼读示范，
+          // 否则示范的声音会进麦克风，污染发音评分。
+          session.blendSeq = (session.blendSeq || 0) + 1;
+          tts.cancel();
+          session.step = 2;
+          renderCard();
+        },
       }));
     } else if (step === 2) {
       // 家长定版（2026-11-03）：技术性提示文案（浏览器识别能力/Safari 等）不显示给孩子，
@@ -113,6 +148,9 @@ export function renderWordCard(ctx, unit) {
       actions.appendChild(h('button', {
         class: 'btn leaf', text: '➡️ 下一个单词',
         onclick: () => {
+          // 换词＝旧词的示范立刻作废（代号+1），避免串到下一个词上
+          session.blendSeq = (session.blendSeq || 0) + 1;
+          tts.cancel();
           session.wordIndex = (i + 1) % words.length;
           session.step = 0;
           renderCard();
@@ -158,6 +196,87 @@ export function renderWordCard(ctx, unit) {
     session.step = 0;
     renderCard();
     toast('🔁 新的一轮开始！从第 1 个词重新学～', 2600);
+  }
+
+  // ── 拼读示范（拆音 → 合音）────────────────────────────────────────
+  // 2026-11-06 家长提问："听一听的时候，能不能把拼读拆分也加进去？"
+  // 原行为：「听一听」只孤立播一遍整词，孩子听到 /meɪ/ 却不知道它由 m+ay 拼成；
+  //         拼读拆分区只能单独点，与"听"这一步割裂。
+  // 定版做法（自然拼读教学标准三步）：
+  //   ① 慢速读整词 —— 放慢后词内边界更清楚，孩子听出"里面由几块拼成"
+  //   ② 逐块拆读   —— 只拆**音节级**音块（chunks），单字母不念（会被念成字母名，教错音）
+  //   ③ 合回整词   —— 再听一遍正常语速的整词，孩子确认"拼起来就是这个词"
+  // 播放过程中同步高亮：拼读拆分块（split）+ 音节块（chunks），孩子看着"哪块在响"。
+  //
+  // 两个关键工程约定：
+  //  1) **不阻塞步骤推进**：示范是"加料"不是"门禁"。点「听一听」立即进入②认形，
+  //     示范在后台播；即使全程无声（手机无 TTS 引擎），也只是没有声音，绝不卡住学习。
+  //  2) **可被打断**：用 session.blendSeq 做代号，孩子切词/进入跟读/离开页面后，
+  //     正在播的示范立刻收声，不会在孩子录音时把麦里的声音污染（影响发音评分）。
+  async function playBlend(w) {
+    const seq = session.blendSeq || 0;
+    const word = w.tts || w.w;
+    const chunks = Array.isArray(w.chunks) && w.chunks.length ? w.chunks : [];
+    const split = Array.isArray(w.split) && w.split.length ? w.split : [];
+    // 每次高亮都重新取元素：卡片可能已重渲染（步骤推进会重建 DOM）
+    const els = (sel) => Array.from(wrap.querySelectorAll(sel));
+    const clearHi = () => {
+      els('.split-piece').forEach((el) => el.classList.remove('is-speaking'));
+      els('.chunk-btn').forEach((el) => el.classList.remove('is-speaking'));
+    };
+    const hiSplit = (i) => {
+      clearHi();
+      const el = els('.split-piece')[i];
+      if (el) el.classList.add('is-speaking');
+    };
+    const hiChunk = (i) => {
+      clearHi();
+      const el = els('.chunk-btn')[i];
+      if (el) el.classList.add('is-speaking');
+    };
+    // 已被新动作取代（换词/进跟读/离开页面）→ 立刻收声
+    const alive = () => (session.blendSeq || 0) === seq && wrap.isConnected !== false;
+    const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    try {
+      // ① 慢速读整词（高亮拆分结构，孩子先听见整体）
+      hiSplit(0);
+      await tts.speakSlow(word);
+      if (!alive()) return;
+
+      // ② 逐块拆读：只有音节级音块才念（单字母念出来是字母名，会教错音）
+      if (chunks.length > 1) {
+        for (let i = 0; i < chunks.length; i++) {
+          if (!alive()) return;
+          hiChunk(i);
+          // eslint-disable-next-line no-await-in-loop
+          await tts.speak(chunks[i].toLowerCase());
+          // eslint-disable-next-line no-await-in-loop
+          await pause(320);
+        }
+      } else if (split.length > 1) {
+        // 单音节词（may → m + ay）：逐块点亮 + 慢速重播整词，
+        // 让"这块在这个词里"建立映射；**不单独念字母**（避免念成 em/ay 教错音）。
+        for (let i = 0; i < split.length; i++) {
+          if (!alive()) return;
+          hiSplit(i);
+          // eslint-disable-next-line no-await-in-loop
+          await pause(620);
+        }
+        if (!alive()) return;
+        hiSplit(0);
+        // eslint-disable-next-line no-await-in-loop
+        await tts.speakSlow(word);
+      }
+
+      // ③ 合回整词：正常语速的完整音，孩子确认"拼起来就是这个词"
+      if (!alive()) return;
+      clearHi();
+      // eslint-disable-next-line no-await-in-loop
+      await tts.speak(word);
+    } finally {
+      clearHi();
+    }
   }
 
   async function doRecord(w) {
@@ -239,7 +358,15 @@ export function renderWordCard(ctx, unit) {
 
   renderCard();
   return h('div', {}, [
-    h('button', { class: 'back-btn', text: '← 返回学习路径', onclick: () => ctx.navigate(`#/unit/${unit.id}`) }),
+    h('button', {
+      class: 'back-btn', text: '← 返回学习路径',
+      onclick: () => {
+        // 离开单词卡：停掉后台拼读示范，别让声音跟着跑到别的页面
+        session.blendSeq = (session.blendSeq || 0) + 1;
+        tts.cancel();
+        ctx.navigate(`#/unit/${unit.id}`);
+      },
+    }),
     wrap,
     h('div', { class: 'btn-row' }, [
       h('button', { class: 'btn ghost', text: '👂 去听辨游戏', onclick: () => ctx.navigate(`#/unit/${unit.id}/stage/0/listen`) }),

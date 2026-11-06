@@ -1797,3 +1797,65 @@ test('E2E-56 答错反馈可回看：中性人称对照卡，按题型给具体�
       '重进页面不应残留答错提示');
   } finally { cleanup(); }
 });
+
+test('E2E-57 单词卡拼读示范（2026-11-06 家长提问）：「听一听」= 慢速整词→拆音→合回整词 + 拼读拆分展示', async () => {
+  const { window, app, cleanup } = await freshApp();
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0');
+
+    // 1) 拼读拆分展示：may 应拆成 m + ay（旧口径 chunks 只有整词，等于没拆）
+    const splitPieces = () => Array.from(window.document.querySelectorAll('.split-piece'))
+      .map((el) => el.textContent.trim());
+    assert.deepEqual(splitPieces(), ['m', 'ay'], 'may 应展示拼读拆分 m + ay');
+    assert.match(mainText(window), /拼读拆分/, '应出现「拼读拆分」标题');
+
+    // 2) 点「听一听」→ 立即推进到②认形（示范不阻塞学习链路）
+    window.speechSynthesis.__spoken.length = 0;
+    await clickButton(window, '听一听');
+    const steps = Array.from(window.document.querySelectorAll('.step'));
+    assert.ok(steps[1].className.includes('is-current'), '点「听一听」应立即进入②认形（不被示范时长卡住）');
+
+    // 3) 拼读示范真的播了：整词至少读了两遍（慢速一遍 + 合音一遍）
+    await new Promise((r) => setTimeout(r, 1500));
+    const spoken = window.speechSynthesis.__spoken;
+    const wordCount = spoken.filter((t) => t.toLowerCase() === 'may').length;
+    assert.ok(wordCount >= 2,
+      'may 应至少朗读两遍（慢速+合音），实际 ' + wordCount + ' 次：' + JSON.stringify(spoken));
+
+    // 4) 关键红线：单字母**不得**被单独念出来（会被念成字母名 em/ay，教错音）
+    assert.ok(!spoken.some((t) => ['m', 'ay', 'p', 'e', 't'].includes(t.toLowerCase())),
+      '拆分块不得被单独发音（会念成字母名）：' + JSON.stringify(spoken));
+
+    // 5) 多音节词才做"逐音块拆读"（rabbit → rab + bit）
+    app.state.session.wordIndex = 2;
+    app.state.session.step = 0; // 回到①听音，才有「听一听」按钮
+    app.render();
+    await new Promise((r) => setTimeout(r, 30));
+    window.speechSynthesis.__spoken.length = 0;
+    await clickButton(window, '听一听');
+    await new Promise((r) => setTimeout(r, 1800));
+    const rSpoken = window.speechSynthesis.__spoken.map((t) => t.toLowerCase());
+    assert.ok(rSpoken.includes('rab'), 'rabbit 拆音应读出音块 rab：' + JSON.stringify(rSpoken));
+    assert.ok(rSpoken.includes('bit'), 'rabbit 拆音应读出音块 bit：' + JSON.stringify(rSpoken));
+    assert.ok(rSpoken.includes('rabbit'), 'rabbit 应有合回的整词音');
+  } finally { cleanup(); }
+});
+
+test('E2E-58 拼读示范可被打断：进入跟读时后台示范立刻收声（不污染录音评分）', async () => {
+  const { window, app, cleanup } = await freshApp();
+  try {
+    await navigate(window, app, '#/unit/u5/stage/0');
+    await clickButton(window, '听一听');
+    // 示范正在后台播
+    await new Promise((r) => setTimeout(r, 60));
+    // 进入跟读＝要录孩子的音了，必须停掉示范
+    await clickButton(window, '我会认这个词');
+    const before = window.speechSynthesis.__spoken.length;
+    await new Promise((r) => setTimeout(r, 900));
+    const after = window.speechSynthesis.__spoken.length;
+    assert.equal(after, before, '进入跟读后不应再有示范声音（会进麦克风污染评分）');
+    // 高亮状态不得残留
+    assert.equal(window.document.querySelectorAll('.split-piece.is-speaking').length, 0,
+      '拼读拆分高亮不应残留');
+  } finally { cleanup(); }
+});
