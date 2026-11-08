@@ -1,10 +1,10 @@
 // 单元页：目标卡 + 4 阶段关卡
-import { h, toast } from './dom.js?v=1793967044';
-import { canEnterStage } from '../core/progress.js?v=1793967044';
+import { h, toast } from './dom.js?v=1794121897';
+import { canEnterStage } from '../core/progress.js?v=1794121897';
 
 const STAGES = [
   { idx: 0, name: '单词奠基', desc: '先会读单词，才读得懂句子', emoji: '🔤' },
-  { idx: 1, name: '核心句型', desc: 'May I have a ___? / Yes, you can. · 🔍 语法小规律', emoji: '💬' },
+  { idx: 1, name: '核心句型', desc: '核心句型练习 · 🔍 语法小规律', emoji: '💬' },
   { idx: 2, name: '真实输出', desc: '角色扮演、写作、思维导图', emoji: '🎭' },
   { idx: 3, name: '巩固拓展', desc: '故事、微测、复习', emoji: '🏆' },
 ];
