@@ -22,7 +22,7 @@ import { renderParent } from './ui/parent.js';
 import * as tts from './services/tts.js';
 import { initAudio } from './services/audio.js';
 
-const UNIT_ID = 'u5';
+const DEFAULT_UNIT = 'u5';
 const state = {
   data: null,        // 单元内容数据
   state: defaultState(),
@@ -105,9 +105,10 @@ function renderTopbar() {
   ]);
 
   const tabbar = h('div', { class: 'tabbar' });
+  const activeId = (state.route && state.route.unitId) || state.data?.id || DEFAULT_UNIT;
   UNITS.forEach((u) => {
     tabbar.appendChild(h('button', {
-      class: `tab ${u.id === UNIT_ID ? 'is-active' : ''} ${u.open ? '' : 'is-locked'}`,
+      class: `tab ${u.id === activeId ? 'is-active' : ''} ${u.open ? '' : 'is-locked'}`,
       text: `U${u.no}`,
       onclick: () => {
         if (!u.open) { toast('这个单元还在准备中～'); return; }
@@ -191,6 +192,15 @@ function render() {
   state.route = parseRoute();
   clear(main);
 
+  const r = state.route;
+  const want = (r.name === 'unit' || r.name === 'stage') ? r.unitId : null;
+  if (want && (!state.data || state.data.id !== want)) {
+    main.appendChild(h('div', { class: 'card', text: '正在加载单元内容…' }));
+    renderTopbar();
+    renderFloatbar();
+    return;
+  }
+
   if (!state.data) {
     main.appendChild(h('div', { class: 'card', text: '正在加载单元内容…' }));
     return;
@@ -214,7 +224,6 @@ function render() {
     replaceState: (s) => { state.state = s; save(); },
   };
 
-  const r = state.route;
   if (r.name === 'home') {
     main.appendChild(renderHome(ctx));
   } else if (r.name === 'unit') {
@@ -252,6 +261,39 @@ function render() {
   renderFloatbar();
 }
 
+// ---------- 单元加载（支持多单元按路由动态加载） ----------
+async function loadUnit(unitId) {
+  const res = await fetch(`data/units/${unitId}.json`, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`HTTP ${res.status} 加载 ${unitId}`);
+  const data = await res.json();
+  const v = validateUnit(data);
+  if (!v.valid) throw new Error(`单元数据校验失败：${v.errors.join('；')}`);
+  state.data = data;
+}
+
+// 路由变化（切换单元 / 阶段）时按需重新加载单元数据
+async function onRoute() {
+  const r = parseRoute();
+  const want = (r.name === 'unit' || r.name === 'stage') ? r.unitId : null;
+  if (want && (!state.data || state.data.id !== want)) {
+    render(); // 先显示「正在加载」
+    try {
+      await loadUnit(want);
+    } catch (e) {
+      console.error(e);
+      if (els.main) {
+        els.main.innerHTML = '';
+        els.main.appendChild(h('div', { class: 'card' }, [
+          h('div', { class: 'card-title', text: '😢 加载失败' }),
+          h('p', { class: 'hint', text: `${e.message}。请用本地服务器打开。` }),
+        ]));
+      }
+      return;
+    }
+  }
+  render();
+}
+
 // ---------- 启动 ----------
 async function boot() {
   els.topbar = document.getElementById('topbar');
@@ -261,36 +303,23 @@ async function boot() {
   state.state = loadState(localStorage);
   tts.setEnabled(state.state.settings?.audioOn !== false);
 
+  const r0 = parseRoute();
+  const want = (r0.name === 'unit' || r0.name === 'stage') ? r0.unitId : DEFAULT_UNIT;
   try {
-    const res = await fetch('data/units/u5.json', { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    const v = validateUnit(data);
-    if (!v.valid) {
-      console.error('单元数据校验失败：', v.errors);
-      if (els.main) {
-        els.main.innerHTML = '';
-        els.main.appendChild(h('div', { class: 'card' }, [
-          h('div', { class: 'card-title', text: '😢 内容数据有问题' }),
-          h('p', { class: 'hint', text: `请把下面的信息发给开发者：${v.errors.join('；')}` }),
-        ]));
-      }
-      return;
-    }
-    state.data = data;
+    await loadUnit(want);
   } catch (e) {
     console.error(e);
     if (els.main) {
       els.main.innerHTML = '';
       els.main.appendChild(h('div', { class: 'card' }, [
         h('div', { class: 'card-title', text: '😢 加载失败' }),
-        h('p', { class: 'hint', text: '请用本地服务器打开（不能用 file:// 直接打开）。' }),
+        h('p', { class: 'hint', text: `${e.message}。请用本地服务器打开（不能用 file:// 直接打开）。` }),
       ]));
     }
     return;
   }
 
-  window.addEventListener('hashchange', render);
+  window.addEventListener('hashchange', onRoute);
   render();
 
   // 拉取预生成音频清单（assets/audio/manifest.json）：手机没有英语 TTS 引擎也能播放发音。

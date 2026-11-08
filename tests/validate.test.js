@@ -440,3 +440,64 @@ test('手机端适配：长文本可换行（英文例句/故事不横向滚动�
   assert.match(css, /word-break:\s*break-word/, '必须允许长单词折行');
   assert.match(css, /\.modal\s*\{[^}]*max-height/, '弹层必须限制高度（手机上超出会难滚动）');
 });
+
+// ---------- Unit 4（湘少版，按 U5 同 schema 创建，2026-11-08） ----------
+const u4 = JSON.parse(readFileSync(join(__dirname, '../data/units/u4.json'), 'utf8'));
+
+test('u4.json 通过校验', () => {
+  const r = validateUnit(u4);
+  assert.equal(r.valid, true, '校验失败: ' + r.errors.join(' | '));
+  assert.deepEqual(r.errors, []);
+});
+
+test('u4.json 内容与课本/同步优学一致：12 词、四会 9、认读 3', () => {
+  assert.equal(u4.words.length, 12);
+  const four = u4.words.filter((w) => w.tier === 'four').map((w) => w.w);
+  const read = u4.words.filter((w) => w.tier === 'read').map((w) => w.w);
+  assert.equal(four.length, 9, 'U4 四会词应为 9');
+  assert.equal(read.length, 3, 'U4 认读词应为 3（use / English book / Chinese book）');
+  assert.ok(read.includes('use'));
+  assert.ok(read.includes('English book'));
+});
+
+test('u4.json 含 2 个故事（Kaikai 做风筝 / Dino 借东西）', () => {
+  assert.equal(u4.stories.length, 2);
+  const ids = u4.stories.map((s) => s.id).sort();
+  assert.deepEqual(ids, ['D', 'F']);
+  u4.stories.forEach((s) => assert.ok(Array.isArray(s.lines) && s.lines.length > 0, s.id + ' 必须有 lines'));
+});
+
+test('u4.json 语法卡含 3 条 childCard（Excuse me / 借物 / 致谢）', () => {
+  assert.equal(u4.grammar.childCards.length, 3);
+  const titles = u4.grammar.childCards.map((c) => c.title).join('|');
+  assert.match(titles, /Excuse me/);
+  assert.match(titles, /谢谢|致谢/);
+});
+
+test('u4.json 考点微测覆盖同步优学 I–IX 九类题型 + oo 语音（P 类）', () => {
+  const families = new Set(u4.quiz.map((q) => q.id.replace(/\d+$/, '')));
+  const want = ['I', 'II', 'III', 'IV', 'VI', 'VIII', 'IX', 'P'];
+  want.forEach((f) => assert.ok(families.has(f), '考点微测缺少题型 ' + f));
+  assert.equal(families.has('V'), false, 'V（任务卡连线）未做成交互题，应为空');
+  assert.equal(families.has('VII'), false, 'VII（补全对话）未做成交互题，应为空');
+  assert.ok(families.has('P'), '缺少 oo 语音题（P 类，U4 语音考点）');
+  assert.ok(u4.quiz.every((q) => q.answer >= 0 && q.answer < q.options.length), '所有 answer 必须在 options 范围内');
+});
+
+test('u4.json 核心句型对话对覆盖 6 个槽位 × 2（use/borrow）= 12 对', () => {
+  assert.equal(u4.sentences.slots.length, 6);
+  const pairs = Object.values(u4.sentences.dialogues).reduce((s, a) => s + a.length, 0);
+  assert.equal(pairs, 12, '应答配对应为 12 对');
+});
+
+test('u4.json 关键英语文本都已生成预生成音频', () => {
+  const need = [
+    'Can I use your pencil, please?',
+    'Sure. Here you are.',
+    'You\'re welcome.',
+    'Excuse me.',
+    'Thank you.',
+    'pencil', 'eraser', 'dictionary', 'glue', 'brush', 'notebook', 'blackboard', 'borrow',
+  ];
+  need.forEach((t) => assert.ok(audioSlugs.has(audioSlug(t)), '缺少音频: ' + t + ' -> ' + audioSlug(t)));
+});

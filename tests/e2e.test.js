@@ -174,13 +174,34 @@ test('E2E-28 字帖词序纯函数：单元内四会在前、跨单元追加去�
   } finally { cleanup(); }
 });
 
-test('E2E-1 首页渲染：8 张单元卡，仅 U5 可进', async () => {
+test('E2E-1 首页渲染：8 张单元卡，U5 与 U4 可进（其余锁定）', async () => {
   const { window, cleanup } = await freshApp();
   try {
     const cards = window.document.querySelectorAll('.unit-card');
     assert.equal(cards.length, 8);
-    assert.ok(window.document.querySelector('.unit-card.is-open .unit-name')?.textContent.includes('May I have a pet?'));
-    assert.equal(window.document.querySelectorAll('.unit-card.is-locked').length, 7);
+    const openNames = [...window.document.querySelectorAll('.unit-card.is-open .unit-name')].map((n) => n.textContent);
+    assert.ok(openNames.some((t) => t.includes('May I have a pet?')), 'U5 应开放');
+    assert.ok(openNames.some((t) => t.includes('Can I use your pencil')), 'U4 应开放');
+    assert.equal(window.document.querySelectorAll('.unit-card.is-locked').length, 6);
+  } finally { cleanup(); }
+});
+
+test('E2E-1b 多单元路由：从首页进入 U4 能正确加载 U4 数据', async () => {
+  const { window, app, cleanup } = await freshApp();
+  try {
+    // 启动默认是 U5
+    assert.equal(app.state.data.id, 'u5');
+    // 点首页 U4 卡片进入
+    const u4card = [...window.document.querySelectorAll('.unit-card')].find((c) => c.textContent.includes('Can I use your pencil'));
+    assert.ok(u4card, '首页应有 U4 卡片');
+    u4card.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 60));
+    assert.equal(app.state.data.id, 'u4', '进入 U4 后应加载 U4 数据');
+    assert.match(mainText(window), /向同学礼貌地借东西/, 'U4 目标文案应出现');
+    assert.ok(!mainText(window).includes('May I have a ___?'), '不应再出现 U5 的句型预览');
+    // 再切回 U5（直接路由，避免依赖首页卡片）
+    await navigate(window, app, '#/unit/u5');
+    assert.equal(app.state.data.id, 'u5', '切回应加载回 U5');
   } finally { cleanup(); }
 });
 

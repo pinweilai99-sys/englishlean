@@ -34,7 +34,7 @@ test('app.js 挂载了路由与核心能力', () => {
   assert.match(src, /localStorage/);
   // 错误处理：数据校验失败要有兜底提示
   assert.match(src, /validateUnit/);
-  assert.match(src, /内容数据有问题/);
+  assert.match(src, /单元数据校验失败|加载失败/);
 });
 
 test('单词卡实现三步学习流且步骤不可跳', () => {

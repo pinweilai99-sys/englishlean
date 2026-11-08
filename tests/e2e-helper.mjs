@@ -120,13 +120,25 @@ export async function freshApp({ seed = null, stubAudio = true, realAudio = fals
     delete window.MediaRecorder;
   }
 
-  // --- fetch 桩：直接读本地数据文件 ---
+  // --- fetch 桩：按 URL 返回对应本地文件（支持多单元路由） ---
   const realFetch = globalThis.fetch;
-  globalThis.fetch = async () => ({
-    ok: true, status: 200,
-    json: async () => unitData,
-    text: async () => JSON.stringify(unitData),
-  });
+  globalThis.fetch = async (u) => {
+    const url = String(u);
+    let body;
+    if (url.includes('/units/') && url.endsWith('.json')) {
+      const m = url.match(/units\/([^/?]+)\.json/);
+      body = readFileSync(join(root, 'data/units', `${m[1]}.json`), 'utf8');
+    } else if (url.includes('manifest.json')) {
+      body = readFileSync(join(root, 'assets/audio/manifest.json'), 'utf8');
+    } else {
+      body = JSON.stringify(unitData);
+    }
+    return {
+      ok: true, status: 200,
+      json: async () => JSON.parse(body),
+      text: async () => body,
+    };
+  };
 
   // --- 导入应用（缓存击穿，保证每个用例独立实例） ---
   const appUrl = pathToFileURL(join(root, 'js/app.js')).href + `?boot=${bootSeq}`;

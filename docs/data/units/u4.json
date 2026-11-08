@@ -1,0 +1,1105 @@
+{
+  "id": "u4",
+  "no": 4,
+  "title": "Can I use your pencil, please?",
+  "titleZh": "我可以借你的铅笔吗？",
+  "objective": {
+    "child": "学完你能用英语向同学礼貌地借东西（铅笔、尺子、橡皮……），并懂得借到要说谢谢。",
+    "parent": "借物用语（Can I use/borrow your…?）＋ 应答（Sure. Here you are. / Sorry.）＋ 礼貌与致谢"
+  },
+  "words": [
+    {
+      "w": "pencil",
+      "ipa": "/ˈpensl/",
+      "zh": "铅笔",
+      "tier": "four",
+      "img": "✏️",
+      "tts": "pencil",
+      "chunks": ["pen", "cil"],
+      "split": ["pen", "cil"],
+      "memo": "pen·cil：c 在 i/e 前常发 /s/（pencil 读 /ˈpensl/）"
+    },
+    {
+      "w": "ruler",
+      "ipa": "/ˈruːlə(r)/",
+      "zh": "尺子",
+      "tier": "four",
+      "img": "📏",
+      "tts": "ruler",
+      "chunks": ["ru", "ler"],
+      "split": ["ru", "ler"],
+      "memo": "ru·ler：u 发长音 /uː/，和 blue / glue 同族"
+    },
+    {
+      "w": "eraser",
+      "ipa": "/ɪˈreɪzə(r)/",
+      "zh": "橡皮",
+      "tier": "four",
+      "img": "🧽",
+      "tts": "eraser",
+      "chunks": ["e", "ra", "ser"],
+      "split": ["e", "ra", "ser"],
+      "memo": "e·ra·ser：s 在 e 前读 /z/（e·ra·zer）"
+    },
+    {
+      "w": "dictionary",
+      "ipa": "/ˈdɪkʃənri/",
+      "zh": "词典",
+      "tier": "four",
+      "img": "📕",
+      "tts": "dictionary",
+      "chunks": ["dic", "tion", "ary"],
+      "split": ["dic", "tion", "ary"],
+      "memo": "dic·tion·ary：重音在 dic，tion 读 /ʃən/"
+    },
+    {
+      "w": "glue",
+      "ipa": "/ɡluː/",
+      "zh": "胶水",
+      "tier": "four",
+      "img": "🧴",
+      "tts": "glue",
+      "chunks": ["glue"],
+      "split": ["gl", "ue"],
+      "memo": "ue 组合发 /uː/：blue / true 同族（u 不读字母名）"
+    },
+    {
+      "w": "brush",
+      "ipa": "/brʌʃ/",
+      "zh": "画笔；刷子",
+      "tier": "four",
+      "img": "🖌️",
+      "tts": "brush",
+      "chunks": ["brush"],
+      "split": ["br", "ush"],
+      "memo": "sh 组合发 /ʃ/：和 shop 同族（单字母不拆）"
+    },
+    {
+      "w": "notebook",
+      "ipa": "/ˈnəʊtbʊk/",
+      "zh": "笔记本",
+      "tier": "four",
+      "img": "📓",
+      "tts": "notebook",
+      "chunks": ["note", "book"],
+      "split": ["note", "book"],
+      "memo": "合成词 note＋book；book 里 oo 发 /ʊ/"
+    },
+    {
+      "w": "blackboard",
+      "ipa": "/ˈblækbɔːd/",
+      "zh": "黑板",
+      "tier": "four",
+      "img": "🟫",
+      "tts": "blackboard",
+      "chunks": ["black", "board"],
+      "split": ["black", "board"],
+      "memo": "合成词 black＋board；ck 只读 /k/"
+    },
+    {
+      "w": "borrow",
+      "ipa": "/ˈbɒrəʊ/",
+      "zh": "借",
+      "tier": "four",
+      "img": "🤝",
+      "tts": "borrow",
+      "chunks": ["bor", "row"],
+      "split": ["bor", "row"],
+      "memo": "ow 组合发 /əʊ/：和 know / show 同族"
+    },
+    {
+      "w": "use",
+      "ipa": "/juːz/",
+      "zh": "用",
+      "tier": "read",
+      "img": "✋",
+      "tts": "use",
+      "chunks": ["use"],
+      "split": ["u", "se"],
+      "memo": "u 发 /juː/：和 you 开头音一样（作动词读 /juːz/）"
+    },
+    {
+      "w": "English book",
+      "ipa": "/ˈɪŋɡlɪʃ bʊk/",
+      "zh": "英语书",
+      "tier": "read",
+      "img": "📘",
+      "tts": "English book",
+      "chunks": ["English", "book"],
+      "split": ["English", "book"],
+      "memo": "English＋book；English 里 ng 发 /ŋ/"
+    },
+    {
+      "w": "Chinese book",
+      "ipa": "/ˌtʃaɪˈniːz bʊk/",
+      "zh": "语文书",
+      "tier": "read",
+      "img": "📗",
+      "tts": "Chinese book",
+      "chunks": ["Chinese", "book"],
+      "split": ["Chinese", "book"],
+      "memo": "Chinese＋book；Ch 发 /tʃ/"
+    }
+  ],
+  "phonics": {
+    "pattern": "oo",
+    "ipa": "/ʊ/",
+    "words": [
+      "book",
+      "cook",
+      "good",
+      "wood",
+      "wool",
+      "foot"
+    ],
+    "chant": "A bear lives in the woods. She wears a wool coat. She reads a good book. She learns how to cook."
+  },
+  "listenPairs": [
+    ["pencil", "pen"],
+    ["ruler", "rubber"],
+    ["eraser", "elevator"],
+    ["dictionary", "doctor"],
+    ["glue", "blue"],
+    ["brush", "crush"],
+    ["notebook", "note"],
+    ["blackboard", "board"],
+    ["borrow", "sorry"],
+    ["use", "juice"],
+    ["English book", "English"],
+    ["Chinese book", "Chinese"]
+  ],
+  "sentences": {
+    "pattern": "Can I use your ___?",
+    "slots": [
+      "pencil",
+      "ruler",
+      "eraser",
+      "dictionary",
+      "glue",
+      "brush"
+    ],
+    "answers": [
+      "Sure. Here you are.",
+      "Sorry, I'm using it."
+    ],
+    "extra": {
+      "Can I have some grapes?": "Sure."
+    },
+    "dialogues": {
+      "pencil": [
+        {
+          "q": "Can I use your pencil, please?",
+          "a": "Sure. Here you are.",
+          "zh": "我能用一下你的铅笔吗？——当然，给你。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
+          "opts": [
+            "Sure. Here you are.",
+            "Sorry.",
+            "No, you can't."
+          ],
+          "rule": "借物公式：Can I use your + 东西 + , please? 对方愿意就回 Sure. Here you are."
+        },
+        {
+          "q": "Can I borrow your pencil?",
+          "a": "Sure. Here you are.",
+          "zh": "我能借你的铅笔吗？——当然，给你。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
+          "opts": [
+            "Sure. Here you are.",
+            "Sorry.",
+            "Thank you."
+          ],
+          "rule": "borrow 也是借；use 是用。问句礼貌，答句给东西用 Sure. Here you are."
+        }
+      ],
+      "ruler": [
+        {
+          "q": "Can I use your ruler, please?",
+          "a": "Sure. Here you are.",
+          "zh": "我能用一下你的尺子吗？——当然，给你。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
+          "opts": [
+            "Sure. Here you are.",
+            "Sorry.",
+            "No, you can't."
+          ],
+          "rule": "借尺子同样用 Can I use your…, please? 答 Sure. Here you are."
+        },
+        {
+          "q": "Can I borrow your ruler?",
+          "a": "Sure. Here you are.",
+          "zh": "我能借你的尺子吗？——当然，给你。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
+          "opts": [
+            "Sure. Here you are.",
+            "Sorry.",
+            "Thank you."
+          ],
+          "rule": "borrow 借；use 用，两种问法都成立。"
+        }
+      ],
+      "eraser": [
+        {
+          "q": "Can I use your eraser, please?",
+          "a": "Sure. Here you are.",
+          "zh": "我能用一下你的橡皮吗？——当然，给你。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
+          "opts": [
+            "Sure. Here you are.",
+            "Sorry.",
+            "No, you can't."
+          ],
+          "rule": "借橡皮：Can I use your eraser, please? 答 Sure. Here you are."
+        },
+        {
+          "q": "Can I borrow your eraser?",
+          "a": "Sure. Here you are.",
+          "zh": "我能借你的橡皮吗？——当然，给你。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
+          "opts": [
+            "Sure. Here you are.",
+            "Sorry.",
+            "Thank you."
+          ],
+          "rule": "borrow / use 都能借橡皮；礼貌 + please。"
+        }
+      ],
+      "dictionary": [
+        {
+          "q": "Can I use your dictionary, please?",
+          "a": "Sure. Here you are.",
+          "zh": "我能用一下你的词典吗？——当然，给你。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
+          "opts": [
+            "Sure. Here you are.",
+            "Sorry.",
+            "No, you can't."
+          ],
+          "rule": "词典较重，借的时候更要先问 Can I use…, please?"
+        },
+        {
+          "q": "Can I borrow your dictionary?",
+          "a": "Sure. Here you are.",
+          "zh": "我能借你的词典吗？——当然，给你。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
+          "opts": [
+            "Sure. Here you are.",
+            "Sorry.",
+            "Thank you."
+          ],
+          "rule": "borrow 借词典，答句同样 Sure. Here you are."
+        }
+      ],
+      "glue": [
+        {
+          "q": "Can I use your glue, please?",
+          "a": "Sure. Here you are.",
+          "zh": "我能用一下你的胶水吗？——当然，给你。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
+          "opts": [
+            "Sure. Here you are.",
+            "Sorry.",
+            "No, you can't."
+          ],
+          "rule": "胶水 glue 里 ue 发 /uː/，和 blue 同族。"
+        },
+        {
+          "q": "Can I borrow your glue?",
+          "a": "Sure. Here you are.",
+          "zh": "我能借你的胶水吗？——当然，给你。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
+          "opts": [
+            "Sure. Here you are.",
+            "Sorry.",
+            "Thank you."
+          ],
+          "rule": "glue 是液体，借的时候小心别倒。"
+        }
+      ],
+      "brush": [
+        {
+          "q": "Can I use your brush, please?",
+          "a": "Sure. Here you are.",
+          "zh": "我能用一下你的画笔吗？——当然，给你。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
+          "opts": [
+            "Sure. Here you are.",
+            "Sorry.",
+            "No, you can't."
+          ],
+          "rule": "画笔 brush 里 sh 发 /ʃ/（和 shop 同族）。"
+        },
+        {
+          "q": "Can I borrow your brush?",
+          "a": "Sure. Here you are.",
+          "zh": "我能借你的画笔吗？——当然，给你。",
+          "cue": "yes",
+          "cueZh": "点头：可以",
+          "opts": [
+            "Sure. Here you are.",
+            "Sorry.",
+            "Thank you."
+          ],
+          "rule": "美术教室常借画笔，礼貌问 Can I borrow…?"
+        }
+      ]
+    }
+  },
+  "roleplay": {
+    "scene": "美术教室：你想借同学的文具",
+    "child": "Can I use your ___, please?",
+    "childZh": "我可以借你的___吗？",
+    "parent": [
+      "Sure. Here you are.",
+      "Sorry, I'm using it.",
+      "Excuse me.",
+      "Thank you."
+    ],
+    "parentZh": {
+      "Sure. Here you are.": "当然，给你。",
+      "Sorry, I'm using it.": "不好意思，我正在用呢。",
+      "Excuse me.": "打扰一下。",
+      "Thank you.": "谢谢。"
+    }
+  },
+  "writing": {
+    "prompt": "Molly 在美术教室画画，需要向同学借文具。请写三句借东西的话。",
+    "slots": 3,
+    "zhMap": {
+      "Can I use your brush, please?": "我能用一下你的画笔吗？",
+      "Sure. Here you are.": "当然，给你。",
+      "Can I use some paints, please?": "我能用一点颜料吗？",
+      "OK. Here you are.": "好的，给你。",
+      "Can I use some water, please?": "我能用一点水吗？",
+      "Thank you.": "谢谢。",
+      "You're welcome.": "不客气。"
+    },
+    "sampleDialogue": {
+      "scene": "🎨 美术教室",
+      "lines": [
+        {
+          "who": "🧒 Molly",
+          "t": "Can I use your brush, please?",
+          "zh": "我能用一下你的画笔吗？"
+        },
+        {
+          "who": "👧 同学",
+          "t": "Sure. Here you are.",
+          "zh": "当然，给你。"
+        },
+        {
+          "who": "🧒 Molly",
+          "t": "Can I use some paints, please?",
+          "zh": "我能用一点颜料吗？"
+        },
+        {
+          "who": "👧 同学",
+          "t": "OK. Here you are.",
+          "zh": "好的，给你。"
+        },
+        {
+          "who": "🧒 Molly",
+          "t": "Thank you. Your picture is beautiful!",
+          "zh": "谢谢。你的画真漂亮！"
+        },
+        {
+          "who": "👧 同学",
+          "t": "You're welcome.",
+          "zh": "不客气。"
+        }
+      ]
+    },
+    "items": [
+      {
+        "ctx": "Molly wants to paint. She says to a classmate:",
+        "ctxZh": "Molly 想画画，她对同学说：",
+        "askWho": "Molly",
+        "ask": "Can I use your brush, please?",
+        "askZh": "我能用一下你的画笔吗？",
+        "a": "Sure. Here you are.",
+        "opts": [
+          "Sure. Here you are.",
+          "Sorry.",
+          "You're welcome."
+        ]
+      },
+      {
+        "ctx": "She needs some paints.",
+        "ctxZh": "她需要一些颜料。",
+        "askWho": "Molly",
+        "ask": "Can I use some paints, please?",
+        "askZh": "我能用一点颜料吗？",
+        "a": "OK. Here you are.",
+        "opts": [
+          "OK. Here you are.",
+          "Thank you.",
+          "Sure. Here you are."
+        ]
+      },
+      {
+        "ctx": "She wants some water to clean the brush.",
+        "ctxZh": "她想用点水涮笔。",
+        "askWho": "Molly",
+        "ask": "Can I use some water, please?",
+        "askZh": "我能用一点水吗？",
+        "a": "Sure.",
+        "opts": [
+          "Sure.",
+          "Sorry.",
+          "You're welcome."
+        ]
+      }
+    ]
+  },
+  "mindmap": {
+    "chain": [
+      "What do you want to use?",
+      "How do you ask politely?",
+      "What do you say after getting it?",
+      "What if a friend borrows from you?"
+    ],
+    "chainZh": [
+      "你想用/借什么？",
+      "你怎么礼貌开口？",
+      "拿到东西说什么？",
+      "朋友向你借，你怎么办？"
+    ],
+    "sample": "Excuse me. Can I use your pencil, please? Sure. Here you are. Thank you. You're welcome.",
+    "steps": [
+      {
+        "q": "What do you want to use?",
+        "qZh": "你想用/借什么？",
+        "opts": [
+          { "t": "Can I use your pencil?", "zh": "我能用你的铅笔吗？" },
+          { "t": "Can I use your ruler?", "zh": "我能用你的尺子吗？" },
+          { "t": "Can I use your eraser?", "zh": "我能用你的橡皮吗？" },
+          { "t": "Can I borrow your dictionary?", "zh": "我能借你的词典吗？" }
+        ]
+      },
+      {
+        "q": "How do you ask politely?",
+        "qZh": "你怎么礼貌开口？",
+        "opts": [
+          { "t": "Excuse me. Can I use your..., please?", "zh": "打扰一下，我能用一下你的……吗？" },
+          { "t": "Can I have a look at it?", "zh": "我能看看它吗？" }
+        ]
+      },
+      {
+        "q": "What do you say after getting it?",
+        "qZh": "拿到东西说什么？",
+        "opts": [
+          { "t": "Thank you.", "zh": "谢谢。" },
+          { "t": "Thanks.", "zh": "谢谢。" }
+        ]
+      },
+      {
+        "q": "What if a friend borrows from you?",
+        "qZh": "朋友向你借，你怎么办？",
+        "opts": [
+          { "t": "Sure. Here you are.", "zh": "当然，给你。" },
+          { "t": "You're welcome.", "zh": "不客气。" }
+        ]
+      }
+    ],
+    "ending": {
+      "t": "We help each other!",
+      "zh": "我们互相帮助！"
+    }
+  },
+  "stories": [
+    {
+      "id": "F",
+      "title": "Kaikai 做风筝",
+      "titleEn": "Let's make a kite",
+      "text": "On a sunny day, Kaikai wants to make a kite. \"Can I borrow your pencil, please?\" he asks Lulu. \"Sure. Here you are.\" \"Can I use your brushes, Jiajia?\" Jiajia gives him the brushes. \"I think you need some glue,\" Xiaoxiao says. Xiaoxiao passes the glue to Kaikai. \"Thank you all. Let's make the kite together.\" Kaikai is happy. They work together and help each other. \"Your kite is beautiful!\" Xiaoxiao says. \"It's our kite,\" Kaikai says. They laugh and they are happy today.",
+      "tasks": [
+        "跟读 3 遍",
+        "演一演：Kaikai 向谁借了东西？"
+      ],
+      "narration": "On a sunny day, Kaikai wants to make a kite.",
+      "narrationZh": "一个晴天，凯凯想做一只风筝。",
+      "lines": [
+        {
+          "who": "🧒 Kaikai",
+          "t": "Can I borrow your pencil, please?",
+          "zh": "我能借你的铅笔吗？"
+        },
+        {
+          "who": "🧒 Lulu",
+          "t": "Sure. Here you are.",
+          "zh": "当然，给你。"
+        },
+        {
+          "who": "🧒 Kaikai",
+          "t": "Can I use your brushes, Jiajia?",
+          "zh": "佳佳，我能用你的画笔吗？"
+        },
+        {
+          "who": "🧒 Jiajia",
+          "t": "Here you are.",
+          "zh": "给你。"
+        },
+        {
+          "who": "🧒 Xiaoxiao",
+          "t": "I think you need some glue.",
+          "zh": "我想你需要一点胶水。"
+        },
+        {
+          "who": "🧒 Xiaoxiao",
+          "t": "Thank you all. Let's make the kite together.",
+          "zh": "谢谢大家。我们一起做风筝吧。"
+        },
+        {
+          "who": "🧒 Xiaoxiao",
+          "t": "Your kite is beautiful!",
+          "zh": "你的风筝真漂亮！"
+        },
+        {
+          "who": "🧒 Kaikai",
+          "t": "It's our kite.",
+          "zh": "这是我们的风筝。"
+        }
+      ],
+      "quiz": [
+        {
+          "q": "Kaikai wants to make a kite.",
+          "qZh": "凯凯想做一只风筝。",
+          "type": "tf",
+          "options": ["T", "F"],
+          "a": "T"
+        },
+        {
+          "q": "Kaikai borrows a pencil from Lulu.",
+          "qZh": "凯凯向露露借了铅笔。",
+          "type": "tf",
+          "options": ["T", "F"],
+          "a": "T"
+        },
+        {
+          "q": "Who gives Kaikai the glue?",
+          "qZh": "谁给了凯凯胶水？",
+          "type": "choice",
+          "options": ["Xiaoxiao", "Lulu", "Jiajia"],
+          "a": "Xiaoxiao"
+        }
+      ]
+    },
+    {
+      "id": "D",
+      "title": "Dino 借东西",
+      "titleEn": "Can I use your ruler?",
+      "text": "Dino, can I have some grapes, please? Sure. Dino, can I use your ruler, please? Yes. Here you are. Thanks. My robot doesn't work, Tim. Don't worry! Let me fix it. Hello, my friends! Thank you, Tim. You're welcome.",
+      "tasks": [
+        "跟读 3 遍",
+        "演一演：Tim 怎么帮忙的？"
+      ],
+      "narration": "",
+      "narrationZh": "",
+      "lines": [
+        {
+          "who": "🦖 Dino",
+          "t": "Dino, can I have some grapes, please?",
+          "zh": "Dino，我能吃几颗葡萄吗？"
+        },
+        {
+          "who": "🦖 同伴",
+          "t": "Sure.",
+          "zh": "当然可以。"
+        },
+        {
+          "who": "🦖 Dino",
+          "t": "Can I use your ruler, please?",
+          "zh": "我能用一下你的尺子吗？"
+        },
+        {
+          "who": "🦖 同伴",
+          "t": "Yes. Here you are.",
+          "zh": "可以，给你。"
+        },
+        {
+          "who": "🦖 Tim",
+          "t": "Thanks.",
+          "zh": "谢谢。"
+        },
+        {
+          "who": "🤖 机器人",
+          "t": "My robot doesn't work, Tim.",
+          "zh": "Tim，我的机器人坏了。"
+        },
+        {
+          "who": "🦖 Tim",
+          "t": "Don't worry! Let me fix it.",
+          "zh": "别担心！我来修好它。"
+        },
+        {
+          "who": "👋 大家",
+          "t": "Hello, my friends! Thank you, Tim.",
+          "zh": "你们好，朋友们！谢谢你，Tim。"
+        },
+        {
+          "who": "🦖 Tim",
+          "t": "You're welcome.",
+          "zh": "不客气。"
+        }
+      ],
+      "quiz": [
+        {
+          "q": "Dino can have some grapes.",
+          "qZh": "Dino 能吃到葡萄。",
+          "type": "tf",
+          "options": ["T", "F"],
+          "a": "T"
+        },
+        {
+          "q": "Tim fixes the robot.",
+          "qZh": "Tim 修好了机器人。",
+          "type": "tf",
+          "options": ["T", "F"],
+          "a": "T"
+        },
+        {
+          "q": "How does Tim help?",
+          "qZh": "Tim 怎么帮忙的？",
+          "type": "choice",
+          "options": ["He fixes the robot.", "He draws a line.", "He cleans the board."],
+          "a": "He fixes the robot."
+        }
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "I1",
+      "type": "listen_choice",
+      "prompt": "听音选词：选你听到的文具",
+      "speak": "pencil",
+      "options": ["pencil", "pen", "pan"],
+      "answer": 0,
+      "explain": "pencil 铅笔；pen 钢笔；pan 平底锅。"
+    },
+    {
+      "id": "I2",
+      "type": "listen_choice",
+      "prompt": "听音选词",
+      "speak": "ruler",
+      "options": ["ruler", "rubber", "number"],
+      "answer": 0,
+      "explain": "ruler 尺子；rubber 橡皮。"
+    },
+    {
+      "id": "I3",
+      "type": "listen_choice",
+      "prompt": "听音选词（近音辨析）",
+      "speak": "eraser",
+      "options": ["eraser", "elevator", "empty"],
+      "answer": 0,
+      "explain": "eraser 橡皮；elevator 电梯。"
+    },
+    {
+      "id": "I4",
+      "type": "listen_choice",
+      "prompt": "听音选词（近音辨析）",
+      "speak": "dictionary",
+      "options": ["dictionary", "doctor", "dinner"],
+      "answer": 0,
+      "explain": "dictionary 词典；doctor 医生。"
+    },
+    {
+      "id": "I5",
+      "type": "listen_choice",
+      "prompt": "听音选词（ue 发音）",
+      "speak": "glue",
+      "options": ["glue", "blue", "clue"],
+      "answer": 0,
+      "explain": "glue 胶水（ue 发 /uː/）；blue 蓝色；clue 线索。"
+    },
+    {
+      "id": "II1",
+      "type": "listen_pick",
+      "prompt": "听音选图：橡皮",
+      "speak": "eraser",
+      "options": ["🧽 橡皮", "✏️ 铅笔", "📏 尺子"],
+      "answer": 0,
+      "explain": "eraser 是橡皮。"
+    },
+    {
+      "id": "II2",
+      "type": "listen_pick",
+      "prompt": "听音选图：胶水",
+      "speak": "glue",
+      "options": ["🧴 胶水", "📓 笔记本", "🖌️ 画笔"],
+      "answer": 0,
+      "explain": "glue 是胶水。"
+    },
+    {
+      "id": "II3",
+      "type": "listen_pick",
+      "prompt": "听音选图：笔记本",
+      "speak": "notebook",
+      "options": ["📓 笔记本", "📕 词典", "🟫 黑板"],
+      "answer": 0,
+      "explain": "notebook 是笔记本。"
+    },
+    {
+      "id": "II4",
+      "type": "listen_pick",
+      "prompt": "听音选图：画笔",
+      "speak": "brush",
+      "options": ["🖌️ 画笔", "🧽 橡皮", "📏 尺子"],
+      "answer": 0,
+      "explain": "brush 是画笔/刷子。"
+    },
+    {
+      "id": "II5",
+      "type": "listen_pick",
+      "prompt": "听音选图：黑板",
+      "speak": "blackboard",
+      "options": ["🟫 黑板", "📘 英语书", "✏️ 铅笔"],
+      "answer": 0,
+      "explain": "blackboard 是黑板。"
+    },
+    {
+      "id": "III1",
+      "type": "listen_choice",
+      "prompt": "听句子，选你听到的",
+      "speak": "Where is the ruler?",
+      "options": ["Where is the ruler?", "Where is the book?", "Where is the pen?"],
+      "answer": 0,
+      "explain": "ruler 尺子；book 书；pen 钢笔。"
+    },
+    {
+      "id": "III2",
+      "type": "listen_choice",
+      "prompt": "听句子，选你听到的",
+      "speak": "Let me fix it.",
+      "options": ["Let me fix it.", "Let me make it.", "Let me clean it."],
+      "answer": 0,
+      "explain": "fix 修理；make 制作；clean 擦。"
+    },
+    {
+      "id": "III3",
+      "type": "listen_choice",
+      "prompt": "听句子，选你听到的",
+      "speak": "Please draw a line.",
+      "options": ["Please draw a line.", "Please help me.", "Please clean the blackboard."],
+      "answer": 0,
+      "explain": "draw a line 画一条线；help me 帮我；clean the blackboard 擦黑板。"
+    },
+    {
+      "id": "III4",
+      "type": "listen_choice",
+      "prompt": "听句子，选你听到的",
+      "speak": "Can I use your pencil?",
+      "options": ["Can I use your pencil?", "Can I use your pen?", "Can I borrow your pencil?"],
+      "answer": 0,
+      "explain": "use 用；borrow 借；pencil 铅笔；pen 钢笔。"
+    },
+    {
+      "id": "III5",
+      "type": "listen_choice",
+      "prompt": "听句子，选你听到的",
+      "speak": "Here you are.",
+      "options": ["Here you are.", "I am here.", "Thank you."],
+      "answer": 0,
+      "explain": "Here you are. 给你；Thank you. 谢谢。"
+    },
+    {
+      "id": "IV1",
+      "type": "cloze",
+      "prompt": "选词填空：I have an English dic___ary.",
+      "options": ["dictionary", "stationery", "blackboard"],
+      "answer": 0,
+      "explain": "dictionary 词典，课本人教四会词。"
+    },
+    {
+      "id": "IV2",
+      "type": "cloze",
+      "prompt": "选词填空：Don't wo___. I can help you.",
+      "options": ["worry", "work", "sorry"],
+      "answer": 0,
+      "explain": "worry 担心；Don't worry! 别担心！"
+    },
+    {
+      "id": "IV3",
+      "type": "cloze",
+      "prompt": "选词填空：Please clean the b___ckbo___d.",
+      "options": ["blackboard", "book", "brush"],
+      "answer": 0,
+      "explain": "blackboard 黑板，ck 只读 /k/。"
+    },
+    {
+      "id": "IV4",
+      "type": "cloze",
+      "prompt": "选词填空：My toy car doesn't w___k.",
+      "options": ["work", "walk", "wool"],
+      "answer": 0,
+      "explain": "work 工作/运转；doesn't work 坏了。"
+    },
+    {
+      "id": "IV5",
+      "type": "cloze",
+      "prompt": "选词填空：Can I bor___ your pencil?",
+      "options": ["borrow", "brown", "born"],
+      "answer": 0,
+      "explain": "borrow 借；borrow your pencil 借你的铅笔。"
+    },
+    {
+      "id": "VI1",
+      "type": "cloze",
+      "prompt": "单项选择：—___ I use your pencil, please? —Sure.",
+      "options": ["Do", "Can", "Did"],
+      "answer": 1,
+      "explain": "请求许可用 Can I…?；Do/Did 不能这么用。"
+    },
+    {
+      "id": "VI2",
+      "type": "cloze",
+      "prompt": "单项选择：Here ___ are.",
+      "options": ["you", "your", "yours"],
+      "answer": 0,
+      "explain": "Here you are. 给你；you 主/宾格。"
+    },
+    {
+      "id": "VI3",
+      "type": "cloze",
+      "prompt": "单项选择：My robot ___ work.",
+      "options": ["do", "don't", "doesn't"],
+      "answer": 2,
+      "explain": "主语 robot 三单，否定用 doesn't。"
+    },
+    {
+      "id": "VI4",
+      "type": "cloze",
+      "prompt": "单项选择：Can I have a look ___ your book?",
+      "options": ["on", "in", "at"],
+      "answer": 2,
+      "explain": "have a look at… 看一看……（固定搭配 at）。"
+    },
+    {
+      "id": "VI5",
+      "type": "cloze",
+      "prompt": "单项选择：Yunyun ___ Lulu, \"Can I use your pencil?\"",
+      "options": ["asks", "wants", "learns"],
+      "answer": 0,
+      "explain": "ask 问；ask sb. 问某人。"
+    },
+    {
+      "id": "VIII1",
+      "type": "communicate",
+      "prompt": "情景交际：Please clean the blackboard. → ?",
+      "options": ["OK.", "Thank you.", "Sure. Here you are."],
+      "answer": 0,
+      "explain": "老师让擦黑板，答 OK. 表示照做。"
+    },
+    {
+      "id": "VIII2",
+      "type": "communicate",
+      "prompt": "情景交际：Your kite is beautiful! → ?",
+      "options": ["Thank you.", "Sorry.", "OK."],
+      "answer": 0,
+      "explain": "被夸奖要说 Thank you. 谢谢。"
+    },
+    {
+      "id": "VIII3",
+      "type": "communicate",
+      "prompt": "情景交际：My robot doesn't work. → ?",
+      "options": ["Don't worry!", "Thank you.", "Sure."],
+      "answer": 0,
+      "explain": "别人说东西坏了，安慰 Don't worry! 别担心。"
+    },
+    {
+      "id": "VIII4",
+      "type": "communicate",
+      "prompt": "情景交际：Where is your notebook? → ?",
+      "options": ["It's at home.", "Here you are.", "Thank you."],
+      "answer": 0,
+      "explain": "问笔记本在哪，答 It's at home. 在家。"
+    },
+    {
+      "id": "VIII5",
+      "type": "communicate",
+      "prompt": "情景交际：Can I use your book? → ?",
+      "options": ["Sure. Here you are.", "It's at home.", "Don't worry!"],
+      "answer": 0,
+      "explain": "借书请求，愿意就答 Sure. Here you are."
+    },
+    {
+      "id": "IX1",
+      "type": "true_false",
+      "prompt": "绘本判断：Emma has a new schoolbag.",
+      "options": ["T", "F"],
+      "answer": 0,
+      "explain": "绘本第一句就是 Emma has a new schoolbag."
+    },
+    {
+      "id": "IX2",
+      "type": "true_false",
+      "prompt": "绘本判断：There is a glue in the schoolbag.",
+      "options": ["T", "F"],
+      "answer": 1,
+      "explain": "书包里有语文书、词典、笔记本、铅笔盒；没提到 glue。"
+    },
+    {
+      "id": "IX3",
+      "type": "true_false",
+      "prompt": "绘本判断：Emma's pencil case is small.",
+      "options": ["T", "F"],
+      "answer": 1,
+      "explain": "绘本说 big pencil case（大文具盒）。"
+    },
+    {
+      "id": "IX4",
+      "type": "read",
+      "prompt": "绘本阅读：What does Emma's schoolbag have?",
+      "options": ["a Chinese book, a dictionary, two notebooks", "a glue, a pen", "a kite"],
+      "answer": 0,
+      "explain": "书包里有语文书、词典、两本笔记本和铅笔盒。"
+    },
+    {
+      "id": "IX5",
+      "type": "read",
+      "prompt": "绘本阅读：What does the magic pencil do?",
+      "options": ["sharpens itself", "writes wrong words", "paints lines"],
+      "answer": 0,
+      "explain": "魔笔自己变尖（sharpens itself）。"
+    },
+    {
+      "id": "P1",
+      "type": "phonetic",
+      "prompt": "🔤 语音 oo 发音：听音，选含 oo（/ʊ/）的单词",
+      "speak": "book",
+      "options": ["book 📕", "boot 🥾", "boy 🧒"],
+      "answer": 0,
+      "explain": "book 中 oo 发 /ʊ/（/bʊk/）。"
+    },
+    {
+      "id": "P2",
+      "type": "phonetic",
+      "prompt": "🔤 语音 oo 发音：听音，选含 oo（/ʊ/）的单词",
+      "speak": "cook",
+      "options": ["cook 🍳", "cool 😎", "cake 🍰"],
+      "answer": 0,
+      "explain": "cook 中 oo 发 /ʊ/（/kʊk/）。"
+    },
+    {
+      "id": "P3",
+      "type": "phonetic",
+      "prompt": "🔤 语音 oo 发音：听音，选含 oo（/ʊ/）的单词",
+      "speak": "good",
+      "options": ["good 👍", "go ➡️", "god 🙏"],
+      "answer": 0,
+      "explain": "good 中 oo 发 /ʊ/（/ɡʊd/）。"
+    },
+    {
+      "id": "P4",
+      "type": "phonetic",
+      "prompt": "🔤 语音 oo 发音：听音，选含 oo（/ʊ/）的单词",
+      "speak": "wood",
+      "options": ["wood 🪵", "word 🔤", "world 🌍"],
+      "answer": 0,
+      "explain": "wood 中 oo 发 /ʊ/（/wʊd/）。"
+    },
+    {
+      "id": "P5",
+      "type": "phonetic",
+      "prompt": "🔤 语音 oo 发音：哪个单词的 oo 不是 /ʊ/？",
+      "options": ["look 👀", "food 🍔", "moon 🌕"],
+      "answer": 1,
+      "explain": "food、moon 的 oo 发长音 /uː/；look 发 /ʊ/。"
+    }
+  ],
+  "reviewCards": [
+    {
+      "id": "rc1",
+      "type": "say_sentence",
+      "prompt": "看图说出借物请求",
+      "pic": "pencil",
+      "speak": "Can I use your pencil, please?",
+      "answer": "Can I use your pencil, please?"
+    },
+    {
+      "id": "rc2",
+      "type": "listen_reverse",
+      "prompt": "听答句反推问句",
+      "speak": "Sure. Here you are.",
+      "answer": "Can I use your pencil, please?"
+    },
+    {
+      "id": "rc3",
+      "type": "listen_reverse",
+      "prompt": "听答句反推问句",
+      "speak": "You're welcome.",
+      "answer": "Thank you."
+    },
+    {
+      "id": "rc4",
+      "type": "say_word",
+      "prompt": "看图说单词",
+      "pic": "glue",
+      "speak": "glue",
+      "answer": "glue"
+    },
+    {
+      "id": "rc5",
+      "type": "say_word",
+      "prompt": "看图说单词",
+      "pic": "brush",
+      "speak": "brush",
+      "answer": "brush"
+    },
+    {
+      "id": "rc6",
+      "type": "story_retell",
+      "prompt": "复述：Kaikai 做风筝时问谁借了东西？",
+      "answer": "Lulu（铅笔）、Jiajia（画笔）、Xiaoxiao（胶水）"
+    },
+    {
+      "id": "rc7",
+      "type": "phonics_sort",
+      "prompt": "选出含 oo（/ʊ/）的单词",
+      "speak": "book",
+      "answer": "book"
+    }
+  ],
+  "grammar": {
+    "parentCard": [
+      "Can I use your…? / Can I borrow your…? —— 礼貌借物",
+      "回答：Sure. Here you are. / Sorry.（愿意给／不方便）",
+      "先说 Excuse me. 引起注意；对方回 Yes?",
+      "感谢与回应：Thank you. / Thanks. → You're welcome.",
+      "字母组合 oo 短音 /ʊ/：book, cook, good, wood, wool",
+      "三单与动词：doesn't work, fix, worry；have a look at"
+    ],
+    "childCards": [
+      {
+        "title": "先说 Excuse me 引起注意",
+        "q": "Excuse me.",
+        "a": "Yes?",
+        "note": "想借东西或打扰别人，先轻声带一句 Excuse me，对方会回头答 Yes? 再开口。"
+      },
+      {
+        "title": "问「我能借/用吗」，答「给你」",
+        "q": "Can I use your pencil, please?",
+        "a": "Sure. Here you are.",
+        "note": "借物公式：Can I use/borrow your + 东西 + , please? 对方愿意就回 Sure. Here you are."
+      },
+      {
+        "title": "借到了要说谢谢",
+        "q": "Thank you.",
+        "a": "You're welcome.",
+        "note": "拿到东西别忘说 Thank you. / Thanks.，对方回 You're welcome."
+      }
+    ]
+  }
+}
