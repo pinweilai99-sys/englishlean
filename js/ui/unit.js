@@ -1,6 +1,6 @@
 // 单元页：目标卡 + 4 阶段关卡
-import { h, toast } from './dom.js?v=1794213575';
-import { canEnterStage, stage1Checklist } from '../core/progress.js?v=1794213575';
+import { h, toast } from './dom.js?v=1794223260';
+import { canEnterStage, stage1Checklist } from '../core/progress.js?v=1794223260';
 
 const STAGES = [
   { idx: 0, name: '单词奠基', desc: '先会读单词，才读得懂句子', emoji: '🔤' },
@@ -60,7 +60,14 @@ export function renderUnit(ctx, unit) {
       class: `stage-item ${cls}`,
       onclick: () => {
         if (!open) {
-          toast(`先完成「${STAGES[s.idx - 1]?.name || '前面的阶段'}」才能来这里哦`);
+          // 点锁着的核心句型时，直接报出具体还差哪几件事（孩子最需要的引导）
+          if (s.idx === 1 && stagePassed[0] === false) {
+            const missing = stage1Checklist(unit, p || {}).filter((r) => !r.done);
+            const detail = missing.map((r) => r.text).join('；');
+            toast(missing.length ? `先完成「单词奠基」还差 ${missing.length} 件事：${detail}` : '先完成「单词奠基」才能来这里哦', 4500);
+          } else {
+            toast(`先完成「${STAGES[s.idx - 1]?.name || '前面的阶段'}」才能来这里哦`);
+          }
           return;
         }
         ctx.navigate(`#/unit/${unit.id}/stage/${s.idx}`);
@@ -76,12 +83,15 @@ export function renderUnit(ctx, unit) {
     list.appendChild(btn);
   });
 
+  // 通关进度卡放在最上方（目标卡之后、阶段列表之前）——
+  // 之前放在列表底部，孩子看到"未解锁"就不往下滚了，根本看不到引导。
+  const checklistCard = stagePassed[0] === true ? null : stage1ProgressCard(ctx, unit, p || {});
+
   return h('div', {}, [
     h('button', { class: 'back-btn', text: '← 返回单元地图', onclick: () => ctx.navigate('#/') }),
     goal,
+    checklistCard,
     h('div', { class: 'card-title', text: `学习路径（已通过 ${unlocked} / 4 个阶段）` }),
     list,
-    // Stage1 还没通关 → 把三个通关条件亮出来，孩子/家长一眼看到"还差哪件事"
-    stagePassed[0] === true ? null : stage1ProgressCard(ctx, unit, p || {}),
   ]);
 }
