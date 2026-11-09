@@ -15,8 +15,14 @@
       "tier": "four",
       "img": "✏️",
       "tts": "pencil",
-      "chunks": ["pen", "cil"],
-      "split": ["pen", "cil"],
+      "chunks": [
+        "pen",
+        "cil"
+      ],
+      "split": [
+        "pen",
+        "cil"
+      ],
       "memo": "pen·cil：c 在 i/e 前常发 /s/（pencil 读 /ˈpensl/）"
     },
     {
@@ -26,8 +32,14 @@
       "tier": "four",
       "img": "📏",
       "tts": "ruler",
-      "chunks": ["ru", "ler"],
-      "split": ["ru", "ler"],
+      "chunks": [
+        "ru",
+        "ler"
+      ],
+      "split": [
+        "ru",
+        "ler"
+      ],
       "memo": "ru·ler：u 发长音 /uː/，和 blue / glue 同族"
     },
     {
@@ -37,8 +49,16 @@
       "tier": "four",
       "img": "🧽",
       "tts": "eraser",
-      "chunks": ["e", "ra", "ser"],
-      "split": ["e", "ra", "ser"],
+      "chunks": [
+        "e",
+        "ra",
+        "ser"
+      ],
+      "split": [
+        "e",
+        "ra",
+        "ser"
+      ],
       "memo": "e·ra·ser：s 在 e 前读 /z/（e·ra·zer）"
     },
     {
@@ -48,8 +68,16 @@
       "tier": "four",
       "img": "📕",
       "tts": "dictionary",
-      "chunks": ["dic", "tion", "ary"],
-      "split": ["dic", "tion", "ary"],
+      "chunks": [
+        "dic",
+        "tion",
+        "ary"
+      ],
+      "split": [
+        "dic",
+        "tion",
+        "ary"
+      ],
       "memo": "dic·tion·ary：重音在 dic，tion 读 /ʃən/"
     },
     {
@@ -59,8 +87,13 @@
       "tier": "four",
       "img": "🧴",
       "tts": "glue",
-      "chunks": ["glue"],
-      "split": ["gl", "ue"],
+      "chunks": [
+        "glue"
+      ],
+      "split": [
+        "gl",
+        "ue"
+      ],
       "memo": "ue 组合发 /uː/：blue / true 同族（u 不读字母名）"
     },
     {
@@ -70,8 +103,13 @@
       "tier": "four",
       "img": "🖌️",
       "tts": "brush",
-      "chunks": ["brush"],
-      "split": ["br", "ush"],
+      "chunks": [
+        "brush"
+      ],
+      "split": [
+        "br",
+        "ush"
+      ],
       "memo": "sh 组合发 /ʃ/：和 shop 同族（单字母不拆）"
     },
     {
@@ -81,8 +119,14 @@
       "tier": "four",
       "img": "📓",
       "tts": "notebook",
-      "chunks": ["note", "book"],
-      "split": ["note", "book"],
+      "chunks": [
+        "note",
+        "book"
+      ],
+      "split": [
+        "note",
+        "book"
+      ],
       "memo": "合成词 note＋book；book 里 oo 发 /ʊ/"
     },
     {
@@ -92,8 +136,14 @@
       "tier": "four",
       "img": "🟫",
       "tts": "blackboard",
-      "chunks": ["black", "board"],
-      "split": ["black", "board"],
+      "chunks": [
+        "black",
+        "board"
+      ],
+      "split": [
+        "black",
+        "board"
+      ],
       "memo": "合成词 black＋board；ck 只读 /k/"
     },
     {
@@ -103,8 +153,14 @@
       "tier": "four",
       "img": "🤝",
       "tts": "borrow",
-      "chunks": ["bor", "row"],
-      "split": ["bor", "row"],
+      "chunks": [
+        "bor",
+        "row"
+      ],
+      "split": [
+        "bor",
+        "row"
+      ],
       "memo": "ow 组合发 /əʊ/：和 know / show 同族"
     },
     {
@@ -114,8 +170,13 @@
       "tier": "read",
       "img": "✋",
       "tts": "use",
-      "chunks": ["use"],
-      "split": ["u", "se"],
+      "chunks": [
+        "use"
+      ],
+      "split": [
+        "u",
+        "se"
+      ],
       "memo": "u 发 /juː/：和 you 开头音一样（作动词读 /juːz/）"
     },
     {
@@ -125,8 +186,14 @@
       "tier": "read",
       "img": "📘",
       "tts": "English book",
-      "chunks": ["English", "book"],
-      "split": ["English", "book"],
+      "chunks": [
+        "English",
+        "book"
+      ],
+      "split": [
+        "English",
+        "book"
+      ],
       "memo": "English＋book；English 里 ng 发 /ŋ/"
     },
     {
@@ -136,8 +203,14 @@
       "tier": "read",
       "img": "📗",
       "tts": "Chinese book",
-      "chunks": ["Chinese", "book"],
-      "split": ["Chinese", "book"],
+      "chunks": [
+        "Chinese",
+        "book"
+      ],
+      "split": [
+        "Chinese",
+        "book"
+      ],
       "memo": "Chinese＋book；Ch 发 /tʃ/"
     }
   ],
@@ -155,18 +228,54 @@
     "chant": "A bear lives in the woods. She wears a wool coat. She reads a good book. She learns how to cook."
   },
   "listenPairs": [
-    ["pencil", "pen"],
-    ["ruler", "rubber"],
-    ["eraser", "elevator"],
-    ["dictionary", "doctor"],
-    ["glue", "blue"],
-    ["brush", "crush"],
-    ["notebook", "note"],
-    ["blackboard", "board"],
-    ["borrow", "sorry"],
-    ["use", "juice"],
-    ["English book", "English"],
-    ["Chinese book", "Chinese"]
+    [
+      "pencil",
+      "pen"
+    ],
+    [
+      "ruler",
+      "rubber"
+    ],
+    [
+      "eraser",
+      "elevator"
+    ],
+    [
+      "dictionary",
+      "doctor"
+    ],
+    [
+      "glue",
+      "blue"
+    ],
+    [
+      "brush",
+      "crush"
+    ],
+    [
+      "notebook",
+      "note"
+    ],
+    [
+      "blackboard",
+      "board"
+    ],
+    [
+      "borrow",
+      "sorry"
+    ],
+    [
+      "use",
+      "juice"
+    ],
+    [
+      "English book",
+      "English"
+    ],
+    [
+      "Chinese book",
+      "Chinese"
+    ]
   ],
   "sentences": {
     "pattern": "Can I use your ___?",
@@ -481,34 +590,64 @@
         "q": "What do you want to use?",
         "qZh": "你想用/借什么？",
         "opts": [
-          { "t": "Can I use your pencil?", "zh": "我能用你的铅笔吗？" },
-          { "t": "Can I use your ruler?", "zh": "我能用你的尺子吗？" },
-          { "t": "Can I use your eraser?", "zh": "我能用你的橡皮吗？" },
-          { "t": "Can I borrow your dictionary?", "zh": "我能借你的词典吗？" }
+          {
+            "t": "Can I use your pencil?",
+            "zh": "我能用你的铅笔吗？"
+          },
+          {
+            "t": "Can I use your ruler?",
+            "zh": "我能用你的尺子吗？"
+          },
+          {
+            "t": "Can I use your eraser?",
+            "zh": "我能用你的橡皮吗？"
+          },
+          {
+            "t": "Can I borrow your dictionary?",
+            "zh": "我能借你的词典吗？"
+          }
         ]
       },
       {
         "q": "How do you ask politely?",
         "qZh": "你怎么礼貌开口？",
         "opts": [
-          { "t": "Excuse me. Can I use your..., please?", "zh": "打扰一下，我能用一下你的……吗？" },
-          { "t": "Can I have a look at it?", "zh": "我能看看它吗？" }
+          {
+            "t": "Excuse me. Can I use your..., please?",
+            "zh": "打扰一下，我能用一下你的……吗？"
+          },
+          {
+            "t": "Can I have a look at it?",
+            "zh": "我能看看它吗？"
+          }
         ]
       },
       {
         "q": "What do you say after getting it?",
         "qZh": "拿到东西说什么？",
         "opts": [
-          { "t": "Thank you.", "zh": "谢谢。" },
-          { "t": "Thanks.", "zh": "谢谢。" }
+          {
+            "t": "Thank you.",
+            "zh": "谢谢。"
+          },
+          {
+            "t": "Thanks.",
+            "zh": "谢谢。"
+          }
         ]
       },
       {
         "q": "What if a friend borrows from you?",
         "qZh": "朋友向你借，你怎么办？",
         "opts": [
-          { "t": "Sure. Here you are.", "zh": "当然，给你。" },
-          { "t": "You're welcome.", "zh": "不客气。" }
+          {
+            "t": "Sure. Here you are.",
+            "zh": "当然，给你。"
+          },
+          {
+            "t": "You're welcome.",
+            "zh": "不客气。"
+          }
         ]
       }
     ],
@@ -576,22 +715,32 @@
           "q": "Kaikai wants to make a kite.",
           "qZh": "凯凯想做一只风筝。",
           "type": "tf",
-          "options": ["T", "F"],
-          "a": "T"
+          "a": "T",
+          "opts": [
+            "T",
+            "F"
+          ]
         },
         {
           "q": "Kaikai borrows a pencil from Lulu.",
           "qZh": "凯凯向露露借了铅笔。",
           "type": "tf",
-          "options": ["T", "F"],
-          "a": "T"
+          "a": "T",
+          "opts": [
+            "T",
+            "F"
+          ]
         },
         {
           "q": "Who gives Kaikai the glue?",
           "qZh": "谁给了凯凯胶水？",
           "type": "choice",
-          "options": ["Xiaoxiao", "Lulu", "Jiajia"],
-          "a": "Xiaoxiao"
+          "a": "Xiaoxiao",
+          "opts": [
+            "Xiaoxiao",
+            "Lulu",
+            "Jiajia"
+          ]
         }
       ]
     },
@@ -663,22 +812,32 @@
           "q": "Dino can have some grapes.",
           "qZh": "Dino 能吃到葡萄。",
           "type": "tf",
-          "options": ["T", "F"],
-          "a": "T"
+          "a": "T",
+          "opts": [
+            "T",
+            "F"
+          ]
         },
         {
           "q": "Tim fixes the robot.",
           "qZh": "Tim 修好了机器人。",
           "type": "tf",
-          "options": ["T", "F"],
-          "a": "T"
+          "a": "T",
+          "opts": [
+            "T",
+            "F"
+          ]
         },
         {
           "q": "How does Tim help?",
           "qZh": "Tim 怎么帮忙的？",
           "type": "choice",
-          "options": ["He fixes the robot.", "He draws a line.", "He cleans the board."],
-          "a": "He fixes the robot."
+          "a": "He fixes the robot.",
+          "opts": [
+            "He fixes the robot.",
+            "He draws a line.",
+            "He cleans the board."
+          ]
         }
       ]
     },
@@ -740,22 +899,32 @@
           "q": "Emma has a new schoolbag.",
           "qZh": "Emma 有一个新书包。",
           "type": "tf",
-          "options": ["T", "F"],
-          "a": "T"
+          "a": "T",
+          "opts": [
+            "T",
+            "F"
+          ]
         },
         {
           "q": "There is a glue in the schoolbag.",
           "qZh": "书包里有一瓶胶水。",
           "type": "tf",
-          "options": ["T", "F"],
-          "a": "F"
+          "a": "F",
+          "opts": [
+            "T",
+            "F"
+          ]
         },
         {
           "q": "What does the magic pencil do?",
           "qZh": "魔法铅笔有什么本领？",
           "type": "choice",
-          "options": ["It sharpens itself.", "It paints lines.", "It changes length."],
-          "a": "It sharpens itself."
+          "a": "It sharpens itself.",
+          "opts": [
+            "It sharpens itself.",
+            "It paints lines.",
+            "It changes length."
+          ]
         }
       ]
     }
@@ -766,7 +935,11 @@
       "type": "listen_choice",
       "prompt": "听音选词：选你听到的文具",
       "speak": "pencil",
-      "options": ["pencil", "pen", "pan"],
+      "options": [
+        "pencil",
+        "pen",
+        "pan"
+      ],
       "answer": 0,
       "explain": "pencil 铅笔；pen 钢笔；pan 平底锅。"
     },
@@ -775,7 +948,11 @@
       "type": "listen_choice",
       "prompt": "听音选词",
       "speak": "ruler",
-      "options": ["ruler", "rubber", "number"],
+      "options": [
+        "ruler",
+        "rubber",
+        "number"
+      ],
       "answer": 0,
       "explain": "ruler 尺子；rubber 橡皮。"
     },
@@ -784,7 +961,11 @@
       "type": "listen_choice",
       "prompt": "听音选词（近音辨析）",
       "speak": "eraser",
-      "options": ["eraser", "elevator", "empty"],
+      "options": [
+        "eraser",
+        "elevator",
+        "empty"
+      ],
       "answer": 0,
       "explain": "eraser 橡皮；elevator 电梯。"
     },
@@ -793,7 +974,11 @@
       "type": "listen_choice",
       "prompt": "听音选词（近音辨析）",
       "speak": "dictionary",
-      "options": ["dictionary", "doctor", "dinner"],
+      "options": [
+        "dictionary",
+        "doctor",
+        "dinner"
+      ],
       "answer": 0,
       "explain": "dictionary 词典；doctor 医生。"
     },
@@ -802,7 +987,11 @@
       "type": "listen_choice",
       "prompt": "听音选词（ue 发音）",
       "speak": "glue",
-      "options": ["glue", "blue", "clue"],
+      "options": [
+        "glue",
+        "blue",
+        "clue"
+      ],
       "answer": 0,
       "explain": "glue 胶水（ue 发 /uː/）；blue 蓝色；clue 线索。"
     },
@@ -811,7 +1000,11 @@
       "type": "listen_pick",
       "prompt": "听音选图：橡皮",
       "speak": "eraser",
-      "options": ["🧽 橡皮", "✏️ 铅笔", "📏 尺子"],
+      "options": [
+        "🧽 橡皮",
+        "✏️ 铅笔",
+        "📏 尺子"
+      ],
       "answer": 0,
       "explain": "eraser 是橡皮。"
     },
@@ -820,7 +1013,11 @@
       "type": "listen_pick",
       "prompt": "听音选图：胶水",
       "speak": "glue",
-      "options": ["🧴 胶水", "📓 笔记本", "🖌️ 画笔"],
+      "options": [
+        "🧴 胶水",
+        "📓 笔记本",
+        "🖌️ 画笔"
+      ],
       "answer": 0,
       "explain": "glue 是胶水。"
     },
@@ -829,7 +1026,11 @@
       "type": "listen_pick",
       "prompt": "听音选图：笔记本",
       "speak": "notebook",
-      "options": ["📓 笔记本", "📕 词典", "🟫 黑板"],
+      "options": [
+        "📓 笔记本",
+        "📕 词典",
+        "🟫 黑板"
+      ],
       "answer": 0,
       "explain": "notebook 是笔记本。"
     },
@@ -838,7 +1039,11 @@
       "type": "listen_pick",
       "prompt": "听音选图：画笔",
       "speak": "brush",
-      "options": ["🖌️ 画笔", "🧽 橡皮", "📏 尺子"],
+      "options": [
+        "🖌️ 画笔",
+        "🧽 橡皮",
+        "📏 尺子"
+      ],
       "answer": 0,
       "explain": "brush 是画笔/刷子。"
     },
@@ -847,7 +1052,11 @@
       "type": "listen_pick",
       "prompt": "听音选图：黑板",
       "speak": "blackboard",
-      "options": ["🟫 黑板", "📘 英语书", "✏️ 铅笔"],
+      "options": [
+        "🟫 黑板",
+        "📘 英语书",
+        "✏️ 铅笔"
+      ],
       "answer": 0,
       "explain": "blackboard 是黑板。"
     },
@@ -856,7 +1065,11 @@
       "type": "listen_choice",
       "prompt": "听句子，选你听到的",
       "speak": "Where is the ruler?",
-      "options": ["Where is the ruler?", "Where is the book?", "Where is the pen?"],
+      "options": [
+        "Where is the ruler?",
+        "Where is the book?",
+        "Where is the pen?"
+      ],
       "answer": 0,
       "explain": "ruler 尺子；book 书；pen 钢笔。"
     },
@@ -865,7 +1078,11 @@
       "type": "listen_choice",
       "prompt": "听句子，选你听到的",
       "speak": "Let me fix it.",
-      "options": ["Let me fix it.", "Let me make it.", "Let me clean it."],
+      "options": [
+        "Let me fix it.",
+        "Let me make it.",
+        "Let me clean it."
+      ],
       "answer": 0,
       "explain": "fix 修理；make 制作；clean 擦。"
     },
@@ -874,7 +1091,11 @@
       "type": "listen_choice",
       "prompt": "听句子，选你听到的",
       "speak": "Please draw a line.",
-      "options": ["Please draw a line.", "Please help me.", "Please clean the blackboard."],
+      "options": [
+        "Please draw a line.",
+        "Please help me.",
+        "Please clean the blackboard."
+      ],
       "answer": 0,
       "explain": "draw a line 画一条线；help me 帮我；clean the blackboard 擦黑板。"
     },
@@ -883,7 +1104,11 @@
       "type": "listen_choice",
       "prompt": "听句子，选你听到的",
       "speak": "Can I use your pencil?",
-      "options": ["Can I use your pencil?", "Can I use your pen?", "Can I borrow your pencil?"],
+      "options": [
+        "Can I use your pencil?",
+        "Can I use your pen?",
+        "Can I borrow your pencil?"
+      ],
       "answer": 0,
       "explain": "use 用；borrow 借；pencil 铅笔；pen 钢笔。"
     },
@@ -892,7 +1117,11 @@
       "type": "listen_choice",
       "prompt": "听句子，选你听到的",
       "speak": "Here you are.",
-      "options": ["Here you are.", "I am here.", "Thank you."],
+      "options": [
+        "Here you are.",
+        "I am here.",
+        "Thank you."
+      ],
       "answer": 0,
       "explain": "Here you are. 给你；Thank you. 谢谢。"
     },
@@ -900,7 +1129,11 @@
       "id": "IV1",
       "type": "cloze",
       "prompt": "选词填空：I have an English dic___ary.",
-      "options": ["dictionary", "stationery", "blackboard"],
+      "options": [
+        "dictionary",
+        "stationery",
+        "blackboard"
+      ],
       "answer": 0,
       "explain": "dictionary 词典，课本人教四会词。"
     },
@@ -908,7 +1141,11 @@
       "id": "IV2",
       "type": "cloze",
       "prompt": "选词填空：Don't wo___. I can help you.",
-      "options": ["worry", "work", "sorry"],
+      "options": [
+        "worry",
+        "work",
+        "sorry"
+      ],
       "answer": 0,
       "explain": "worry 担心；Don't worry! 别担心！"
     },
@@ -916,7 +1153,11 @@
       "id": "IV3",
       "type": "cloze",
       "prompt": "选词填空：Please clean the b___ckbo___d.",
-      "options": ["blackboard", "book", "brush"],
+      "options": [
+        "blackboard",
+        "book",
+        "brush"
+      ],
       "answer": 0,
       "explain": "blackboard 黑板，ck 只读 /k/。"
     },
@@ -924,7 +1165,11 @@
       "id": "IV4",
       "type": "cloze",
       "prompt": "选词填空：My toy car doesn't w___k.",
-      "options": ["work", "walk", "wool"],
+      "options": [
+        "work",
+        "walk",
+        "wool"
+      ],
       "answer": 0,
       "explain": "work 工作/运转；doesn't work 坏了。"
     },
@@ -932,7 +1177,11 @@
       "id": "IV5",
       "type": "cloze",
       "prompt": "选词填空：Can I bor___ your pencil?",
-      "options": ["borrow", "brown", "born"],
+      "options": [
+        "borrow",
+        "brown",
+        "born"
+      ],
       "answer": 0,
       "explain": "borrow 借；borrow your pencil 借你的铅笔。"
     },
@@ -940,7 +1189,11 @@
       "id": "VI1",
       "type": "cloze",
       "prompt": "单项选择：—___ I use your pencil, please? —Sure.",
-      "options": ["Do", "Can", "Did"],
+      "options": [
+        "Do",
+        "Can",
+        "Did"
+      ],
       "answer": 1,
       "explain": "请求许可用 Can I…?；Do/Did 不能这么用。"
     },
@@ -948,7 +1201,11 @@
       "id": "VI2",
       "type": "cloze",
       "prompt": "单项选择：Here ___ are.",
-      "options": ["you", "your", "yours"],
+      "options": [
+        "you",
+        "your",
+        "yours"
+      ],
       "answer": 0,
       "explain": "Here you are. 给你；you 主/宾格。"
     },
@@ -956,7 +1213,11 @@
       "id": "VI3",
       "type": "cloze",
       "prompt": "单项选择：My robot ___ work.",
-      "options": ["do", "don't", "doesn't"],
+      "options": [
+        "do",
+        "don't",
+        "doesn't"
+      ],
       "answer": 2,
       "explain": "主语 robot 三单，否定用 doesn't。"
     },
@@ -964,7 +1225,11 @@
       "id": "VI4",
       "type": "cloze",
       "prompt": "单项选择：Can I have a look ___ your book?",
-      "options": ["on", "in", "at"],
+      "options": [
+        "on",
+        "in",
+        "at"
+      ],
       "answer": 2,
       "explain": "have a look at… 看一看……（固定搭配 at）。"
     },
@@ -972,7 +1237,11 @@
       "id": "VI5",
       "type": "cloze",
       "prompt": "单项选择：Yunyun ___ Lulu, \"Can I use your pencil?\"",
-      "options": ["asks", "wants", "learns"],
+      "options": [
+        "asks",
+        "wants",
+        "learns"
+      ],
       "answer": 0,
       "explain": "ask 问；ask sb. 问某人。"
     },
@@ -980,7 +1249,11 @@
       "id": "VIII1",
       "type": "communicate",
       "prompt": "情景交际：Please clean the blackboard. → ?",
-      "options": ["OK.", "Thank you.", "Sure. Here you are."],
+      "options": [
+        "OK.",
+        "Thank you.",
+        "Sure. Here you are."
+      ],
       "answer": 0,
       "explain": "老师让擦黑板，答 OK. 表示照做。"
     },
@@ -988,7 +1261,11 @@
       "id": "VIII2",
       "type": "communicate",
       "prompt": "情景交际：Your kite is beautiful! → ?",
-      "options": ["Thank you.", "Sorry.", "OK."],
+      "options": [
+        "Thank you.",
+        "Sorry.",
+        "OK."
+      ],
       "answer": 0,
       "explain": "被夸奖要说 Thank you. 谢谢。"
     },
@@ -996,7 +1273,11 @@
       "id": "VIII3",
       "type": "communicate",
       "prompt": "情景交际：My robot doesn't work. → ?",
-      "options": ["Don't worry!", "Thank you.", "Sure."],
+      "options": [
+        "Don't worry!",
+        "Thank you.",
+        "Sure."
+      ],
       "answer": 0,
       "explain": "别人说东西坏了，安慰 Don't worry! 别担心。"
     },
@@ -1004,7 +1285,11 @@
       "id": "VIII4",
       "type": "communicate",
       "prompt": "情景交际：Where is your notebook? → ?",
-      "options": ["It's at home.", "Here you are.", "Thank you."],
+      "options": [
+        "It's at home.",
+        "Here you are.",
+        "Thank you."
+      ],
       "answer": 0,
       "explain": "问笔记本在哪，答 It's at home. 在家。"
     },
@@ -1012,7 +1297,11 @@
       "id": "VIII5",
       "type": "communicate",
       "prompt": "情景交际：Can I use your book? → ?",
-      "options": ["Sure. Here you are.", "It's at home.", "Don't worry!"],
+      "options": [
+        "Sure. Here you are.",
+        "It's at home.",
+        "Don't worry!"
+      ],
       "answer": 0,
       "explain": "借书请求，愿意就答 Sure. Here you are."
     },
@@ -1020,7 +1309,10 @@
       "id": "IX1",
       "type": "true_false",
       "prompt": "绘本判断：Emma has a new schoolbag.",
-      "options": ["T", "F"],
+      "options": [
+        "T",
+        "F"
+      ],
       "answer": 0,
       "explain": "绘本第一句就是 Emma has a new schoolbag."
     },
@@ -1028,7 +1320,10 @@
       "id": "IX2",
       "type": "true_false",
       "prompt": "绘本判断：There is a glue in the schoolbag.",
-      "options": ["T", "F"],
+      "options": [
+        "T",
+        "F"
+      ],
       "answer": 1,
       "explain": "书包里有语文书、词典、笔记本、铅笔盒；没提到 glue。"
     },
@@ -1036,7 +1331,10 @@
       "id": "IX3",
       "type": "true_false",
       "prompt": "绘本判断：Emma's pencil case is small.",
-      "options": ["T", "F"],
+      "options": [
+        "T",
+        "F"
+      ],
       "answer": 1,
       "explain": "绘本说 big pencil case（大文具盒）。"
     },
@@ -1044,7 +1342,11 @@
       "id": "IX4",
       "type": "read",
       "prompt": "绘本阅读：What does Emma's schoolbag have?",
-      "options": ["a Chinese book, a dictionary, two notebooks", "a glue, a pen", "a kite"],
+      "options": [
+        "a Chinese book, a dictionary, two notebooks",
+        "a glue, a pen",
+        "a kite"
+      ],
       "answer": 0,
       "explain": "书包里有语文书、词典、两本笔记本和铅笔盒。"
     },
@@ -1052,7 +1354,11 @@
       "id": "IX5",
       "type": "read",
       "prompt": "绘本阅读：What does the magic pencil do?",
-      "options": ["sharpens itself", "writes wrong words", "paints lines"],
+      "options": [
+        "sharpens itself",
+        "writes wrong words",
+        "paints lines"
+      ],
       "answer": 0,
       "explain": "魔笔自己变尖（sharpens itself）。"
     },
@@ -1061,7 +1367,11 @@
       "type": "phonetic",
       "prompt": "🔤 语音 oo 发音：听音，选含 oo（/ʊ/）的单词",
       "speak": "book",
-      "options": ["book 📕", "boot 🥾", "boy 🧒"],
+      "options": [
+        "book 📕",
+        "boot 🥾",
+        "boy 🧒"
+      ],
       "answer": 0,
       "explain": "book 中 oo 发 /ʊ/（/bʊk/）。"
     },
@@ -1070,7 +1380,11 @@
       "type": "phonetic",
       "prompt": "🔤 语音 oo 发音：听音，选含 oo（/ʊ/）的单词",
       "speak": "cook",
-      "options": ["cook 🍳", "cool 😎", "cake 🍰"],
+      "options": [
+        "cook 🍳",
+        "cool 😎",
+        "cake 🍰"
+      ],
       "answer": 0,
       "explain": "cook 中 oo 发 /ʊ/（/kʊk/）。"
     },
@@ -1079,7 +1393,11 @@
       "type": "phonetic",
       "prompt": "🔤 语音 oo 发音：听音，选含 oo（/ʊ/）的单词",
       "speak": "good",
-      "options": ["good 👍", "go ➡️", "god 🙏"],
+      "options": [
+        "good 👍",
+        "go ➡️",
+        "god 🙏"
+      ],
       "answer": 0,
       "explain": "good 中 oo 发 /ʊ/（/ɡʊd/）。"
     },
@@ -1088,7 +1406,11 @@
       "type": "phonetic",
       "prompt": "🔤 语音 oo 发音：听音，选含 oo（/ʊ/）的单词",
       "speak": "wood",
-      "options": ["wood 🪵", "word 🔤", "world 🌍"],
+      "options": [
+        "wood 🪵",
+        "word 🔤",
+        "world 🌍"
+      ],
       "answer": 0,
       "explain": "wood 中 oo 发 /ʊ/（/wʊd/）。"
     },
@@ -1096,7 +1418,11 @@
       "id": "P5",
       "type": "phonetic",
       "prompt": "🔤 语音 oo 发音：哪个单词的 oo 不是 /ʊ/？",
-      "options": ["look 👀", "food 🍔", "moon 🌕"],
+      "options": [
+        "look 👀",
+        "food 🍔",
+        "moon 🌕"
+      ],
       "answer": 1,
       "explain": "food、moon 的 oo 发长音 /uː/；look 发 /ʊ/。"
     }
