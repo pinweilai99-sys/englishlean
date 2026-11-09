@@ -304,38 +304,38 @@
           "cueZh": "点头：可以",
           "opts": [
             "Sure. Here you are.",
-            "Sorry.",
-            "No, you can't."
+            "Sorry, I'm using it.",
+            "Thank you."
           ],
-          "rule": "借物公式：Can I use your + 东西 + , please? 对方愿意就回 Sure. Here you are."
+          "rule": "点头＝同意借。同意就回『当然，给你』，把东西递过去；摇头那句和表情相反，道谢还没回答问题呢。"
         },
         {
           "q": "Can I borrow your pencil?",
-          "a": "Sure. Here you are.",
-          "zh": "我能借你的铅笔吗？——当然，给你。",
-          "cue": "yes",
-          "cueZh": "点头：可以",
+          "a": "Sorry, I'm using it.",
+          "zh": "我能借你的铅笔吗？——对不起，我正在用呢。",
+          "cue": "no",
+          "cueZh": "摇头：不方便",
           "opts": [
-            "Sure. Here you are.",
-            "Sorry.",
-            "Thank you."
+            "Thank you.",
+            "Sorry, I'm using it.",
+            "Sure. Here you are."
           ],
-          "rule": "borrow 也是借；use 是用。问句礼貌，答句给东西用 Sure. Here you are."
+          "rule": "摇头＝不方便借。要婉拒：『对不起，我正在用呢』；答『给你』和表情相反，道谢是借到之后才说的。"
         }
       ],
       "ruler": [
         {
           "q": "Can I use your ruler, please?",
-          "a": "Sure. Here you are.",
-          "zh": "我能用一下你的尺子吗？——当然，给你。",
-          "cue": "yes",
-          "cueZh": "点头：可以",
+          "a": "Sorry, I'm using it.",
+          "zh": "我能用一下你的尺子吗？——对不起，我正在用呢。",
+          "cue": "no",
+          "cueZh": "摇头：不方便",
           "opts": [
             "Sure. Here you are.",
-            "Sorry.",
-            "No, you can't."
+            "Thank you.",
+            "Sorry, I'm using it."
           ],
-          "rule": "借尺子同样用 Can I use your…, please? 答 Sure. Here you are."
+          "rule": "摇头＝不方便借。要婉拒：『对不起，我正在用呢』；答『给你』和表情相反，道谢是借到之后才说的。"
         },
         {
           "q": "Can I borrow your ruler?",
@@ -344,11 +344,11 @@
           "cue": "yes",
           "cueZh": "点头：可以",
           "opts": [
-            "Sure. Here you are.",
-            "Sorry.",
-            "Thank you."
+            "Sorry, I'm using it.",
+            "Thank you.",
+            "Sure. Here you are."
           ],
-          "rule": "borrow 借；use 用，两种问法都成立。"
+          "rule": "点头＝同意借。同意就回『当然，给你』，把东西递过去；摇头那句和表情相反，道谢还没回答问题呢。"
         }
       ],
       "eraser": [
@@ -360,38 +360,38 @@
           "cueZh": "点头：可以",
           "opts": [
             "Sure. Here you are.",
-            "Sorry.",
-            "No, you can't."
+            "Sorry, I'm using it.",
+            "Thank you."
           ],
-          "rule": "借橡皮：Can I use your eraser, please? 答 Sure. Here you are."
+          "rule": "点头＝同意借。同意就回『当然，给你』，把东西递过去；摇头那句和表情相反，道谢还没回答问题呢。"
         },
         {
           "q": "Can I borrow your eraser?",
-          "a": "Sure. Here you are.",
-          "zh": "我能借你的橡皮吗？——当然，给你。",
-          "cue": "yes",
-          "cueZh": "点头：可以",
+          "a": "Sorry, I'm using it.",
+          "zh": "我能借你的橡皮吗？——对不起，我正在用呢。",
+          "cue": "no",
+          "cueZh": "摇头：不方便",
           "opts": [
-            "Sure. Here you are.",
-            "Sorry.",
-            "Thank you."
+            "Thank you.",
+            "Sorry, I'm using it.",
+            "Sure. Here you are."
           ],
-          "rule": "borrow / use 都能借橡皮；礼貌 + please。"
+          "rule": "摇头＝不方便借。要婉拒：『对不起，我正在用呢』；答『给你』和表情相反，道谢是借到之后才说的。"
         }
       ],
       "dictionary": [
         {
           "q": "Can I use your dictionary, please?",
-          "a": "Sure. Here you are.",
-          "zh": "我能用一下你的词典吗？——当然，给你。",
-          "cue": "yes",
-          "cueZh": "点头：可以",
+          "a": "Sorry, I'm using it.",
+          "zh": "我能用一下你的词典吗？——对不起，我正在用呢。",
+          "cue": "no",
+          "cueZh": "摇头：不方便",
           "opts": [
-            "Sure. Here you are.",
-            "Sorry.",
-            "No, you can't."
+            "Thank you.",
+            "Sorry, I'm using it.",
+            "Sure. Here you are."
           ],
-          "rule": "词典较重，借的时候更要先问 Can I use…, please?"
+          "rule": "摇头＝不方便借。要婉拒：『对不起，我正在用呢』；答『给你』和表情相反，道谢是借到之后才说的。"
         },
         {
           "q": "Can I borrow your dictionary?",
@@ -400,11 +400,11 @@
           "cue": "yes",
           "cueZh": "点头：可以",
           "opts": [
-            "Sure. Here you are.",
-            "Sorry.",
-            "Thank you."
+            "Sorry, I'm using it.",
+            "Thank you.",
+            "Sure. Here you are."
           ],
-          "rule": "borrow 借词典，答句同样 Sure. Here you are."
+          "rule": "点头＝同意借。同意就回『当然，给你』，把东西递过去；摇头那句和表情相反，道谢还没回答问题呢。"
         }
       ],
       "glue": [
@@ -416,38 +416,38 @@
           "cueZh": "点头：可以",
           "opts": [
             "Sure. Here you are.",
-            "Sorry.",
-            "No, you can't."
+            "Sorry, I'm using it.",
+            "Thank you."
           ],
-          "rule": "胶水 glue 里 ue 发 /uː/，和 blue 同族。"
+          "rule": "点头＝同意借。同意就回『当然，给你』，把东西递过去；摇头那句和表情相反，道谢还没回答问题呢。"
         },
         {
           "q": "Can I borrow your glue?",
-          "a": "Sure. Here you are.",
-          "zh": "我能借你的胶水吗？——当然，给你。",
-          "cue": "yes",
-          "cueZh": "点头：可以",
+          "a": "Sorry, I'm using it.",
+          "zh": "我能借你的胶水吗？——对不起，我正在用呢。",
+          "cue": "no",
+          "cueZh": "摇头：不方便",
           "opts": [
+            "Sorry, I'm using it.",
             "Sure. Here you are.",
-            "Sorry.",
             "Thank you."
           ],
-          "rule": "glue 是液体，借的时候小心别倒。"
+          "rule": "摇头＝不方便借。要婉拒：『对不起，我正在用呢』；答『给你』和表情相反，道谢是借到之后才说的。"
         }
       ],
       "brush": [
         {
           "q": "Can I use your brush, please?",
-          "a": "Sure. Here you are.",
-          "zh": "我能用一下你的画笔吗？——当然，给你。",
-          "cue": "yes",
-          "cueZh": "点头：可以",
+          "a": "Sorry, I'm using it.",
+          "zh": "我能用一下你的画笔吗？——对不起，我正在用呢。",
+          "cue": "no",
+          "cueZh": "摇头：不方便",
           "opts": [
             "Sure. Here you are.",
-            "Sorry.",
-            "No, you can't."
+            "Thank you.",
+            "Sorry, I'm using it."
           ],
-          "rule": "画笔 brush 里 sh 发 /ʃ/（和 shop 同族）。"
+          "rule": "摇头＝不方便借。要婉拒：『对不起，我正在用呢』；答『给你』和表情相反，道谢是借到之后才说的。"
         },
         {
           "q": "Can I borrow your brush?",
@@ -456,11 +456,11 @@
           "cue": "yes",
           "cueZh": "点头：可以",
           "opts": [
+            "Thank you.",
             "Sure. Here you are.",
-            "Sorry.",
-            "Thank you."
+            "Sorry, I'm using it."
           ],
-          "rule": "美术教室常借画笔，礼貌问 Can I borrow…?"
+          "rule": "点头＝同意借。同意就回『当然，给你』，把东西递过去；摇头那句和表情相反，道谢还没回答问题呢。"
         }
       ]
     }

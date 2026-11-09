@@ -2206,3 +2206,84 @@ test('E2E-59b 点亮最后一个单词也触发 Stage1 通关（不再只在听�
     assert.match(mainText(window), /核心句型/, '核心句型应当已解锁可进入');
   } finally { cleanup(); }
 });
+
+// ---- U4 应答配对「灵活化」（2026-11-09 家长：截图 glue 两题全是"点头：可以"，要考不同意等）----
+test('E2E-60 U4 应答配对灵活化：同一文具的两题一正一反，婉拒/答非所问各有正确支架', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u4: { stagePassed: [true, false, false, false], wordsDone: [], listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u4/stage/1');
+    await clickButton(window, 'glue'); // 选中家长截图里的文具
+    const blocks = () => Array.from(window.document.querySelectorAll('.card > div'));
+    const boxOf = (q) => blocks().find((d) => (d.textContent || '').includes(q) && d.querySelector('.q-speak'));
+    const click = (btn) => btn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+
+    const useQ = 'Can I use your glue, please?';
+    const borrowQ = 'Can I borrow your glue?';
+
+    // 1) 正反对照：同一文具的两题，一题点头一题摇头（旧版两题都点头）
+    let qUse = boxOf(useQ);
+    let qBorrow = boxOf(borrowQ);
+    assert.ok(qUse && qBorrow, 'glue 两道配对题都应出现');
+    assert.match(qUse.querySelector('.cue-badge').textContent, /点头/, 'use 题应给点头线索');
+    assert.match(qBorrow.querySelector('.cue-badge').textContent, /摇头/, 'borrow 题应给摇头线索（旧版是点头）');
+
+    // 2) 摇头题选课本婉拒答语 → 判对并给规则解说
+    click(optBtn(qBorrow, "Sorry, I'm using it."));
+    await new Promise((r) => setTimeout(r, 30));
+    qBorrow = boxOf(borrowQ);
+    assert.ok(qBorrow.querySelector('.option.is-correct'), '婉拒答语在摇头题应判对');
+    assert.match(qBorrow.textContent, /💡/, '答对后应给纯中文规则解说');
+
+    // 3) 关键回归：点头题点婉拒项（极性冲突），旧 isNo 正则不认 Sorry 会误判成"主语错位/别的问题"
+    qUse = boxOf(useQ);
+    click(optBtn(qUse, "Sorry, I'm using it."));
+    const polarityToast = window.document.getElementById('toast').textContent;
+    await new Promise((r) => setTimeout(r, 30));
+    qUse = boxOf(useQ);
+    assert.equal(qUse.querySelector('.option.is-correct'), null, '婉拒项在点头题不得判对');
+    assert.match(polarityToast, /点头还是摇头/, '应引导看表情极性，而不是笼统"答的是别的问题"');
+    assert.ok(!/主语|别的问题/.test(polarityToast), '婉拒项不应被误判成主语错位');
+
+    // 4) "答非所问"干扰项：道谢句不判对，且给出专门支架（不是主语错位）
+    qUse = boxOf(useQ);
+    click(optBtn(qUse, 'Thank you.'));
+    const thxToast = window.document.getElementById('toast').textContent;
+    await new Promise((r) => setTimeout(r, 30));
+    qUse = boxOf(useQ);
+    assert.equal(qUse.querySelector('.option.is-correct'), null, '道谢句不得判对');
+    assert.match(thxToast, /还没回答|能不能/, '道谢句应提示"没在回答能不能"');
+    assert.match(boxOf(useQ).textContent, /💡 这句没在回答/, '应显示"答非所问"对照卡');
+
+    // 5) 点头题最终选课本同意答语 → 判对
+    qUse = boxOf(useQ);
+    click(optBtn(qUse, 'Sure. Here you are.'));
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(boxOf(useQ).querySelector('.option.is-correct'), '同意答语在点头题应判对');
+  } finally { cleanup(); }
+});
+
+test('E2E-61 U4 配对页未选文具时不串到 U5 兜底对话：默认题为本单元且一正一反', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u4: { stagePassed: [true, false, false, false], wordsDone: [], listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u4/stage/1'); // 故意不点任何文具
+    const txt = mainText(window);
+    // 旧版漏到 U5 硬编码兜底（May I have a pet? / May I hold it?，且全点头）
+    assert.ok(!txt.includes('May I have a pet?'), 'U4 不得出现 U5 的宠物兜底题');
+    assert.ok(!txt.includes('May I hold it?'), 'U4 不得出现 U5 的 hold 兜底题');
+    assert.ok(txt.includes('Can I use your pencil, please?'), '默认应显示本单元第一组（pencil）题目');
+    // 默认首组也必须一正一反（不能又是一进页面全是点头）
+    const badges = Array.from(window.document.querySelectorAll('.cue-badge')).map((b) => b.textContent);
+    assert.ok(badges.some((b) => b.includes('点头')), '默认组应有点头题');
+    assert.ok(badges.some((b) => b.includes('摇头')), '默认组应有摇头题');
+  } finally { cleanup(); }
+});

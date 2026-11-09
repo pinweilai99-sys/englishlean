@@ -80,11 +80,14 @@ export function renderSentence(ctx, unit) {
     // ───────── 卡片 2：应答配对（每只动物一组课本对话，举一反三） ─────────
     const cardPair = h('div', { class: 'card' });
     cardPair.appendChild(h('div', { class: 'card-title', text: '↔️ 第 2 步 · 应答配对' }));
-    cardPair.appendChild(h('p', { class: 'card-sub', text: '看表情，选出合适的回答——换一种动物，对话就不一样。' }));
+    cardPair.appendChild(h('p', { class: 'card-sub', text: '看表情，选出合适的回答——别人点头还是摇头，答法就不一样。' }));
     // 动物 → 该动物的两组对话（全部取自课本：May I have/hold/touch/feed...、take good care of、导盲犬 Can he...）
     // cue 是「题目条件」而非答案译文：必须答题前可见。课本 C 部分同一问句 Yes/No 两解并列，
     // 若不给出情境线索，多个选项都是合法答语，题型即失去效度（孩子答对却被判错）。
-    const animal = slot || 'pet';
+    // 默认取本单元 dialogues 的第一组：U5 第一个键是 pet（保持原行为），
+    // U4 第一个键是 pencil —— 修掉旧版写死 'pet' 导致 U4 未选文具时
+    // 漏到下面 U5 课本兜底对话（May I have a pet? 且全是点头）的串单元问题。
+    const animal = slot || (s.dialogues && Object.keys(s.dialogues)[0]) || 'pet';
     const dialogues = (s.dialogues && s.dialogues[animal]) || [
       { q: `May I have a ${animal}?`, a: 'Yes, you can.', zh: `我可以养一只${animal}吗？——可以。`, cue: 'yes', cueZh: '点头：可以', opts: ['Yes, you can.', "No, you can't.", 'Yes, I can.'], rule: '点头＝同意。问『我可以吗』要答『你可以』；答『我能』是主语错。' },
       { q: 'May I hold it?', a: 'Sure.', zh: '我可以抱抱它吗？——当然可以。', cue: 'yes', cueZh: '点头：可以', opts: ['Sure.', "No, you can't.", 'OK. Yes, I can.'], rule: '点头＝可以，用『当然可以』来答；答『我能』是主语错。' },
@@ -99,9 +102,14 @@ export function renderSentence(ctx, unit) {
       if (q.startsWith('Can he')) return '这题问「它能吗」，回答要说「它能」～';
       return '再听听谁在问、谁在答～';
     };
-    const feedbackText = (pair, kind) => (kind === 'polarity'
-      ? `💡 看看表情：这题是${pair.cue === 'no' ? '摇头（不行）' : '点头（可以）'}，要选意思对得上的回答～`
-      : `💡 这句英文本身没错，只是答的不是这道题。${subjectRule(pair.q)}`);
+    const feedbackText = (pair, kind) => {
+      // U4 借物题有「道谢」型干扰项（Thank you.）——它既非同意也非拒绝，
+      // 是根本没回答「能不能」，不能套用「主语错位」的说法。
+      if (kind === 'offtopic') return '💡 这句没在回答「能不能」这个问题哦～先看看对方是点头还是摇头。';
+      return kind === 'polarity'
+        ? `💡 看看表情：这题是${pair.cue === 'no' ? '摇头（不行）' : '点头（可以）'}，要选意思对得上的回答～`
+        : `💡 这句英文本身没错，只是答的不是这道题。${subjectRule(pair.q)}`;
+    };
     session.zhShown = session.zhShown || {};
     dialogues.forEach((pair) => {
       const answeredOk = !!session.answeredOk?.[keyOf(pair.q)];
@@ -157,11 +165,17 @@ export function renderSentence(ctx, unit) {
               toast('配对正确！你看懂表情啦～');
             } else {
               ctx.addWrong({ unit: unit.id, type: 'answer_match', q: pair.q, a: pair.a, chosen: ans });
-              // 支架式即时纠正：不剧透答案，把注意力引回「表情极性」或「谁在问、谁在答」
-              const isNo = /(^No\b|can't)/.test(ans);
-              const polarityClash = pair.cue === 'no' ? !isNo : isNo;
-              feedback[keyOf(pair.q)] = polarityClash ? 'polarity' : 'subject';
-              toast(polarityClash ? '看看表情，是点头还是摇头呀？' : '这句答的是别的问题哦，看看下面的 💡～');
+              // 支架式即时纠正：不剧透答案，把注意力引回「表情极性」「谁在问谁在答」或「答没答题」。
+              // U4 借物的婉拒答语是 Sorry, I'm using it.（不含 No/can't），故 isNo 必须认 Sorry/using it；
+              // 否则孩子点了拒绝项却被说成「主语错位」，反馈会误导。
+              const isYes = /(^Sure\b|^Yes\b|Here you are|^OK\b)/.test(ans);
+              const isNo = /(^No\b|can't|^Sorry\b|using it|working now)/.test(ans);
+              const offtopic = !isYes && !isNo;
+              const polarityClash = pair.cue === 'no' ? isYes : isNo;
+              feedback[keyOf(pair.q)] = offtopic ? 'offtopic' : (polarityClash ? 'polarity' : 'subject');
+              toast(offtopic ? '这句还没回答「能不能」这个问题哦～'
+                : polarityClash ? '看看表情，是点头还是摇头呀？'
+                  : '这句答的是别的问题哦，看看下面的 💡～');
             }
             render();
             const ok = dialogues.every((p) => session.answeredOk?.[keyOf(p.q)]);

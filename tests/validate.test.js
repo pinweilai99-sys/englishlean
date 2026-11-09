@@ -513,6 +513,124 @@ test('u4.json 核心句型对话对覆盖 6 个槽位 × 2（use/borrow）= 12 �
   assert.equal(pairs, 12, '应答配对应为 12 对');
 });
 
+// ── U4 应答配对「灵活化」需求（2026-11-09 家长：截图里全是"点头：可以"，能考得活一点吗？比如不同意）──
+// 旧口径：12 题全是点头同意，正确答案永远排第一，孩子不用看表情点第一个就全对 → 题型失效。
+// 新口径：点头/摇头混合，use/borrow 两种问法各自都练到同意与婉拒两种答语，正确答案位置均匀轮转。
+// 沿用题型效度铁律：每题必须有 cue（答题前可见）+ 纯中文 rule；干扰项只能是
+//   「与 cue 极性冲突」或「答非所问」的真错，绝不把与 cue 一致的另一句合法答语判错。
+const U4_YES = 'Sure. Here you are.';
+const U4_NO = "Sorry, I'm using it.";
+function u4AnswerKind(a) {
+  if (/^No\b|can't|^Sorry\b|using it|working now/.test(a)) return 'no';
+  if (/^Sure\b|^Yes\b|Here you are|^OK\b/.test(a)) return 'yes';
+  return 'offtopic'; // 如 Thank you.：根本没回答"能不能借"
+}
+function u4DialogueDefects(dialogues) {
+  const bad = [];
+  for (const [slot, pairs] of Object.entries(dialogues)) {
+    for (const p of pairs) {
+      const tag = `${slot}|${p.q}`;
+      if (p.cue !== 'yes' && p.cue !== 'no') bad.push(`${tag}: 缺/非法 cue`);
+      if (!p.cueZh) bad.push(`${tag}: 缺 cueZh`);
+      if (!p.rule) bad.push(`${tag}: 缺 rule`);
+      if (!p.zh) bad.push(`${tag}: 缺 zh 中文意思`);
+      // 中文解说区不得混入无 🔊 英文（英语必有播放铁律）
+      if (/[A-Za-z]/.test(p.rule || '') || /[A-Za-z]/.test(p.cueZh || '')) bad.push(`${tag}: cueZh/rule 含裸英文`);
+      if (!Array.isArray(p.opts) || p.opts.length !== 3) bad.push(`${tag}: 应有 3 个选项`);
+      if (!p.opts?.includes(p.a)) bad.push(`${tag}: 正确答案不在选项内`);
+      if (new Set(p.opts).size !== p.opts.length) bad.push(`${tag}: 选项重复`);
+      // 正确答案的极性必须与表情一致
+      if (u4AnswerKind(p.a) !== p.cue) bad.push(`${tag}: 正确答案与表情极性不符 -> ${p.a}`);
+      // 干扰项不得是"与表情一致的另一句合法答语"（否则孩子答对却被判错）
+      for (const o of p.opts || []) {
+        if (o !== p.a && u4AnswerKind(o) === p.cue) bad.push(`${tag}: 与表情一致的合法答语被判错 -> ${o}`);
+      }
+    }
+  }
+  return bad;
+}
+
+// 纯函数：判定一份配对题数据是否"灵活"（正反对照用，不写死当前值）
+function u4IsFlexible(dialogues) {
+  const pairs = Object.values(dialogues).flat();
+  if (pairs.length !== 12) return false;
+  // ① 点头/摇头都要有，且各占一半（否则又退化成另一种固定套路）
+  if (pairs.filter((p) => p.cue === 'yes').length !== 6) return false;
+  // ② use / borrow 两种问法各自都必须能考同意与婉拒
+  for (const re of [/use your/, /borrow your/]) {
+    const g = pairs.filter((p) => re.test(p.q));
+    if (g.length !== 6 || !g.some((p) => p.cue === 'yes') || !g.some((p) => p.cue === 'no')) return false;
+  }
+  // ③ 正确答案均匀落在三个位置（旧版永远第一位，点第一个就全对）
+  const pos = [0, 1, 2].map((i) => pairs.filter((p) => p.opts.indexOf(p.a) === i).length);
+  if (pos.some((n) => n < 2)) return false;
+  return true;
+}
+
+test('U4 应答配对灵活化：正反对照——不再"全是同意"，答案也不再永远第一位', () => {
+  const dlg = u4.sentences.dialogues;
+  const pairs = Object.values(dlg).flat();
+  assert.equal(pairs.length, 12);
+  // 前置对照断言：构造"旧版"（12 题全点头、答案全在第一个），证明行为确实变了、测试非摆设
+  const oldStyle = structuredClone(dlg);
+  for (const ps of Object.values(oldStyle)) {
+    for (const p of ps) {
+      p.cue = 'yes';
+      p.cueZh = '点头：可以';
+      p.a = U4_YES;
+      p.opts = [U4_YES, U4_NO, 'Thank you.'];
+    }
+  }
+  assert.equal(u4IsFlexible(oldStyle), false, '旧版"全同意+答案固定第一"必须被判为不灵活');
+  assert.equal(u4IsFlexible(dlg), true, '新规格必须判为灵活');
+
+  // 新规格逐项断言（给出可读诊断）
+  const cues = new Set(pairs.map((p) => p.cue));
+  assert.deepEqual([...cues].sort(), ['no', 'yes'], '必须同时有点头同意与摇头婉拒');
+  assert.equal(pairs.filter((p) => p.cue === 'yes').length, 6, '一半点头一半摇头');
+  for (const [label, re] of [['use', /use your/], ['borrow', /borrow your/]]) {
+    const g = pairs.filter((p) => re.test(p.q));
+    assert.ok(g.some((p) => p.cue === 'yes') && g.some((p) => p.cue === 'no'),
+      `${label} 问法必须既能考"同意"也能考"不方便"`);
+  }
+  const posDist = [0, 1, 2].map((i) => pairs.filter((p) => p.opts.indexOf(p.a) === i).length);
+  assert.deepEqual(posDist, [4, 4, 4], '正确答案应均匀分布在三个位置');
+  // 干扰项类型丰富：既有极性冲突项，也有"答非所问"项（家长要的"别的等等"）
+  assert.ok(pairs.some((p) => p.opts.includes('Thank you.')), '应含"道谢=没回答问题"这类干扰项');
+  assert.ok(pairs.every((p) => p.opts.includes(U4_YES) && p.opts.includes(U4_NO)),
+    '每题都应让同意/婉拒两句同时出现，靠表情来选');
+});
+
+test('U4 应答配对题型效度：每题有可见线索+纯中文解说，无"合法答语被判错"', () => {
+  const dlg = u4.sentences.dialogues;
+  assert.deepEqual(u4DialogueDefects(dlg), [], '不应存在效度缺陷');
+  // 检测器有效性对照 ①：点头题里塞入第二句"同意"合法答语当干扰项 → 必须检出多解
+  const multi = structuredClone(dlg);
+  const yesPair = Object.values(multi).flat().find((p) => p.cue === 'yes');
+  yesPair.opts[yesPair.opts.findIndex((o) => o === 'Thank you.')] = 'Sure. Here you are!';
+  assert.ok(u4DialogueDefects(multi).some((x) => x.includes('合法答语被判错')),
+    '点头题出现第二句同意答语 -> 必须报多解');
+  // 检测器有效性对照 ②：rule 塞裸英文 → 必须检出违反英语必有播放铁律
+  const engRule = structuredClone(dlg);
+  Object.values(engRule).flat()[0].rule = '答 Sure. 就对了';
+  assert.ok(u4DialogueDefects(engRule).some((x) => x.includes('含裸英文')),
+    '中文解说混入英文必须被检出');
+  // 检测器有效性对照 ③：去掉表情线索 → 必须检出缺 cueZh
+  const noCue = structuredClone(dlg);
+  delete Object.values(noCue).flat()[0].cueZh;
+  assert.ok(u4DialogueDefects(noCue).some((x) => x.includes('缺 cueZh')));
+});
+
+test('U4 应答配对所有英文题干/选项都有预生成音频（英语必有播放铁律）', () => {
+  for (const pairs of Object.values(u4.sentences.dialogues)) {
+    for (const p of pairs) {
+      for (const t of [p.q, ...p.opts]) {
+        assert.ok(audioSlugs.has(audioSlug(t)), `缺少音频: ${t} -> ${audioSlug(t)}`);
+      }
+    }
+  }
+});
+
 test('u4.json 关键英语文本都已生成预生成音频', () => {
   const need = [
     'Can I use your pencil, please?',
