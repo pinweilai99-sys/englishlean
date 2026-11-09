@@ -1,26 +1,26 @@
 // 应用入口：状态管理、路由、渲染调度
-import { loadState, saveState, defaultState } from './core/storage.js?v=1794121897';
+import { loadState, saveState, defaultState } from './core/storage.js?v=1794208887';
 import {
   defaultUnitProgress, computeStagePassed, canEnterStage, isStage1Passed,
   addStars as addStarsCore, checkIn, getUnitProgress, setUnitProgress, dateKey,
-} from './core/progress.js?v=1794121897';
-import { buildReviewPlan, dueReviews, pendingCount } from './core/scheduler.js?v=1794121897';
-import { validateUnit } from './core/validate.js?v=1794121897';
-import { h, clear, toast, confetti, starFly } from './ui/dom.js?v=1794121897';
-import { renderHome, UNITS } from './ui/home.js?v=1794121897';
-import { renderUnit } from './ui/unit.js?v=1794121897';
-import { renderWordCard } from './ui/wordcard.js?v=1794121897';
-import { renderListen } from './ui/listen.js?v=1794121897';
-import { renderPhonics } from './ui/phonics.js?v=1794121897';
-import { renderSpelling } from './ui/spelling.js?v=1794121897';
-import { renderHandwriting } from './ui/handwriting.js?v=1794121897';
-import { renderSentence } from './ui/sentence.js?v=1794121897';
-import { renderOutput } from './ui/output.js?v=1794121897';
-import { renderStories, renderQuiz } from './ui/story.js?v=1794121897';
-import { renderRecall } from './ui/recall.js?v=1794121897';
-import { renderParent } from './ui/parent.js?v=1794121897';
-import * as tts from './services/tts.js?v=1794121897';
-import { initAudio } from './services/audio.js?v=1794121897';
+} from './core/progress.js?v=1794208887';
+import { buildReviewPlan, dueReviews, pendingCount } from './core/scheduler.js?v=1794208887';
+import { validateUnit } from './core/validate.js?v=1794208887';
+import { h, clear, toast, confetti, starFly } from './ui/dom.js?v=1794208887';
+import { renderHome, UNITS } from './ui/home.js?v=1794208887';
+import { renderUnit } from './ui/unit.js?v=1794208887';
+import { renderWordCard } from './ui/wordcard.js?v=1794208887';
+import { renderListen } from './ui/listen.js?v=1794208887';
+import { renderPhonics } from './ui/phonics.js?v=1794208887';
+import { renderSpelling } from './ui/spelling.js?v=1794208887';
+import { renderHandwriting } from './ui/handwriting.js?v=1794208887';
+import { renderSentence } from './ui/sentence.js?v=1794208887';
+import { renderOutput } from './ui/output.js?v=1794208887';
+import { renderStories, renderQuiz } from './ui/story.js?v=1794208887';
+import { renderRecall } from './ui/recall.js?v=1794208887';
+import { renderParent } from './ui/parent.js?v=1794208887';
+import * as tts from './services/tts.js?v=1794208887';
+import { initAudio } from './services/audio.js?v=1794208887';
 
 const DEFAULT_UNIT = 'u5';
 const state = {
@@ -332,7 +332,7 @@ async function boot() {
   // E2E 测试通过 __disableLocalAsr 禁用（jsdom 无法执行 wasm）。
   if (window.__disableLocalAsr !== true) {
     setTimeout(() => {
-      import('./services/local-asr.js?v=1794121897')
+      import('./services/local-asr.js?v=1794208887')
         .then((m) => m.maybeAutoLoad())
         .catch(() => { /* 静默：降级链已在 */ });
     }, 5000);

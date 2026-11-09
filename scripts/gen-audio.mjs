@@ -5,9 +5,10 @@
 // 用法：node scripts/gen-audio.mjs   （数据变更后重跑；已生成的且文本未变的文件会跳过）
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, unlinkSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { audioSlug } from '../js/services/audio.js';
+import { chunkSay } from '../js/core/phonics.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(root, 'assets/audio');
@@ -16,15 +17,16 @@ const RATE = '150';       // 词/分，接近 App 内 TTS rate 0.85 的语速
 const TMP = '/tmp/englishlean-say.aiff';
 
 // ---------- 1. 枚举全部可发声文本（与 js 里 tts.speak 的调用点一一对应） ----------
-function collectTexts() {
+// （导出供 scripts/audit-audio.mjs 复用：机器听写审计所有音频）
+export function collectTexts() {
   const texts = new Set();
   const dir = join(root, 'data/units');
   for (const f of readdirSync(dir).filter((x) => x.endsWith('.json'))) {
     const u = JSON.parse(readFileSync(join(dir, f), 'utf8'));
-    // 单词 + 记词分块
+    // 单词 + 记词分块（分块朗读用重拼写 chunkSay，避免孤立音节怪音/字母名）
     (u.words || []).forEach((w) => {
       texts.add(w.tts || w.w);
-      (w.chunks || []).forEach((c) => texts.add(String(c).toLowerCase()));
+      (w.chunks || []).forEach((c) => texts.add(chunkSay(String(c).toLowerCase())));
     });
     // 自然拼读：例词 + chant
     if (u.phonics) {
@@ -95,6 +97,9 @@ function genOne(text, outFile) {
   unlinkSync(TMP);
 }
 
+// 仅直接运行本脚本时执行生成主流程（被 audit-audio.mjs 导入 collectTexts 时跳过）
+const isMain = process.argv[1] && import.meta.url.endsWith(basename(process.argv[1]));
+if (isMain) {
 const texts = collectTexts();
 mkdirSync(OUT, { recursive: true });
 const generated = [];
@@ -112,3 +117,4 @@ const slugs = [...new Set(texts.map(audioSlug))].sort();
 writeFileSync(join(OUT, 'manifest.json'), JSON.stringify({ voice: VOICE, slugs }, null, 1));
 console.log(`✅ 音频生成完成：新 ${generated.length} 条，已有 ${skipped.length} 条，清单共 ${slugs.length} 条 → ${OUT}`);
 if (generated.length) console.log('   新增:', generated.slice(0, 10).join(', '), generated.length > 10 ? '…' : '');
+}

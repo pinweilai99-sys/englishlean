@@ -556,7 +556,7 @@
           "zh": "我想你需要一点胶水。"
         },
         {
-          "who": "🧒 Xiaoxiao",
+          "who": "🧒 Kaikai",
           "t": "Thank you all. Let's make the kite together.",
           "zh": "谢谢大家。我们一起做风筝吧。"
         },
@@ -608,47 +608,52 @@
       "narrationZh": "",
       "lines": [
         {
-          "who": "🦖 Dino",
+          "who": "🧒 同伴",
           "t": "Dino, can I have some grapes, please?",
           "zh": "Dino，我能吃几颗葡萄吗？"
         },
         {
-          "who": "🦖 同伴",
+          "who": "🦖 Dino",
           "t": "Sure.",
           "zh": "当然可以。"
         },
         {
-          "who": "🦖 Dino",
-          "t": "Can I use your ruler, please?",
-          "zh": "我能用一下你的尺子吗？"
+          "who": "🧒 同伴",
+          "t": "Dino, can I use your ruler, please?",
+          "zh": "Dino，我能用一下你的尺子吗？"
         },
         {
-          "who": "🦖 同伴",
+          "who": "🦖 Dino",
           "t": "Yes. Here you are.",
           "zh": "可以，给你。"
         },
         {
-          "who": "🦖 Tim",
+          "who": "🧒 同伴",
           "t": "Thanks.",
           "zh": "谢谢。"
         },
         {
-          "who": "🤖 机器人",
+          "who": "🧒 同伴",
           "t": "My robot doesn't work, Tim.",
           "zh": "Tim，我的机器人坏了。"
         },
         {
-          "who": "🦖 Tim",
+          "who": "🧒 Tim",
           "t": "Don't worry! Let me fix it.",
           "zh": "别担心！我来修好它。"
         },
         {
-          "who": "👋 大家",
-          "t": "Hello, my friends! Thank you, Tim.",
-          "zh": "你们好，朋友们！谢谢你，Tim。"
+          "who": "🤖 机器人",
+          "t": "Hello, my friends!",
+          "zh": "你们好，我的朋友们！"
         },
         {
-          "who": "🦖 Tim",
+          "who": "🧒 同伴",
+          "t": "Thank you, Tim.",
+          "zh": "谢谢你，Tim。"
+        },
+        {
+          "who": "🧒 Tim",
           "t": "You're welcome.",
           "zh": "不客气。"
         }
@@ -674,6 +679,83 @@
           "type": "choice",
           "options": ["He fixes the robot.", "He draws a line.", "He cleans the board."],
           "a": "He fixes the robot."
+        }
+      ]
+    },
+    {
+      "id": "IX",
+      "title": "Emma 的魔法书包",
+      "titleEn": "Emma's Magic Schoolbag",
+      "text": "Emma has a new schoolbag. There is a Chinese book, a dictionary, two notebooks and a big pencil case in it. What's in the big pencil case? She takes out a pencil. The pencil sharpens itself! \"Oh, no, I forgot my ruler. Can I use yours, please?\" Mike asks. Emma gives him the ruler. It changes to the right length. Mike writes a wrong word. Emma takes out her eraser to help him. They take out a brush. The brush paints colourful lines by itself. They do their homework with the magic things in the schoolbag. Suddenly, Emma wakes up. It's only a dream! \"What a fun dream!\"",
+      "tasks": [
+        "跟读 3 遍",
+        "演一演：魔法文具都有什么本领？"
+      ],
+      "narration": "",
+      "narrationZh": "",
+      "lines": [
+        {
+          "who": "🎒 旁白",
+          "t": "Emma has a new schoolbag. There is a Chinese book, a dictionary, two notebooks and a big pencil case in it.",
+          "zh": "Emma 有一个新书包。里面有一本语文书、一本词典、两个笔记本和一个大文具盒。"
+        },
+        {
+          "who": "🎒 旁白",
+          "t": "What's in the big pencil case? She takes out a pencil. The pencil sharpens itself!",
+          "zh": "大文具盒里有什么？她拿出一支铅笔。铅笔自己变尖了！"
+        },
+        {
+          "who": "🧒 Mike",
+          "t": "Oh, no, I forgot my ruler. Can I use yours, please?",
+          "zh": "哦，不好，我忘带尺子了。我能用一下你的吗？"
+        },
+        {
+          "who": "🎒 旁白",
+          "t": "Emma gives him the ruler. It changes to the right length.",
+          "zh": "Emma 把尺子递给他。尺子变到了合适的长度。"
+        },
+        {
+          "who": "🎒 旁白",
+          "t": "Mike writes a wrong word. Emma takes out her eraser to help him.",
+          "zh": "Mike 写错了一个单词。Emma 拿出橡皮帮他。"
+        },
+        {
+          "who": "🎒 旁白",
+          "t": "They take out a brush. The brush paints colourful lines by itself.",
+          "zh": "他们拿出一支画笔。画笔自己画出了彩色的线条。"
+        },
+        {
+          "who": "🎒 旁白",
+          "t": "They do their homework with the magic things in the schoolbag.",
+          "zh": "他们用书包里的魔法文具做作业。"
+        },
+        {
+          "who": "🎒 旁白",
+          "t": "Suddenly, Emma wakes up. It's only a dream! What a fun dream!",
+          "zh": "忽然，Emma 醒了。这只是一场梦！多么有趣的梦啊！"
+        }
+      ],
+      "quiz": [
+        {
+          "q": "Emma has a new schoolbag.",
+          "qZh": "Emma 有一个新书包。",
+          "type": "tf",
+          "options": ["T", "F"],
+          "a": "T"
+        },
+        {
+          "q": "There is a glue in the schoolbag.",
+          "qZh": "书包里有一瓶胶水。",
+          "type": "tf",
+          "options": ["T", "F"],
+          "a": "F"
+        },
+        {
+          "q": "What does the magic pencil do?",
+          "qZh": "魔法铅笔有什么本领？",
+          "type": "choice",
+          "options": ["It sharpens itself.", "It paints lines.", "It changes length."],
+          "a": "It sharpens itself."
         }
       ]
     }

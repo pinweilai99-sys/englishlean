@@ -6,6 +6,7 @@ import * as tts from '../services/tts.js';
 import * as recorder from '../services/recorder.js';
 import * as speech from '../services/speech-match.js';
 import { scorePronunciation, scoreFeedback } from '../core/scoring.js';
+import { chunkSay } from '../core/phonics.js';
 import * as localAsr from '../services/local-asr.js';
 
 // ── 分块区形态判定（渲染与拼读示范共用，避免两处逻辑漂移）─────────────
@@ -89,7 +90,7 @@ export function renderWordCard(ctx, unit) {
         class: 'chunk-btn',
         text: c,
         'aria-label': `读 ${c}`,
-        onclick: () => tts.speak(c.toLowerCase()),
+        onclick: () => tts.speak(chunkSay(c.toLowerCase())),
       }));
     });
 
@@ -321,7 +322,7 @@ export function renderWordCard(ctx, unit) {
           if (!alive()) return;
           hiPiece(i);
           // eslint-disable-next-line no-await-in-loop
-          await tts.speak(chunks[i].toLowerCase());
+          await tts.speak(chunkSay(chunks[i].toLowerCase()));
           // eslint-disable-next-line no-await-in-loop
           await new Promise((r) => setTimeout(r, 220));
         }

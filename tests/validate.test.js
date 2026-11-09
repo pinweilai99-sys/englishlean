@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { validateUnit } from '../js/core/validate.js';
 import { audioSlug } from '../js/services/audio.js';
+import { chunkSay } from '../js/core/phonics.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const raw = JSON.parse(readFileSync(join(__dirname, '../data/units/u5.json'), 'utf8'));
@@ -140,10 +141,12 @@ test('拼读拆分 split（2026-11-06 家长提问新增）：每词都有、拼
 test('拼读拆分不引入超纲朗读文本：只有音节级音块才有预生成音频，单字母不单独发音', () => {
   // 自然拼读的经典陷阱：单字母交给 TTS 会被念成字母名（em / ay），
   // 教成"念字母名"而不是"读音"。因此拆音阶段只念音节级音块。
+  // 分块朗读走重拼写（chunkSay）：显示真实字母，朗读用重拼写后的文本，
+  // 所以预生成音频的 slug 必须按 chunkSay(text) 查，而非原始字母。
   raw.words.forEach((w) => {
     (w.chunks || []).forEach((c) => {
-      const slug = audioSlug(String(c).toLowerCase());
-      assert.ok(audioSlugs.has(slug), `${w.w} 的音块「${c}」缺预生成音频（拆音阶段要念它）`);
+      const slug = audioSlug(chunkSay(String(c).toLowerCase()));
+      assert.ok(audioSlugs.has(slug), `${w.w} 的音块「${c}」(重拼写 ${chunkSay(String(c).toLowerCase())}) 缺预生成音频（拆音阶段要念它）`);
     });
   });
   // 反向对照：单字母拆分块（m/ay/p/e/t…）**不应**被当成可朗读音块
@@ -460,11 +463,31 @@ test('u4.json 内容与课本/同步优学一致：12 词、四会 9、认读 3'
   assert.ok(read.includes('English book'));
 });
 
-test('u4.json 含 2 个故事（Kaikai 做风筝 / Dino 借东西）', () => {
-  assert.equal(u4.stories.length, 2);
+test('u4.json 含 3 个故事（Kaikai 做风筝 / Dino 借东西 / Emma 魔法书包）', () => {
+  // 前置（证明行为已变化）：旧版只有 D/F 两个故事，IX 绘本缺失导致微测 IX 题无原文可读。
+  assert.equal(u4.stories.length, 3, '应为 3 个故事（旧版 2 个，IX 绘本已补）');
   const ids = u4.stories.map((s) => s.id).sort();
-  assert.deepEqual(ids, ['D', 'F']);
+  assert.deepEqual(ids, ['D', 'F', 'IX']);
   u4.stories.forEach((s) => assert.ok(Array.isArray(s.lines) && s.lines.length > 0, s.id + ' 必须有 lines'));
+});
+
+test('u4.json 故事说话人标注正确（2026-11-08 审计修复）', () => {
+  const dino = u4.stories.find((s) => s.id === 'D');
+  const kite = u4.stories.find((s) => s.id === 'F');
+  // 前置（证明行为已变化）：旧版 D 篇把「同伴对 Dino 说的话」标成了 Dino 自己说。
+  assert.equal(dino.lines[0].who, '🧒 同伴', 'D 篇第 1 句是同伴对 Dino 说，不应标 Dino');
+  assert.equal(dino.lines[1].who, '🦖 Dino', '"Sure." 应是 Dino 回答');
+  // "Thank you all." 是 Kaikai 说的（旧版误标 Xiaoxiao）。
+  const thanks = kite.lines.find((l) => l.t.includes('Thank you all'));
+  assert.ok(thanks, 'F 篇应有 Thank you all 一句');
+  assert.equal(thanks.who, '🧒 Kaikai', 'Thank you all 是 Kaikai 说的');
+  // "Hello, my friends!"（机器人）与 "Thank you, Tim."（同伴）必须分行，不得合并。
+  const hello = dino.lines.find((l) => l.t.includes('Hello, my friends'));
+  assert.ok(hello && !hello.t.includes('Thank'), '机器人问好不应与感谢句合并成一行');
+  assert.ok(dino.lines.some((l) => l.t === 'Thank you, Tim.'), '感谢 Tim 应为独立一行');
+  // Emma 绘本（IX）须含魔法铅笔情节（与微测 IX5 对应）。
+  const emma = u4.stories.find((s) => s.id === 'IX');
+  assert.ok(/sharpens itself/.test(emma.text), 'Emma 绘本应含 sharpens itself 情节');
 });
 
 test('u4.json 语法卡含 3 条 childCard（Excuse me / 借物 / 致谢）', () => {

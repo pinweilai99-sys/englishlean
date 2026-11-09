@@ -6,7 +6,7 @@
 // 产出：englishlean-offline.html（项目根目录，自包含，可直接发给手机打开）
 
 import { build } from '/Users/ab/.workbuddy/binaries/node/workspace/node_modules/esbuild/lib/main.js';
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -42,18 +42,19 @@ async function main() {
     u5: JSON.parse(read(join(DOCS, 'data/units/u5.json'))),
   };
 
-  // 5) 音频：全部 m4a -> base64 data URI，按 slug(文件名去扩展名) 建索引
+  // 5) 音频：仅清单中的 slug -> base64 data URI（避免孤儿分块音频膨胀离线包）
   const audioDir = join(DOCS, 'assets/audio');
+  const manifest = JSON.parse(read(join(audioDir, 'manifest.json')));
   const audio = {};
-  for (const f of readdirSync(audioDir)) {
-    if (!f.endsWith('.m4a')) continue;
-    const slug = f.replace(/\.m4a$/, '');
-    const b64 = readFileSync(join(audioDir, f)).toString('base64');
+  for (const slug of manifest.slugs) {
+    const f = `${slug}.m4a`;
+    const p = join(audioDir, f);
+    if (!existsSync(p)) continue;
+    const b64 = readFileSync(p).toString('base64');
     audio[slug] = `data:audio/mp4;base64,${b64}`;
   }
 
   // 6) manifest（清单只列 slugs，离线仍用于 hasAudio 判定）
-  const manifest = JSON.parse(read(join(audioDir, 'manifest.json')));
 
   // 7) 离线垫片：重定向 fetch + Audio 到内嵌内容
   const shim = `

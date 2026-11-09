@@ -6,6 +6,7 @@ import {
 } from './e2e-helper.mjs';
 import { computePdfLayout, buildHandwritingWords } from '../js/ui/handwriting.js';
 import { buildSpellQueue, SPELL_TIMES_PER_WORD } from '../js/ui/spelling.js';
+import { chunkSay } from '../js/core/phonics.js';
 
 // 应答配对选项查找助手：选项内含 🔊 听音小喇叭（新口径），按剥离喇叭后的文本精确匹配
 function optBtn(root, text) {
@@ -1003,7 +1004,9 @@ test('E2E-29 单词卡记词分块：分块按钮可点读 + 记忆提示展示'
     window.speechSynthesis.__spoken.length = 0;
     chunkBtns[0].dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 30));
-    assert.ok(window.speechSynthesis.__spoken.includes('cle'), '点分块应朗读该块');
+    // 分块朗读走重拼写（显示 cle，实际朗读 chunkSay('cle')='klee'，避免孤立音节怪音）
+    assert.ok(window.speechSynthesis.__spoken.includes(chunkSay('cle')),
+      '点分块应朗读该块的重拼写音（cle→klee）');
   } finally { cleanup(); }
 });
 
