@@ -1,13 +1,13 @@
 // 单词图卡：三步学习流（听音 → 认形 → 跟读），跟读达标才点亮
 // 已点亮的词可"🔁 再学一遍"：清空本词星标、从头重学，学完重新点亮；
 // 每词学习遍数（learnCount，存于 reviewCount）落盘并展示。
-import { h, toast, starFly } from './dom.js?v=1794213575';
-import * as tts from '../services/tts.js?v=1794213575';
-import * as recorder from '../services/recorder.js?v=1794213575';
-import * as speech from '../services/speech-match.js?v=1794213575';
-import { scorePronunciation, scoreFeedback } from '../core/scoring.js?v=1794213575';
-import { chunkSay } from '../core/phonics.js?v=1794213575';
-import * as localAsr from '../services/local-asr.js?v=1794213575';
+import { h, toast, starFly } from './dom.js?v=1794223260';
+import * as tts from '../services/tts.js?v=1794223260';
+import * as recorder from '../services/recorder.js?v=1794223260';
+import * as speech from '../services/speech-match.js?v=1794223260';
+import { scorePronunciation, scoreFeedback } from '../core/scoring.js?v=1794223260';
+import { chunkSay } from '../core/phonics.js?v=1794223260';
+import * as localAsr from '../services/local-asr.js?v=1794223260';
 
 // ── 分块区形态判定（渲染与拼读示范共用，避免两处逻辑漂移）─────────────
 // 2026-11-06 家长截图质疑"记词分块这行是不是可以去掉"。查数据发现 12 词分两类：

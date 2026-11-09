@@ -2061,6 +2061,11 @@ test('E2E-57 Stage1 通关进度清单：学习路径页能看见"还差哪件�
     await navigate(window, app, '#/unit/u4');
     const list = window.document.querySelector('.stage1-checklist');
     assert.ok(list, 'Stage1 未通关时，学习路径页应显示通关进度清单');
+    // 2026-11-09 家长反馈"不知道要做什么"：清单必须在阶段列表上方（页面最显眼处），
+    // 孩子看到"未解锁"第一眼就是引导，不再沉底被忽略
+    const main = window.document.getElementById('main') || window.document.body;
+    const allChildren = Array.from(main.querySelectorAll('.card, .stage-list, .stage1-checklist'));
+    assert.ok(allChildren.indexOf(list) < allChildren.findIndex((el) => el.classList.contains('stage-list')), '清单应排在阶段列表之前（页面顶部）');
     const txt = list.textContent;
     assert.match(txt, /单词点亮 12\/12/, '点亮进度应显示 12/12');
     assert.match(txt, /听音选词 还没测/, '听辨未测应明说"还没测"');
@@ -2073,11 +2078,20 @@ test('E2E-57 Stage1 通关进度清单：学习路径页能看见"还差哪件�
     // 点「去听写」真的跳到听音选词页
     await clickButton(window, '去听写', { within: list });
     assert.match(mainText(window), /听音选词/, '应跳到听音选词模块');
-    // 回到单元页 → 点「去拼写」跳到拼写屋
+    // 点「去拼写」跳到拼写屋
     await navigate(window, app, '#/unit/u4');
     const list2 = window.document.querySelector('.stage1-checklist');
     await clickButton(window, '去拼写', { within: list2 });
     assert.match(mainText(window), /拼写屋/, '应跳到拼写屋模块');
+    // 点"未解锁"的核心句型 → toast 必须报出具体还差哪几件事（而不是笼统的"先完成单词奠基"）
+    await navigate(window, app, '#/unit/u4');
+    const lockedStage = Array.from(window.document.querySelectorAll('.stage-item'))[1];
+    lockedStage.click();
+    await new Promise((r) => setTimeout(r, 20));
+    const toastEl = window.document.getElementById('toast');
+    assert.match(toastEl.textContent, /还差 2 件事/, 'toast 应说明还差几件事');
+    assert.match(toastEl.textContent, /听音选词/, 'toast 应点名听辨没做');
+    assert.match(toastEl.textContent, /四会拼写 0\/9/, 'toast 应点名拼写没做');
     // 通关后清单消失
     const p = persisted(window).progress.u4;
     await navigate(window, app, '#/unit/u4');
