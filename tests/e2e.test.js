@@ -2091,3 +2091,25 @@ test('E2E-57 Stage1 通关进度清单：学习路径页能看见"还差哪件�
     assert.match(items[1].textContent, /进入/, '核心句型应解锁为「进入」');
   } finally { cleanup(); }
 });
+
+test('E2E-58 U4 故事屋回归：Stage4 打开必须渲染三个故事+阅读题（曾因 choice 题字段名 options≠opts 白屏）', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u4: { stagePassed: [true, true, true, false], wordsDone: [], listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    const rejections = [];
+    window.addEventListener('unhandledrejection', (e) => rejections.push(String(e.reason)));
+    await navigate(window, app, '#/unit/u4/stage/3');
+    const txt = mainText(window);
+    assert.match(txt, /故事屋/, '应渲染故事屋标题');
+    assert.match(txt, /Kaikai 做风筝/, '故事 F 应渲染');
+    assert.match(txt, /Dino 借东西/, '故事 D 应渲染');
+    assert.match(txt, /Emma 的魔法书包/, '故事 IX（绘本）应渲染');
+    assert.match(txt, /T 对/, '判断题应有 T 选项');
+    assert.match(txt, /He fixes the robot\./, 'choice 题应用 opts 渲染选项');
+    assert.deepEqual(rejections, [], '渲染过程不得有未处理异常（曾在这里把整页炸成白屏）');
+  } finally { cleanup(); }
+});

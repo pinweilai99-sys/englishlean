@@ -68,6 +68,21 @@ export function validateUnit(data) {
     if (!isStr(s.id)) push(`stories[${i}].id`, '必须是非空字符串');
     if (!isStr(s.title)) push(`stories[${i}].title`, '必须是非空字符串');
     if (!isStr(s.text)) push(`stories[${i}].text`, '必须是非空字符串');
+    // 阅读理解题：渲染器 story.js 读 opts（choice 题），缺字段会让整个故事屋白屏
+    (s.quiz || []).forEach((q, qi) => {
+      if (!q || typeof q !== 'object') { push(`stories[${i}].quiz[${qi}]`, '必须是对象'); return; }
+      if (!isStr(q.q)) push(`stories[${i}].quiz[${qi}].q`, '必须是非空字符串');
+      if (!isStr(q.qZh)) push(`stories[${i}].quiz[${qi}].qZh`, '必须是非空字符串（答对后的中文门控）');
+      if (!isStr(q.a)) push(`stories[${i}].quiz[${qi}].a`, '必须是非空字符串');
+      if (q.type === 'tf') {
+        if (q.a !== 'T' && q.a !== 'F') push(`stories[${i}].quiz[${qi}].a`, `tf 题答案必须是 T/F，实际 ${q.a}`);
+      } else if (q.type === 'choice') {
+        if (!Array.isArray(q.opts) || q.opts.length === 0) push(`stories[${i}].quiz[${qi}].opts`, 'choice 题必须是非空数组 opts（不是 options）');
+        else if (!q.opts.includes(q.a)) push(`stories[${i}].quiz[${qi}].a`, `必须是 opts 之一：${q.a}`);
+      } else {
+        push(`stories[${i}].quiz[${qi}].type`, `必须是 tf 或 choice，实际 ${q.type}`);
+      }
+    });
   });
 
   if (!Array.isArray(data.quiz) || data.quiz.length === 0) push('quiz', '必须是非空数组');
