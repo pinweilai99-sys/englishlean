@@ -38,6 +38,44 @@ export function isStage1Passed(unitProgress, opts = {}) {
   return true;
 }
 
+// Stage1 通关进度清单（纯函数，可测）：孩子"练习都做完了却进不了核心句型"时，
+// 学习路径页用它把三个通关条件逐项亮出来（哪里没做完一眼看到），并给出去哪做的引导。
+// 返回 [{ key, done, text, hint }]：
+//   words    单词点亮 x/总数（wordsDone）
+//   listen   听音选词：未测 / 百分比 / 已达标（≥80%）
+//   spelling 四会拼写 x/四会总数（认读词不要求，不卡零基础孩子）
+export function stage1Checklist(unit, unitProgress) {
+  const p = unitProgress || {};
+  const words = (unit && unit.words) || [];
+  const wordTotal = words.length;
+  const lit = Array.isArray(p.wordsDone) ? p.wordsDone.length : 0;
+  const fourWords = words.filter((w) => w.tier === 'four').map((w) => w.w);
+  const spellingDone = new Set(Array.isArray(p.spellingDone) ? p.spellingDone : []);
+  const spelled = fourWords.filter((w) => spellingDone.has(w)).length;
+  const ls = p.listenScore;
+  const listenOk = typeof ls === 'number' && ls >= 0.8;
+  return [
+    {
+      key: 'words',
+      done: wordTotal > 0 && lit >= wordTotal,
+      text: `单词点亮 ${lit}/${wordTotal}`,
+      hint: lit >= wordTotal ? '全部点亮啦！' : '把每个单词学到点亮（跟读达标）',
+    },
+    {
+      key: 'listen',
+      done: listenOk,
+      text: typeof ls === 'number' ? `听音选词 ${Math.round(ls * 100)}%` : '听音选词 还没测',
+      hint: typeof ls !== 'number' ? '去听写一轮，80 分过关' : (listenOk ? '过关啦！' : '80 分过关，再来一轮试试'),
+    },
+    {
+      key: 'spelling',
+      done: fourWords.length > 0 && spelled >= fourWords.length,
+      text: `四会拼写 ${spelled}/${fourWords.length}`,
+      hint: spelled >= fourWords.length ? '四会词都拼对过啦！' : '去拼写屋，每个四会词拼一次',
+    },
+  ];
+}
+
 // 计算 4 个阶段的通过状态
 export function computeStagePassed(unitProgress, opts) {
   const { wordTotal = 0, spellingTotal = 0, sentenceOk = false, outputOk = false, quizBest = null } = opts || {};

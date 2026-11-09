@@ -102,3 +102,49 @@ test('单元进度读写与星星统计', () => {
   // 3 词 + 2 个阶段 * 5
   assert.equal(unitStars(state, 'u5'), 3 + 10);
 });
+
+// ── stage1Checklist：Stage1 通关进度清单（学习路径页"还差哪件事"） ──
+import { stage1Checklist } from '../js/core/progress.js';
+
+const U4WORDS = [
+  ...['pencil', 'ruler', 'eraser', 'dictionary', 'glue', 'brush', 'notebook', 'blackboard', 'borrow'].map((w) => ({ w, tier: 'four' })),
+  ...['use', 'English book', 'Chinese book'].map((w) => ({ w, tier: 'read' })),
+];
+
+test('进度清单：全新进度 → 三项全未完成，文案给引导', () => {
+  const rows = stage1Checklist({ words: U4WORDS }, defaultUnitProgress());
+  assert.deepEqual(rows.map((r) => r.done), [false, false, false]);
+  assert.match(rows[0].text, /单词点亮 0\/12/);
+  assert.match(rows[1].text, /还没测/);
+  assert.match(rows[2].text, /四会拼写 0\/9/);
+  assert.ok(rows.every((r) => r.hint && r.hint.length > 4), '每项都要有去哪做的引导');
+});
+
+test('进度清单：只点亮了词 → 点亮✓，听辨/拼写仍⬜（这就是"练习做完了却进不了句型"的典型态）', () => {
+  const p = { ...defaultUnitProgress(), wordsDone: U4WORDS.map((w) => w.w) };
+  const rows = stage1Checklist({ words: U4WORDS }, p);
+  assert.deepEqual(rows.map((r) => r.done), [true, false, false]);
+});
+
+test('进度清单：听辨 60% 显示百分比且未达标，80% 达标', () => {
+  const p = { ...defaultUnitProgress(), wordsDone: U4WORDS.map((w) => w.w), listenScore: 0.6, spellingDone: U4WORDS.filter((w) => w.tier === 'four').map((w) => w.w) };
+  const rows = stage1Checklist({ words: U4WORDS }, p);
+  assert.match(rows[1].text, /60%/);
+  assert.equal(rows[1].done, false);
+  const rows2 = stage1Checklist({ words: U4WORDS }, { ...p, listenScore: 0.8 });
+  assert.equal(rows2[1].done, true);
+  assert.match(rows2[1].text, /80%/);
+});
+
+test('进度清单：三项全达标 → 全✓（此时 Stage1 应自动通关）', () => {
+  const p = {
+    ...defaultUnitProgress(),
+    wordsDone: U4WORDS.map((w) => w.w),
+    listenScore: 1,
+    spellingDone: U4WORDS.filter((w) => w.tier === 'four').map((w) => w.w),
+  };
+  const rows = stage1Checklist({ words: U4WORDS }, p);
+  assert.ok(rows.every((r) => r.done), '三项应全部✓');
+  // 与通关判定联动：这个进度应判 Stage1 通过
+  assert.equal(isStage1Passed(p, { wordTotal: 12, spellingTotal: 9 }), true);
+});

@@ -2045,3 +2045,49 @@ test('E2E-62 拼读示范高亮跟随可见的分块行（多音节词高亮音�
       '单音节词的拆分高亮必须逐块推进（不能停在第一块），实际高亮过：' + JSON.stringify([...pieceSeen]));
   } finally { cleanup(); }
 });
+
+test('E2E-57 Stage1 通关进度清单：学习路径页能看见"还差哪件事"，并有跳转引导；通关后消失', async () => {
+  const { readFileSync } = await import('node:fs');
+  const u4 = JSON.parse(readFileSync(new URL('../data/units/u4.json', import.meta.url), 'utf8'));
+  const fourWords = u4.words.filter((w) => w.tier === 'four').map((w) => w.w);
+  // 典型卡关态：12 词全点亮了，但听辨没测、四会拼写没做 → 核心句型仍锁着
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u4: { stagePassed: [false, false, false, false], wordsDone: u4.words.map((w) => w.w), listenScore: null, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u4');
+    const list = window.document.querySelector('.stage1-checklist');
+    assert.ok(list, 'Stage1 未通关时，学习路径页应显示通关进度清单');
+    const txt = list.textContent;
+    assert.match(txt, /单词点亮 12\/12/, '点亮进度应显示 12/12');
+    assert.match(txt, /听音选词 还没测/, '听辨未测应明说"还没测"');
+    assert.match(txt, /四会拼写 0\/9/, '四会拼写进度应显示 0/9');
+    // 引导按钮：每项未完成都有"去做"跳转
+    const goBtn = (t) => Array.from(list.querySelectorAll('button')).find((b) => (b.textContent || '').includes(t));
+    assert.ok(goBtn('去听写'), '听辨未测应有「去听写」按钮');
+    assert.ok(goBtn('去拼写'), '拼写未做应有「去拼写」按钮');
+    assert.ok(!goBtn('去点亮'), '点亮已达标就不该再给「去点亮」按钮');
+    // 点「去听写」真的跳到听音选词页
+    await clickButton(window, '去听写', { within: list });
+    assert.match(mainText(window), /听音选词/, '应跳到听音选词模块');
+    // 回到单元页 → 点「去拼写」跳到拼写屋
+    await navigate(window, app, '#/unit/u4');
+    const list2 = window.document.querySelector('.stage1-checklist');
+    await clickButton(window, '去拼写', { within: list2 });
+    assert.match(mainText(window), /拼写屋/, '应跳到拼写屋模块');
+    // 通关后清单消失
+    const p = persisted(window).progress.u4;
+    await navigate(window, app, '#/unit/u4');
+    // 手动把三项补齐并标记通过（模拟全部做完后的自动通关结果）；直接改应用内存态
+    app.state.state.progress.u4 = { ...p, listenScore: 0.9, spellingDone: fourWords, stagePassed: [true, false, false, false] };
+    app.render();
+    await new Promise((r) => setTimeout(r, 20));
+    assert.equal(window.document.querySelector('.stage1-checklist'), null, 'Stage1 通关后清单应消失');
+    // 核心句型此时应可进入
+    const items = Array.from(window.document.querySelectorAll('.stage-item'));
+    assert.match(items[1].textContent, /进入/, '核心句型应解锁为「进入」');
+  } finally { cleanup(); }
+});
