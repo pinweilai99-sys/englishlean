@@ -1,7 +1,7 @@
 // Stage2 核心句型：① 句型填空（选动物填空+跟读） → ② 应答配对
 // 结构：两张独立卡片，层级清晰（填空是第一步，配对是第二步）
-import { h, toast, starFly, confetti } from './dom.js?v=1794223260';
-import * as tts from '../services/tts.js?v=1794223260';
+import { h, toast, starFly, confetti } from './dom.js?v=1794224567';
+import * as tts from '../services/tts.js?v=1794224567';
 
 export function renderSentence(ctx, unit) {
   const s = unit.sentences;
