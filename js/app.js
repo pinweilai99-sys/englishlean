@@ -46,6 +46,11 @@ function setUnitProgressLocal(unitId, updater) {
   const next = updater(cur);
   state.state = setUnitProgress(state.state, unitId, next);
   save();
+  // 任意进度写入后都重算 Stage1：之前 checkStage1 只挂在听音选词/拼写两处，
+  // 若孩子最后一次动作是「点亮最后一个单词」等其它写进度路径，三件事都齐了也不会标记通关，
+  // 就会卡在"清单全 ✅ 但 0/4 阶段"——正是家长反馈的进不去核心句型。
+  // 无递归风险：completeStage 内部再次写进度时 stagePassed[0] 已为 true，checkStage1 早退。
+  if (state.data && state.data.id === unitId) checkStage1(unitId);
 }
 
 function addStars(delta) {
@@ -279,6 +284,8 @@ async function onRoute() {
     render(); // 先显示「正在加载」
     try {
       await loadUnit(want);
+      // 切单元时也自愈一次（与 boot 同源），确保任何卡住的 Stage1 立即解锁。
+      checkStage1(want);
     } catch (e) {
       console.error(e);
       if (els.main) {
@@ -307,6 +314,9 @@ async function boot() {
   const want = (r0.name === 'unit' || r0.name === 'stage') ? r0.unitId : DEFAULT_UNIT;
   try {
     await loadUnit(want);
+    // 自愈存量卡住的 Stage1：三件事都做完了却没被标记通关（旧版本只在听音/拼写路径标记），
+    // 打开应用时重算一次，立刻解锁核心句型并庆祝。
+    checkStage1(want);
   } catch (e) {
     console.error(e);
     if (els.main) {

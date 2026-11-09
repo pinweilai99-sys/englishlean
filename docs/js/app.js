@@ -1,26 +1,26 @@
 // 应用入口：状态管理、路由、渲染调度
-import { loadState, saveState, defaultState } from './core/storage.js?v=1794223260';
+import { loadState, saveState, defaultState } from './core/storage.js?v=1794224567';
 import {
   defaultUnitProgress, computeStagePassed, canEnterStage, isStage1Passed,
   addStars as addStarsCore, checkIn, getUnitProgress, setUnitProgress, dateKey,
-} from './core/progress.js?v=1794223260';
-import { buildReviewPlan, dueReviews, pendingCount } from './core/scheduler.js?v=1794223260';
-import { validateUnit } from './core/validate.js?v=1794223260';
-import { h, clear, toast, confetti, starFly } from './ui/dom.js?v=1794223260';
-import { renderHome, UNITS } from './ui/home.js?v=1794223260';
-import { renderUnit } from './ui/unit.js?v=1794223260';
-import { renderWordCard } from './ui/wordcard.js?v=1794223260';
-import { renderListen } from './ui/listen.js?v=1794223260';
-import { renderPhonics } from './ui/phonics.js?v=1794223260';
-import { renderSpelling } from './ui/spelling.js?v=1794223260';
-import { renderHandwriting } from './ui/handwriting.js?v=1794223260';
-import { renderSentence } from './ui/sentence.js?v=1794223260';
-import { renderOutput } from './ui/output.js?v=1794223260';
-import { renderStories, renderQuiz } from './ui/story.js?v=1794223260';
-import { renderRecall } from './ui/recall.js?v=1794223260';
-import { renderParent } from './ui/parent.js?v=1794223260';
-import * as tts from './services/tts.js?v=1794223260';
-import { initAudio } from './services/audio.js?v=1794223260';
+} from './core/progress.js?v=1794224567';
+import { buildReviewPlan, dueReviews, pendingCount } from './core/scheduler.js?v=1794224567';
+import { validateUnit } from './core/validate.js?v=1794224567';
+import { h, clear, toast, confetti, starFly } from './ui/dom.js?v=1794224567';
+import { renderHome, UNITS } from './ui/home.js?v=1794224567';
+import { renderUnit } from './ui/unit.js?v=1794224567';
+import { renderWordCard } from './ui/wordcard.js?v=1794224567';
+import { renderListen } from './ui/listen.js?v=1794224567';
+import { renderPhonics } from './ui/phonics.js?v=1794224567';
+import { renderSpelling } from './ui/spelling.js?v=1794224567';
+import { renderHandwriting } from './ui/handwriting.js?v=1794224567';
+import { renderSentence } from './ui/sentence.js?v=1794224567';
+import { renderOutput } from './ui/output.js?v=1794224567';
+import { renderStories, renderQuiz } from './ui/story.js?v=1794224567';
+import { renderRecall } from './ui/recall.js?v=1794224567';
+import { renderParent } from './ui/parent.js?v=1794224567';
+import * as tts from './services/tts.js?v=1794224567';
+import { initAudio } from './services/audio.js?v=1794224567';
 
 const DEFAULT_UNIT = 'u5';
 const state = {
@@ -46,6 +46,11 @@ function setUnitProgressLocal(unitId, updater) {
   const next = updater(cur);
   state.state = setUnitProgress(state.state, unitId, next);
   save();
+  // 任意进度写入后都重算 Stage1：之前 checkStage1 只挂在听音选词/拼写两处，
+  // 若孩子最后一次动作是「点亮最后一个单词」等其它写进度路径，三件事都齐了也不会标记通关，
+  // 就会卡在"清单全 ✅ 但 0/4 阶段"——正是家长反馈的进不去核心句型。
+  // 无递归风险：completeStage 内部再次写进度时 stagePassed[0] 已为 true，checkStage1 早退。
+  if (state.data && state.data.id === unitId) checkStage1(unitId);
 }
 
 function addStars(delta) {
@@ -279,6 +284,8 @@ async function onRoute() {
     render(); // 先显示「正在加载」
     try {
       await loadUnit(want);
+      // 切单元时也自愈一次（与 boot 同源），确保任何卡住的 Stage1 立即解锁。
+      checkStage1(want);
     } catch (e) {
       console.error(e);
       if (els.main) {
@@ -307,6 +314,9 @@ async function boot() {
   const want = (r0.name === 'unit' || r0.name === 'stage') ? r0.unitId : DEFAULT_UNIT;
   try {
     await loadUnit(want);
+    // 自愈存量卡住的 Stage1：三件事都做完了却没被标记通关（旧版本只在听音/拼写路径标记），
+    // 打开应用时重算一次，立刻解锁核心句型并庆祝。
+    checkStage1(want);
   } catch (e) {
     console.error(e);
     if (els.main) {
@@ -332,7 +342,7 @@ async function boot() {
   // E2E 测试通过 __disableLocalAsr 禁用（jsdom 无法执行 wasm）。
   if (window.__disableLocalAsr !== true) {
     setTimeout(() => {
-      import('./services/local-asr.js?v=1794223260')
+      import('./services/local-asr.js?v=1794224567')
         .then((m) => m.maybeAutoLoad())
         .catch(() => { /* 静默：降级链已在 */ });
     }, 5000);

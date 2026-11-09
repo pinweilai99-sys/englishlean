@@ -2127,3 +2127,82 @@ test('E2E-58 U4 故事屋回归：Stage4 打开必须渲染三个故事+阅读�
     assert.deepEqual(rejections, [], '渲染过程不得有未处理异常（曾在这里把整页炸成白屏）');
   } finally { cleanup(); }
 });
+
+// ---- Stage1 通关标记漏触发修复（2026-11-09 家长截图：清单全 ✅ 却 0/4 阶段，进不去核心句型）----
+// 根因：checkStage1 只挂在听音选词/拼写两处，若孩子最后一次动作是「点亮最后一个单词」等其它路径，
+// 三件事都齐了也不会标记通关；且存量卡住进度没有自愈。修复：任意进度写入后 + 启动/切单元时重算 Stage1。
+
+function makeStuckSeed({ wordsDone, listenScore, spellingDone }) {
+  return {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: {
+      u5: {
+        stagePassed: [false, false, false, false],
+        wordsDone,
+        listenScore,
+        quizBest: null,
+        spellingDone,
+        handwritingDone: [],
+        reviewCount: {},
+        learnRound: 1,
+      },
+    },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+}
+
+test('E2E-59 存量自愈：清单三件事全 ✅ 却 0/4 阶段，打开应用后 Stage1 自动通关并解锁核心句型', async () => {
+  const fourWords = UNIT.words.filter((w) => w.tier === 'four').map((w) => w.w);
+  const seed = makeStuckSeed({
+    wordsDone: UNIT.words.map((w) => w.w), // 12 词全点亮
+    listenScore: 0.92, // 听辨 ≥80%
+    spellingDone: [...fourWords], // 四会词全拼过
+  });
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    // 启动时自愈：stagePassed[0] 立即被补标记
+    const p0 = persisted(window);
+    assert.equal(p0.progress.u5.stagePassed[0], true, '卡住的 Stage1 应在启动时被补齐标记');
+    // 学习路径页：已通过数应为 1/4，且不再显示通关进度清单
+    await navigate(window, app, '#/unit/u5');
+    const txt = mainText(window);
+    assert.match(txt, /已通过\s*1\s*\/\s*4/, '已通过数应变为 1/4');
+    assert.ok(!txt.includes('通关进度'), 'Stage1 已通关，通关进度清单应消失');
+    // 核心句型（Stage2）应当可进入，不再被拦截
+    await navigate(window, app, '#/unit/u5/stage/1');
+    assert.match(mainText(window), /核心句型/, '核心句型应当已解锁可进入');
+  } finally { cleanup(); }
+});
+
+test('E2E-59b 点亮最后一个单词也触发 Stage1 通关（不再只在听音/拼写路径标记）', async () => {
+  const fourWords = UNIT.words.filter((w) => w.tier === 'four').map((w) => w.w);
+  const missing = UNIT.words[0].w; // 故意少点亮第一个词
+  const seed = makeStuckSeed({
+    wordsDone: UNIT.words.filter((w) => w.w !== missing).map((w) => w.w),
+    listenScore: 0.92,
+    spellingDone: [...fourWords],
+  });
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    // 进单词卡，点亮最后一个未点亮的词（走标准三步：听一听 → 我会认 → 手动点亮）
+    await navigate(window, app, '#/unit/u5/stage/0');
+    let p = persisted(window);
+    assert.equal(p.progress.u5.stagePassed[0], false, '点亮前 Stage1 不应通过');
+    // 反复走完当前词直到 missing 被点亮（单词卡按顺序推进到第一个未点亮词）
+    for (let k = 0; k < UNIT.words.length; k++) {
+      p = persisted(window);
+      const done = new Set(p.progress.u5.wordsDone || []);
+      if (done.has(missing)) break;
+      await clickButton(window, '听一听');
+      await clickButton(window, '我会认这个词');
+      await clickButton(window, '我读好了（手动点亮）');
+    }
+    p = persisted(window);
+    assert.ok(p.progress.u5.wordsDone.includes(missing), '最后一个单词应被点亮');
+    // 关键：点亮最后一个单词的进度写入后，checkStage1 应已自动通关
+    assert.equal(p.progress.u5.stagePassed[0], true, '点亮最后一个单词应触发 Stage1 自动通关');
+    // 核心句型解锁
+    await navigate(window, app, '#/unit/u5/stage/1');
+    assert.match(mainText(window), /核心句型/, '核心句型应当已解锁可进入');
+  } finally { cleanup(); }
+});
