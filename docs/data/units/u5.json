@@ -3,6 +3,13 @@
   "no": 5,
   "title": "May I have a pet?",
   "titleZh": "我可以养一只宠物吗？",
+  "theme": {
+    "topic": "宠物",
+    "roleplay": "宠物店角色扮演",
+    "mindmap": "宠物思维导图",
+    "introNoun": "宠物",
+    "slotDefault": "小宠物"
+  },
   "objective": {
     "child": "学完你能用英语向爸爸妈妈请求养一只宠物，并听懂、回答 可以 / 不可以。",
     "parent": "请求养宠物 + 回应许可（May I…? / Yes, you can. / No, you can't.）"

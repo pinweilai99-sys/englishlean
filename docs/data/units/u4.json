@@ -3,6 +3,13 @@
   "no": 4,
   "title": "Can I use your pencil, please?",
   "titleZh": "我可以借你的铅笔吗？",
+  "theme": {
+    "topic": "文具",
+    "roleplay": "借文具角色扮演",
+    "mindmap": "借文具思维导图",
+    "introNoun": "文具",
+    "slotDefault": "文具"
+  },
   "objective": {
     "child": "学完你能用英语向同学礼貌地借东西（铅笔、尺子、橡皮……），并懂得借到要说谢谢。",
     "parent": "借物用语（Can I use/borrow your…?）＋ 应答（Sure. Here you are. / Sorry.）＋ 礼貌与致谢"
