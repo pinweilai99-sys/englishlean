@@ -642,3 +642,47 @@ test('u4.json 关键英语文本都已生成预生成音频', () => {
   ];
   need.forEach((t) => assert.ok(audioSlugs.has(audioSlug(t)), '缺少音频: ' + t + ' -> ' + audioSlug(t)));
 });
+
+// ---- U4 真实输出·Let's Write 选句题效度（2026-11-10 家长：截图"借颜料"题，OK / Sure 两句都该可以）----
+// 课本合法"同意借、给你"应答池（Unit4内容存档 A/B/C/D/F/H 板块反复出现）
+const U4_AGREE = [
+  'Sure. Here you are.', 'OK. Here you are.', 'Yes. Here you are.', 'Sure.', 'Yes.', 'OK.',
+];
+function u4WritingDefects(writing) {
+  const defects = [];
+  const items = (writing && writing.items) || [];
+  const acceptedOf = (it) => (Array.isArray(it.accept) ? it.accept : [it.a]).filter(Boolean);
+  items.forEach((it, i) => {
+    const acc = acceptedOf(it);
+    const opts = it.opts || [];
+    if (!acc.length) defects.push(`item${i}: 没有可接受答案`);
+    acc.forEach((x) => { if (!opts.includes(x)) defects.push(`item${i}: 可接受答案「${x}」不在 opts 里`); });
+    // 效度铁律：课本合法"同意借"答语不得被当干扰项判错
+    opts.forEach((o) => {
+      if (U4_AGREE.includes(o) && !acc.includes(o)) {
+        defects.push(`item${i}: 课本合法答语「${o}」被当干扰项判错（同一句在别的题里又算对）`);
+      }
+    });
+  });
+  return defects;
+}
+
+test('U4 真实输出·选句题效度（家长截图 2026-11-10）：借颜料题两句"给你"都判对', () => {
+  const items = u4.writing.items;
+  const paint = items.find((it) => it.ask === 'Can I use some paints, please?');
+  assert.ok(paint, '应有借颜料这道题');
+  const acc = Array.isArray(paint.accept) ? paint.accept : [paint.a];
+  assert.ok(acc.includes('OK. Here you are.'), '「好的，给你」应判对');
+  assert.ok(acc.includes('Sure. Here you are.'), '「当然，给你」也是课本合法答语，应判对（旧版只认 OK）');
+  assert.ok(!acc.includes('Thank you.'), '道谢句是借到东西之后才说的，不能判对');
+});
+
+test('U4 真实输出·选句题效度检测器有效性：正反对照（防测试摆设）', () => {
+  assert.deepEqual(u4WritingDefects(u4.writing), [], '当前 U4 选句题不应有"合法答语被判错"缺陷');
+  // 前置对照：把借颜料题退回旧版（删 accept，只认 a=OK）→ 检测器必须报错
+  const old = structuredClone(u4.writing);
+  const paint = old.items.find((it) => it.ask === 'Can I use some paints, please?');
+  delete paint.accept;
+  assert.ok(u4WritingDefects(old).some((x) => x.includes('被当干扰项判错')),
+    '检测器应能抓出旧版"Sure 被判错"的缺陷，证明断言不是摆设');
+});

@@ -3,6 +3,13 @@ import { h, toast, starFly, confetti } from './dom.js';
 import * as tts from '../services/tts.js';
 import * as recorder from '../services/recorder.js';
 
+// 一道选句题可接受的答案集合：默认只有唯一正确答案 a；
+// 若数据用 accept 声明了"多句课本都合法的答语"（如 OK./Sure. Here you are. 都同意借），
+// 则点中任意一句都算对——绝不把课本合法答语当干扰项判错。
+function writingAccepts(it) {
+  return (Array.isArray(it.accept) && it.accept.length) ? it.accept : [it.a];
+}
+
 export function renderOutput(ctx, unit) {
   const session = ctx.session;
   const wrap = h('div', { class: 'card' });
@@ -87,7 +94,8 @@ export function renderOutput(ctx, unit) {
     const wrItems = wr.items || [];
     wrItems.forEach((it, i) => {
       const picked = session.wrPick[i];
-      const ok = picked === it.a;
+      const accepts = writingAccepts(it);
+      const ok = accepts.includes(picked);
       // 对话结构：情境 → 孩子台词（英文+中文+🔊）→ 👉店员回答（用户点选）
       const box = h('div', { 'data-ctxzh': it.ctxZh, style: 'margin-bottom:12px' }, [
         // 情境句是英语，必须有播放（铁律：只要是英语就要有 🔊）
@@ -120,11 +128,11 @@ export function renderOutput(ctx, unit) {
       (it.opts || []).forEach((ans) => {
         row.appendChild(h('button', {
           // 选对后只标绿锁定；选错可重试且不留红（成长型思维：不留失败痕迹）
-          class: `option ${ok && ans === it.a ? 'is-correct' : ''}`,
+          class: `option ${ok && ans === picked ? 'is-correct' : ''}`,
           style: 'width:auto;min-width:150px;margin-bottom:0',
           onclick: () => {
-            if (session.wrPick[i] === it.a) return; // 选对的题锁定
-            if (ans === it.a) {
+            if (ok) return; // 选对的题锁定（accept 里任意一句都算选对）
+            if (accepts.includes(ans)) {
               session.wrPick[i] = ans;
               session.wrStarred = session.wrStarred || {};
               if (!session.wrStarred[i]) { session.wrStarred[i] = true; ctx.addStars(1); starFly(1); }
@@ -143,7 +151,7 @@ export function renderOutput(ctx, unit) {
           }),
           h('span', { style: 'display:flex;flex-direction:column;align-items:center;line-height:1.35' }, [
             document.createTextNode(ans),
-            ok && ans === it.a && wr.zhMap && wr.zhMap[ans] ? h('span', { class: 'wr-zh', text: wr.zhMap[ans], style: 'font-size:0.72em;font-weight:600;color:var(--muted,#888)' }) : null,
+            ok && ans === picked && wr.zhMap && wr.zhMap[ans] ? h('span', { class: 'wr-zh', text: wr.zhMap[ans], style: 'font-size:0.72em;font-weight:600;color:var(--muted,#888)' }) : null,
           ]),
         ]));
       });
@@ -151,22 +159,25 @@ export function renderOutput(ctx, unit) {
       wrap.appendChild(box);
     });
 
-    const wrAllOk = wrItems.length > 0 && wrItems.every((it, i) => session.wrPick[i] === it.a);
+    const wrAllOk = wrItems.length > 0 && wrItems.every((it, i) => writingAccepts(it).includes(session.wrPick[i]));
     if (wrAllOk) {
       // 完整对话：🧒孩子问句 + 👩店员回答 成对显示（家长反馈：只有答不是完整对话）
-      const allLines = wrItems.flatMap((it) => [it.ask, it.a]).filter(Boolean);
+      // 演的是孩子实际选中的那句（accept 多解时可能是 Sure 而非标准答案 OK）
+      const chosenOf = (it, i) => session.wrPick[i] || it.a;
+      const allLines = wrItems.flatMap((it, i) => [it.ask, chosenOf(it, i)]).filter(Boolean);
       const doneBox = h('div', { class: 'wr-done', style: 'margin-top:12px' }, [
         // 是"三段对话"不是"作文"——对话逻辑：问→答→再问答，连起来演一演（家长的严谨反馈）
         h('p', { class: 'hint', style: 'font-weight:800', text: '🎉 第 2 步：三段对话连起来，演一演吧：' }),
       ]);
-      wrItems.forEach((it) => {
+      wrItems.forEach((it, idx) => {
+        const chosen = chosenOf(it, idx);
         doneBox.appendChild(h('div', { class: 'story-text', style: 'margin-bottom:6px;cursor:pointer', title: '点一句读一句', onclick: () => tts.speak(it.ask) }, [
           h('strong', { text: `🧒 ${it.askWho}：` }),
           h('span', { text: it.ask }),
         ]));
-        doneBox.appendChild(h('div', { class: 'story-text', style: 'margin-bottom:6px;margin-left:18px;cursor:pointer', title: '点一句读一句', onclick: () => tts.speak(it.a) }, [
+        doneBox.appendChild(h('div', { class: 'story-text', style: 'margin-bottom:6px;margin-left:18px;cursor:pointer', title: '点一句读一句', onclick: () => tts.speak(chosen) }, [
           h('strong', { text: '👩 店员：' }),
-          h('span', { text: it.a }),
+          h('span', { text: chosen }),
         ]));
       });
       doneBox.appendChild(h('div', { class: 'btn-row', style: 'margin-top:8px' }, [

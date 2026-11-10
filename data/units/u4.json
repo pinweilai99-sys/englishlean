@@ -550,6 +550,10 @@
         "ask": "Can I use some paints, please?",
         "askZh": "我能用一点颜料吗？",
         "a": "OK. Here you are.",
+        "accept": [
+          "OK. Here you are.",
+          "Sure. Here you are."
+        ],
         "opts": [
           "OK. Here you are.",
           "Thank you.",

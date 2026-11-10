@@ -2287,3 +2287,64 @@ test('E2E-61 U4 配对页未选文具时不串到 U5 兜底对话：默认题为
     assert.ok(badges.some((b) => b.includes('摇头')), '默认组应有摇头题');
   } finally { cleanup(); }
 });
+
+// ---- U4 真实输出·Let's Write 选句效度（2026-11-10 家长：截图借颜料题，OK / Sure 两句都该可以）----
+const U4_OUT_SEED = () => ({
+  version: 1, stars: 0, streak: 0, lastStudyDate: null,
+  progress: { u4: { stagePassed: [true, true, false, false], wordsDone: [], listenScore: 0.9, quizBest: null } },
+  wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+});
+
+test('E2E-65 U4 真实输出·选句「借颜料」题：家长圈出的两句"给你"都判对（旧版只认 OK）', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: U4_OUT_SEED() });
+  try {
+    await navigate(window, app, '#/unit/u4/stage/2');
+    const box = () => wrBox(window.document, '她需要一些颜料');
+    assert.ok(box(), '应显示借颜料情境卡');
+    // 家长红圈的第二句「Sure. Here you are.」——课本合法答语、且是 item0 的正确答案
+    await wrPickIn(window, '她需要一些颜料', 'Sure. Here you are.');
+    assert.ok(box().querySelector('.option.is-correct'),
+      '「当然，给你」应判对标绿（旧版 a 只锁 OK，判错 → 复现 bug）');
+  } finally { cleanup(); }
+});
+
+test('E2E-66 U4 真实输出·选句：OK 也判对、道谢句仍判错、三题全对能进第 2 步连读', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: U4_OUT_SEED() });
+  try {
+    await navigate(window, app, '#/unit/u4/stage/2');
+    // 1) 干扰项「Thank you.」不得被误放行
+    await wrPickIn(window, '她需要一些颜料', 'Thank you.');
+    assert.equal(wrBox(window.document, '她需要一些颜料').querySelector('.option.is-correct'), null,
+      '道谢句是借到之后才说的，不得判对');
+    // 2) 主答案「OK. Here you are.」判对
+    await wrPickIn(window, '她需要一些颜料', 'OK. Here you are.');
+    assert.ok(wrBox(window.document, '她需要一些颜料').querySelector('.option.is-correct'),
+      '「好的，给你」应判对');
+    // 3) 三题全对 → 第 2 步连读应解锁
+    await wrPickIn(window, 'Molly 想画画', 'Sure. Here you are.');
+    await wrPickIn(window, '用点水涮笔', 'Sure.');
+    const done = window.document.querySelector('.wr-done');
+    assert.ok(done && done.textContent.includes('三段对话连起来'), '三题都选对应解锁第 2 步连读卡');
+    // 连读卡里演的应是孩子实际选的答语，而不是写死的 it.a
+    assert.ok(done.textContent.includes('OK. Here you are.'), '选 OK 的那题，连读卡店员行应演 OK');
+  } finally { cleanup(); }
+});
+
+test('E2E-67 U4 真实输出·选句：借颜料题选可接受但非 a 的「Sure」也算完成，三题全对能连读', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: U4_OUT_SEED() });
+  try {
+    await navigate(window, app, '#/unit/u4/stage/2');
+    // 借颜料题选家长圈出的第二句（accept 之一，但不是 a）
+    await wrPickIn(window, '她需要一些颜料', 'Sure. Here you are.');
+    await wrPickIn(window, 'Molly 想画画', 'Sure. Here you are.');
+    await wrPickIn(window, '用点水涮笔', 'Sure.');
+    const done = window.document.querySelector('.wr-done');
+    assert.ok(done && done.textContent.includes('三段对话连起来'),
+      '选了非 a 的可接受答语也应计入 wrAllOk，能进入第 2 步连读');
+    // 关键回归：连读卡必须演孩子选的 Sure，而不是写死的标准答案 OK（旧版 doneBox 写死 it.a）
+    assert.ok(!done.textContent.includes('OK. Here you are.'),
+      '孩子三题分别选了 Sure./Sure./Sure.，连读卡不该出现写死的 OK（旧版 bug）');
+    assert.ok(done.textContent.includes('Sure. Here you are.'),
+      '借颜料这题连读卡店员行应演孩子实际选的 Sure');
+  } finally { cleanup(); }
+});
