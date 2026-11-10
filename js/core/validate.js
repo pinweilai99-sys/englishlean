@@ -60,6 +60,41 @@ export function validateUnit(data) {
     if (!Array.isArray(data.roleplay.parent) || data.roleplay.parent.length === 0) push('roleplay.parent', '必须是非空数组');
   }
 
+  // Let's Write 选句题：accept（可选）声明"多句课本都合法的答语"，点中任意一句都算对。
+  // 结构须合法：含主答案 a、每项都在 opts 里，且 a 本身必须在 opts 里。
+  // 防止把合法答语摆进 opts 却漏进可接受集合（那样会被误判成错，家长 2026-11-10 反馈）。
+  if (data.writing && Array.isArray(data.writing.items)) {
+    data.writing.items.forEach((it, i) => {
+      if (!it || typeof it !== 'object') { push(`writing.items[${i}]`, '必须是对象'); return; }
+      if (!isStr(it.a)) push(`writing.items[${i}].a`, '必须是非空字符串');
+      if (!Array.isArray(it.opts) || it.opts.length === 0) { push(`writing.items[${i}].opts`, '必须是非空数组'); return; }
+      if (!it.opts.includes(it.a)) push(`writing.items[${i}].a`, '主答案 a 必须在 opts 里');
+      if (it.accept !== undefined) {
+        if (!Array.isArray(it.accept) || it.accept.length === 0) {
+          push(`writing.items[${i}].accept`, '必须是非空数组');
+        } else {
+          if (!it.accept.includes(it.a)) push(`writing.items[${i}].accept`, '必须包含主答案 a');
+          it.accept.forEach((x, xi) => {
+            if (!isStr(x)) push(`writing.items[${i}].accept[${xi}]`, '必须是非空字符串');
+            else if (!it.opts.includes(x)) push(`writing.items[${i}].accept[${xi}]`, `必须是 opts 之一：${x}`);
+          });
+        }
+      }
+      // 逐项解答（家长 2026-11-10）：答完后对每个选项给中文解说。
+      // 必须覆盖全部 opts、纯中文、不含裸英文（英文答案行单独由渲染层配 🔊）。
+      if (it.explain !== undefined) {
+        if (!it.explain || typeof it.explain !== 'object' || Array.isArray(it.explain)) {
+          push(`writing.items[${i}].explain`, '必须是对象');
+        } else {
+          it.opts.forEach((o) => {
+            if (!isStr(it.explain[o])) push(`writing.items[${i}].explain[${o}]`, '每个选项都要有非空中文解答');
+            else if (/[A-Za-z]/.test(it.explain[o])) push(`writing.items[${i}].explain[${o}]`, '解答必须是纯中文，不能含裸英文');
+          });
+        }
+      }
+    });
+  }
+
   if (!data.mindmap || !Array.isArray(data.mindmap.chain) || data.mindmap.chain.length === 0) push('mindmap.chain', '必须是非空数组');
 
   if (!Array.isArray(data.stories) || data.stories.length === 0) push('stories', '必须是非空数组');
