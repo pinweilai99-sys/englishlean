@@ -2394,3 +2394,58 @@ test('E2E-69 U5 真实输出·选句：逐项解答对两单元一致生效（�
     assert.equal(ex.querySelectorAll('.wr-explain-speak').length, 3, 'U5 每个英文答案配 🔊');
   } finally { cleanup(); }
 });
+
+// ---- U4 真实输出·思维导图（2026-11-10 家长截图：宠物思维导图一直解锁不了）----
+test('E2E-70 U4 真实输出·思维导图：4 个问题每问都有可点选项（复现"第3问0按钮→永远解锁不了"）', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: U4_OUT_SEED() });
+  try {
+    await navigate(window, app, '#/unit/u4/stage/2');
+    const qs = [
+      'What do you want to use?',
+      'How do you ask politely?',
+      'What do you say after getting it?',
+      'What if a friend borrows from you?',
+    ];
+    qs.forEach((q) => {
+      const box = mmBoxStrict(window.document, q, qs);
+      assert.ok(box, `应显示问题卡：${q}`);
+      const n = box.querySelectorAll('button.option').length;
+      assert.ok(n > 0, `问题「${q}」应有可点选项（旧版第 3 问渲染 0 个按钮 → 永远解锁不了）`);
+    });
+  } finally { cleanup(); }
+});
+
+test('E2E-71 U4 真实输出·思维导图：4 问全选后能拼出介绍词并完成，底部不再显示未完成', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: U4_OUT_SEED() });
+  try {
+    await navigate(window, app, '#/unit/u4/stage/2');
+    const pick = async (q, ans) => {
+      const box = mmBox(window.document, q);
+      assert.ok(box, `应显示问题卡：${q}`);
+      const btn = Array.from(box.querySelectorAll('button.option')).find((b) => b.textContent.includes(ans));
+      assert.ok(btn, `问题「${q}」应有选项「${ans}」`);
+      btn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+      await new Promise((r) => setTimeout(r, 30));
+    };
+    await pick('What do you want to use?', 'Can I use your pencil?');
+    await pick('How do you ask politely?', 'Excuse me. Can I use your..., please?');
+    await pick('What do you say after getting it?', 'Thank you.');
+    await pick('What if a friend borrows from you?', 'Sure. Here you are.');
+    assert.ok(mainText(window).includes('介绍词拼好啦'), '4 问全选应拼出介绍词');
+    assert.ok(mainText(window).includes('We help each other!'), '拼装段应含 U4 固定结尾句');
+    // 完成思维导图 → 底部不应再提示"③ ...思维导图"未完成
+    await clickButton(window, '我的宠物介绍好了');
+    assert.ok(!mainText(window).includes('还没完成：③'),
+      '思维导图完成后底部不应再提示未完成（旧版因第3问无选项恒无法完成）');
+  } finally { cleanup(); }
+});
+
+// 严格定位：问题卡本体（含 option 按钮、且不含其它问题文本的最小 div），避免外层容器兜底导致假绿
+function mmBoxStrict(root, qText, allQs) {
+  const divs = Array.from(root.querySelectorAll('main div'))
+    .filter((d) => (d.textContent || '').includes(qText))
+    .filter((d) => d.querySelector('button.option'))
+    .filter((d) => !allQs.some((o) => o !== qText && (d.textContent || '').includes(o)));
+  divs.sort((a, b) => (a.textContent || '').length - (b.textContent || '').length);
+  return divs[0];
+}

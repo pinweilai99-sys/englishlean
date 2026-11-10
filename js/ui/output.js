@@ -301,18 +301,24 @@ export function renderOutput(ctx, unit) {
     const mm = unit.mindmap;
     session.mmPick = session.mmPick || {};
     const mmSteps = mm.steps || [];
+    // 数据驱动：哪一步是「特征句题」（带 featureByAnimal），其上一题即「动物/对象选择题」。
+    // 旧版把第 3 问（索引 2）硬编码成动物专属分支 → U4（无 featureByAnimal/extra）第 3 问渲染出
+    // 0 个按钮，孩子永远选不完 → 思维导图永远解锁不了（家长 2026-11-10 截图）。
+    const featStepIdx = mmSteps.findIndex((st) => st && Object.keys(st.featureByAnimal || {}).length > 0);
+    const pickStepIdx = featStepIdx > 0 ? featStepIdx - 1 : -1;
     const mmOptBtn = (o, i) => h('button', {
       // 开放问题：无对错，点选即填入，可换答案；选中项标绿
       class: `option ${session.mmPick[i] && session.mmPick[i].t === o.t ? 'is-correct' : ''}`,
       style: 'width:auto;min-width:150px;margin-bottom:0',
       onclick: () => {
         session.mmPick[i] = o;
-        if (i === 1) {
-          // 第 2 问换动物 → 第 3 问特征句随之变化，已选的第 3 问答案必须清空（对齐句型页换动物清空逻辑）
-          const m = o.t.match(/^I want a (cat|dog|rabbit|goldfish|parrot)\.$/);
-          if (m && session.mmAnimal !== m[1]) {
-            session.mmAnimal = m[1];
-            delete session.mmPick[2];
+        if (i === pickStepIdx && featStepIdx > 0) {
+          // 选了具体对象（如 cat）→ 特征题随之变化，已选的特征句必须清空（对齐句型页换动物清空逻辑）
+          const keys = Object.keys(mmSteps[featStepIdx].featureByAnimal || {});
+          const key = keys.find((k) => new RegExp(`\\b${k}\\b`, 'i').test(o.t));
+          if (key && session.mmAnimal !== key) {
+            session.mmAnimal = key;
+            delete session.mmPick[featStepIdx];
           }
         }
         render();
@@ -344,8 +350,8 @@ export function renderOutput(ctx, unit) {
           : h('p', { class: 'hint', style: 'color:var(--muted,#aaa)', text: '💬（选好后看中文）' })) : null,
       ]);
       const row = h('div', { class: 'btn-row', style: 'margin-top:8px' });
-      if (i === 2) {
-        // 特征句随第 2 问选的动物联动；换动物后第 3 问已选答案自动清空
+      if (i === featStepIdx) {
+        // 特征句随上一问选的对象联动；换对象后已选的特征句自动清空
         const feat = (st.featureByAnimal || {})[session.mmAnimal || 'cat'] || st.extra;
         [feat, st.extra].filter(Boolean).forEach((o) => row.appendChild(mmOptBtn(o, i)));
       } else {
