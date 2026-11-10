@@ -97,6 +97,28 @@ export function validateUnit(data) {
 
   if (!data.mindmap || !Array.isArray(data.mindmap.chain) || data.mindmap.chain.length === 0) push('mindmap.chain', '必须是非空数组');
 
+  // 单元主题词（渲染层文案数据驱动，勿硬编码"宠物"——U4 是借文具）
+  if (!data.theme || typeof data.theme !== 'object') push('theme', '必须存在（真实输出页文案数据驱动）');
+  else {
+    ['topic', 'roleplay', 'mindmap', 'introNoun', 'slotDefault'].forEach((k) => {
+      if (!isStr(data.theme[k])) push(`theme.${k}`, '必须是非空字符串');
+    });
+  }
+
+  // 思维导图四问：每一问都必须有可点选项，否则孩子永远选不完 → 永远解锁不了
+  if (data.mindmap && Array.isArray(data.mindmap.steps)) {
+    data.mindmap.steps.forEach((st, i) => {
+      if (!st || typeof st !== 'object') { push(`mindmap.steps[${i}]`, '必须是对象'); return; }
+      if (!isStr(st.q)) push(`mindmap.steps[${i}].q`, '必须是非空字符串');
+      const opts = Array.isArray(st.opts) ? st.opts : [];
+      const fba = st.featureByAnimal && typeof st.featureByAnimal === 'object' ? st.featureByAnimal : {};
+      const hasLinked = Object.keys(fba).length > 0;
+      if (!opts.length && !hasLinked && !st.extra) {
+        push(`mindmap.steps[${i}]`, '必须至少有 1 个可点选项（opts / featureByAnimal / extra 三者之一，否则该问选不了、思维导图永远解锁不了）');
+      }
+    });
+  }
+
   if (!Array.isArray(data.stories) || data.stories.length === 0) push('stories', '必须是非空数组');
   else data.stories.forEach((s, i) => {
     if (!s || typeof s !== 'object') { push(`stories[${i}]`, '必须是对象'); return; }

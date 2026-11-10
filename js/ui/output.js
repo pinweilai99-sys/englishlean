@@ -13,6 +13,15 @@ function writingAccepts(it) {
 export function renderOutput(ctx, unit) {
   const session = ctx.session;
   const wrap = h('div', { class: 'card' });
+  // 单元主题词（数据驱动，勿硬编码"宠物"——U4 是借文具，U5 才是宠物）
+  const TH = unit.theme || {};
+  const T = {
+    topic: TH.topic || '本单元',
+    roleplay: TH.roleplay || '角色扮演',
+    mindmap: TH.mindmap || '思维导图',
+    introNoun: TH.introNoun || TH.topic || '本单元',
+    slotDefault: TH.slotDefault || TH.topic || '它',
+  };
 
   function render() {
     wrap.innerHTML = '';
@@ -21,7 +30,7 @@ export function renderOutput(ctx, unit) {
 
     // 1. 角色扮演
     const rp = unit.roleplay;
-    wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:12px', text: '① 宠物店角色扮演' }));
+    wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:12px', text: `① ${T.roleplay}` }));
     wrap.appendChild(h('p', { class: 'hint', text: rp.scene }));
     const pick = session.rpSlot || rp.child;
     const grid = h('div', { class: 'word-bank', style: 'margin-top:10px' });
@@ -35,7 +44,7 @@ export function renderOutput(ctx, unit) {
     wrap.appendChild(grid);
 
     const kidLine = rp.child.replace('___', session.rpSlot || 'pet');
-    const kidZh = (rp.childZh || '').replace('___', session.rpSlot || '小宠物');
+    const kidZh = (rp.childZh || '').replace('___', session.rpSlot || T.slotDefault);
     const dialog = h('div', { class: 'story-text', style: 'margin-top:12px' }, [
       h('div', { style: 'margin-bottom:10px' }, [h('strong', { text: '🧒 孩子：' }), kidLine]),
       kidZh ? (session.rpDone
@@ -224,7 +233,7 @@ export function renderOutput(ctx, unit) {
 
     // 挑战层（选做）：自由创作——孩子学会了对话，自己编一段对话或写一段介绍
     // 句型支架示例全部用已生成音频的句子（英语必有播放铁律），点 🔊 听示范
-    wrap.appendChild(h('p', { class: 'hint', style: 'margin-top:14px;font-weight:700', text: '✏️ 挑战（选做）：学着自己写——编一段对话，或介绍你的宠物' }));
+    wrap.appendChild(h('p', { class: 'hint', style: 'margin-top:14px;font-weight:700', text: `✏️ 挑战（选做）：学着自己写——编一段对话，或介绍你的${T.topic}` }));
     const chalBox = h('div', { style: 'margin-top:6px' });
     const chalExamples = [
       { label: '对话示范：', lines: ['May I have a cat?', 'Yes, you can.'] },
@@ -296,8 +305,8 @@ export function renderOutput(ctx, unit) {
     //    课本 H 板块"Let's Learn to Learn"：用 4 个问题组织一段宠物介绍。
     //    孩子不会凭空说 → 把大任务拆成 4 个"点选答案"微任务（无对错，选什么就是自己的答案），
     //    4 答自动拼装成介绍词 → 逐句可听 + 整段连读 → 跟读完成。Q3 特征句随 Q2 动物联动。
-    wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:24px', text: '③ 宠物思维导图' }));
-    wrap.appendChild(h('p', { class: 'hint', style: 'font-weight:700', text: '回答 4 个小问题，就能拼出你自己的宠物介绍！' }));
+    wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:24px', text: `③ ${T.mindmap}` }));
+    wrap.appendChild(h('p', { class: 'hint', style: 'font-weight:700', text: `回答 4 个小问题，就能拼出你自己的${T.introNoun}介绍！` }));
     const mm = unit.mindmap;
     session.mmPick = session.mmPick || {};
     const mmSteps = mm.steps || [];
@@ -365,7 +374,7 @@ export function renderOutput(ctx, unit) {
     if (mmAllOk) {
       const lines = mmSteps.map((st, i) => session.mmPick[i].t).concat(mm.ending ? [mm.ending.t] : []);
       const mmDoneBox = h('div', { style: 'margin-top:12px' }, [
-        h('p', { class: 'hint', style: 'font-weight:800', text: '🎉 第 2 步：你的宠物介绍词拼好啦！读一读吧：' }),
+        h('p', { class: 'hint', style: 'font-weight:800', text: `🎉 第 2 步：你的${T.introNoun}介绍词拼好啦！读一读吧：` }),
       ]);
       lines.forEach((ln) => {
         mmDoneBox.appendChild(h('p', {
@@ -377,13 +386,13 @@ export function renderOutput(ctx, unit) {
       mmDoneBox.appendChild(h('div', { class: 'btn-row', style: 'margin-top:8px' }, [
         h('button', { class: 'btn ghost', text: '🔊 整段连读', onclick: () => tts.speakSequence(lines) }),
         h('button', {
-          class: 'btn leaf', text: '✅ 我的宠物介绍好了',
+          class: 'btn leaf', text: `✅ 我的${T.introNoun}介绍好了`,
           onclick: () => { session.mmDone = true; ctx.addStars(2); starFly(2); toast('太棒了！'); render(); },
         }),
       ]));
       wrap.appendChild(mmDoneBox);
     } else {
-      wrap.appendChild(h('p', { class: 'hint', style: 'margin-top:8px', text: '🔒 四个问题都选好了，就能拼出你的宠物介绍！' }));
+      wrap.appendChild(h('p', { class: 'hint', style: 'margin-top:8px', text: `🔒 四个问题都选好了，就能拼出你的${T.introNoun}介绍！` }));
     }
     // 课本示范是英语：🔊 语音版 + 英文文字版（家长定版：语音下面加文字版，点文字可再听）
     wrap.appendChild(h('div', { class: 'hint', style: 'margin-top:10px;display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap' }, [
@@ -402,9 +411,9 @@ export function renderOutput(ctx, unit) {
 
     // 底部：明示还剩哪几项没做（家长建议：三项里没做的要在底部提示）
     const missing = [];
-    if (!session.rpDone) missing.push('① 宠物店角色扮演');
+    if (!session.rpDone) missing.push(`① ${T.roleplay}`);
     if (!session.writeDone) missing.push("② Let's Write 对话");
-    if (!session.mmDone) missing.push('③ 宠物思维导图');
+    if (!session.mmDone) missing.push(`③ ${T.mindmap}`);
     const allDone = missing.length === 0;
     wrap.appendChild(h('p', {
       class: 'hint', style: 'margin-top:16px;font-weight:700',

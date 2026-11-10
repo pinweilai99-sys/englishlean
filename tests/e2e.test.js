@@ -2434,7 +2434,7 @@ test('E2E-71 U4 真实输出·思维导图：4 问全选后能拼出介绍词并
     assert.ok(mainText(window).includes('介绍词拼好啦'), '4 问全选应拼出介绍词');
     assert.ok(mainText(window).includes('We help each other!'), '拼装段应含 U4 固定结尾句');
     // 完成思维导图 → 底部不应再提示"③ ...思维导图"未完成
-    await clickButton(window, '我的宠物介绍好了');
+    await clickButton(window, '我的文具介绍好了');
     assert.ok(!mainText(window).includes('还没完成：③'),
       '思维导图完成后底部不应再提示未完成（旧版因第3问无选项恒无法完成）');
   } finally { cleanup(); }
@@ -2449,3 +2449,31 @@ function mmBoxStrict(root, qText, allQs) {
   divs.sort((a, b) => (a.textContent || '').length - (b.textContent || '').length);
   return divs[0];
 }
+
+test('E2E-72 U4 真实输出·文案不得用 U5 的「宠物」硬编码（单元名应数据驱动）', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: U4_OUT_SEED() });
+  try {
+    await navigate(window, app, '#/unit/u4/stage/2');
+    const txt = mainText(window);
+    assert.ok(!txt.includes('宠物店角色扮演'), 'U4 不应显示「宠物店角色扮演」（U5 硬编码）');
+    assert.ok(!txt.includes('宠物思维导图'), 'U4 不应显示「宠物思维导图」（U5 硬编码）');
+    assert.ok(!txt.includes('小宠物'), 'U4 角色扮演填空默认词不应是「小宠物」');
+    // U4 主题是借文具
+    assert.ok(txt.includes('文具'), 'U4 应出现本单元主题词「文具」');
+  } finally { cleanup(); }
+});
+
+test('E2E-73 U5 真实输出·文案零回归（仍是「宠物」主题）', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/2');
+    const txt = mainText(window);
+    assert.ok(txt.includes('宠物店角色扮演'), 'U5 仍应显示「宠物店角色扮演」');
+    assert.ok(txt.includes('宠物思维导图'), 'U5 仍应显示「宠物思维导图」');
+  } finally { cleanup(); }
+});

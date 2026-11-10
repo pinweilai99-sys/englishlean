@@ -723,3 +723,42 @@ test('U4 真实输出·选句逐项解答检测器有效性：正反对照（防
   const withEng = structuredClone(good); withEng.items[0].explain.B = '这句 OK 不对';
   assert.ok(writingExplainDefects(withEng).some((x) => x.includes('含裸英文')), '解答夹英文必须被检出');
 });
+
+// ---- 单元主题词 + 思维导图可选项契约（2026-11-10 家长：U4 思维导图永远解锁不了）----
+test('U4/U5 单元主题词齐全（真实输出页文案数据驱动，不得硬编码「宠物」）', () => {
+  [u4, raw].forEach((d) => {
+    assert.ok(d.theme && typeof d.theme === 'object', `${d.id} 缺 theme`);
+    ['topic', 'roleplay', 'mindmap', 'introNoun', 'slotDefault'].forEach((k) => {
+      assert.ok(typeof d.theme[k] === 'string' && d.theme[k].trim(),
+        `${d.id} theme.${k} 必须是非空字符串`);
+    });
+  });
+  assert.equal(u4.theme.topic, '文具', 'U4 主题应是「文具」（借东西单元）');
+  assert.equal(raw.theme.topic, '宠物', 'U5 主题应是「宠物」');
+});
+
+test('两单元思维导图每一问都有可点选项（否则永远解锁不了）', () => {
+  [u4, raw].forEach((d) => {
+    const steps = d.mindmap.steps || [];
+    assert.ok(steps.length > 0, `${d.id} mindmap.steps 不能为空`);
+    steps.forEach((st, i) => {
+      const opts = Array.isArray(st.opts) ? st.opts : [];
+      const fba = st.featureByAnimal && typeof st.featureByAnimal === 'object' ? st.featureByAnimal : {};
+      assert.ok(opts.length > 0 || Object.keys(fba).length > 0 || !!st.extra,
+        `${d.id} mindmap.steps[${i}]（${st.q}）没有任何可点选项 → 该问永远选不了`);
+    });
+  });
+});
+
+test('validateUnit 能检出「缺 theme」与「思维导图某问无可选项」（防校验摆设）', () => {
+  const noTheme = structuredClone(u4); delete noTheme.theme;
+  const r1 = validateUnit(noTheme);
+  assert.equal(r1.valid, false, '缺 theme 必须判为不合法');
+  assert.ok(r1.errors.some((x) => x.includes('theme')), '缺 theme 必须被检出');
+
+  const noOpt = structuredClone(u4);
+  noOpt.mindmap.steps[2] = { q: 'What do you say after getting it?', qZh: 'x', opts: [] };
+  const r2 = validateUnit(noOpt);
+  assert.equal(r2.valid, false, '思维导图某问无可选项必须判为不合法');
+  assert.ok(r2.errors.some((x) => x.includes('mindmap.steps[2]')), '思维导图某问无可选项必须被检出');
+});
