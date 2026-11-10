@@ -541,7 +541,12 @@
           "Sure. Here you are.",
           "Sorry.",
           "You're welcome."
-        ]
+        ],
+        "explain": {
+          "Sure. Here you are.": "当然可以，给你——同学答应借画笔，还把笔递过来，正好回答了「我能用吗」，答得最贴切。",
+          "Sorry.": "对不起——是道歉或婉拒不借时说的，这题同学是愿意借的，用不上它。",
+          "You're welcome.": "不客气——是别人道谢之后的回应，现在还没借东西、也没人说谢谢，答非所问。"
+        }
       },
       {
         "ctx": "She needs some paints.",
@@ -558,7 +563,12 @@
           "OK. Here you are.",
           "Thank you.",
           "Sure. Here you are."
-        ]
+        ],
+        "explain": {
+          "OK. Here you are.": "好的，给你——同学同意借颜料，把颜料递过来，答得对。",
+          "Thank you.": "谢谢——是借到东西之后才说的，这会儿还没回答「能不能借」，答非所问。",
+          "Sure. Here you are.": "当然可以，给你——和「好的，给你」意思一样，也是同意借，课本里都学过，所以这句也算对。"
+        }
       },
       {
         "ctx": "She wants some water to clean the brush.",
@@ -571,7 +581,12 @@
           "Sure.",
           "Sorry.",
           "You're welcome."
-        ]
+        ],
+        "explain": {
+          "Sure.": "当然可以——简短地答应借水，答得对。",
+          "Sorry.": "对不起——婉拒不借或道歉时说的，这题同学是愿意借的。",
+          "You're welcome.": "不客气——回应别人道谢的话，这题还没到那一步，答非所问。"
+        }
       }
     ]
   },

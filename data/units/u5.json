@@ -534,7 +534,12 @@
           "Yes, you can.",
           "No, you can't.",
           "Sure."
-        ]
+        ],
+        "explain": {
+          "Yes, you can.": "可以，你可以养——店员点头同意，正好回答「我可以吗」，是这课要练的完整答句。",
+          "No, you can't.": "不行，不可以——摇头拒绝时才说，和这题店员同意的情境相反。",
+          "Sure.": "当然可以——口语里也表示同意，但这课练的是「可以，你可以」这个完整答句，选它更贴切；换个问法就用得上了。"
+        }
       },
       {
         "ctx": "Haohao wants to hold the parrot. The shopkeeper says no.",
@@ -547,7 +552,12 @@
           "No, you can't.",
           "Yes, you can.",
           "Sure."
-        ]
+        ],
+        "explain": {
+          "No, you can't.": "不行，不可以——店员摇头婉拒了，正好和情境对上。",
+          "Yes, you can.": "可以，你可以——是点头同意时说的，可这题店员摇头了，意思反了。",
+          "Sure.": "当然可以——也是同意，和「摇头不行」的情境相反。"
+        }
       },
       {
         "ctx": "Dongdong asks to hold the rabbit. The shopkeeper agrees.",
@@ -560,7 +570,12 @@
           "Sure.",
           "No, you can't.",
           "Yes, he can."
-        ]
+        ],
+        "explain": {
+          "Sure.": "当然可以——店员点头同意，简短又自然，答得对。",
+          "No, you can't.": "不行，不可以——摇头拒绝时说的，这题店员是同意的。",
+          "Yes, he can.": "是的，他可以——说的是「他」，可问的是「我能不能抱」，问和答不是同一个人，主语错了。"
+        }
       }
     ]
   },

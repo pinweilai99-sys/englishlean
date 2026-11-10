@@ -2348,3 +2348,49 @@ test('E2E-67 U4 真实输出·选句：借颜料题选可接受但非 a 的「Su
       '借颜料这题连读卡店员行应演孩子实际选的 Sure');
   } finally { cleanup(); }
 });
+
+// ---- Let's Write 答后逐项解答（2026-11-10 家长：答完对每个答案都要有解答，方便孩子理解）----
+test('E2E-68 U4 真实输出·选句：答前不剧透，答后逐项展开每个答案的中文解答', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: U4_OUT_SEED() });
+  try {
+    await navigate(window, app, '#/unit/u4/stage/2');
+    const box = () => wrBox(window.document, '她需要一些颜料');
+    // 1) 答前不剧透：解答卡未出现
+    assert.equal(box().querySelector('.wr-explain'), null, '作答前不应剧透每个答案的解答');
+    // 2) 答对后逐项展开：覆盖 3 个选项，每个都有中文解答 + 🔊
+    await wrPickIn(window, '她需要一些颜料', 'OK. Here you are.');
+    const ex = box().querySelector('.wr-explain');
+    assert.ok(ex, '答对后应展开逐项解答卡');
+    const rows = ex.querySelectorAll('.wr-explain-row');
+    assert.equal(rows.length, 3, '解答卡应逐项覆盖该题全部 3 个答案');
+    assert.equal(ex.querySelectorAll('.wr-explain-speak').length, 3, '每个英文答案都要配 🔊（英语必有播放铁律）');
+    // 3) 正确/不合适分类：两个合法答语都标 ✅，道谢句标 💡（不留红色失败痕迹）
+    assert.equal(ex.querySelectorAll('.wr-explain-row.is-right').length, 2,
+      'OK 与 Sure 两句合法答语都应标"合适"');
+    assert.equal(ex.querySelectorAll('.wr-explain-row.is-alt').length, 1,
+      '道谢句应标"这时候不合适"');
+    // 4) 解答是纯中文，且讲清了"为什么这个对 / 那个不合适"
+    const zh = ex.querySelector('.wr-explain-zh-box');
+    assert.ok(zh, '应有中文解答文字');
+    assert.ok(!/[A-Za-z]/.test(zh.textContent), '解答文字应纯中文（英文只在答案行）');
+  } finally { cleanup(); }
+});
+
+test('E2E-69 U5 真实输出·选句：逐项解答对两单元一致生效（共用渲染层零回归）', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, true, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/2');
+    const box = () => wrBox(window.document, '她把鹦鹉带回宠物店');
+    assert.equal(box().querySelector('.wr-explain'), null, 'U5 作答前也不剧透');
+    await wrPickIn(window, '她把鹦鹉带回宠物店', 'Yes, you can.');
+    const ex = box().querySelector('.wr-explain');
+    assert.ok(ex, 'U5 答对后也应展开逐项解答');
+    assert.equal(ex.querySelectorAll('.wr-explain-row').length, 3, 'U5 每题也覆盖全部 3 个答案');
+    assert.equal(ex.querySelectorAll('.wr-explain-speak').length, 3, 'U5 每个英文答案配 🔊');
+  } finally { cleanup(); }
+});

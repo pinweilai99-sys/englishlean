@@ -686,3 +686,40 @@ test('U4 真实输出·选句题效度检测器有效性：正反对照（防测
   assert.ok(u4WritingDefects(old).some((x) => x.includes('被当干扰项判错')),
     '检测器应能抓出旧版"Sure 被判错"的缺陷，证明断言不是摆设');
 });
+
+// ---- Let's Write 逐项解答（2026-11-10 家长：答完后对每个答案都要有解答，方便孩子理解）----
+// 检测器：每道选句题的每个选项都要有"纯中文、非空"的解答。
+function writingExplainDefects(writing) {
+  const defects = [];
+  ((writing && writing.items) || []).forEach((it, i) => {
+    const opts = it.opts || [];
+    if (!it.explain || typeof it.explain !== 'object') { defects.push(`item${i}: 缺 explain`); return; }
+    opts.forEach((o) => {
+      const v = it.explain[o];
+      if (!v || typeof v !== 'string' || !v.trim()) defects.push(`item${i}: 选项「${o}」缺解答`);
+      else if (/[A-Za-z]/.test(v)) defects.push(`item${i}: 选项「${o}」解答含裸英文（应纯中文）`);
+    });
+  });
+  return defects;
+}
+
+test('U4/U5 真实输出·选句：每题每个答案都有纯中文解答（家长 2026-11-10）', () => {
+  assert.deepEqual(writingExplainDefects(u4.writing), [], 'U4 三题每个选项都要有纯中文解答');
+  assert.deepEqual(writingExplainDefects(raw.writing), [], 'U5 三题每个选项都要有纯中文解答');
+  // 逐项覆盖：选项数 = 解答数
+  [u4, raw].forEach((d) => d.writing.items.forEach((it, i) => {
+    assert.equal(Object.keys(it.explain || {}).length, it.opts.length,
+      `item${i} 解答数应等于选项数`);
+    it.opts.forEach((o) => assert.ok(it.explain[o] && !/[A-Za-z]/.test(it.explain[o]),
+      `item${i} 选项「${o}」解答应为纯中文`));
+  }));
+});
+
+test('U4 真实输出·选句逐项解答检测器有效性：正反对照（防测试摆设）', () => {
+  const good = { items: [{ a: 'A', opts: ['A', 'B'], explain: { A: '这样答合适。', B: '这句用在别处。' } }] };
+  assert.deepEqual(writingExplainDefects(good), [], '合格数据应无缺陷');
+  const missKey = structuredClone(good); delete missKey.items[0].explain.B;
+  assert.ok(writingExplainDefects(missKey).some((x) => x.includes('缺解答')), '漏一个选项解答必须被检出');
+  const withEng = structuredClone(good); withEng.items[0].explain.B = '这句 OK 不对';
+  assert.ok(writingExplainDefects(withEng).some((x) => x.includes('含裸英文')), '解答夹英文必须被检出');
+});

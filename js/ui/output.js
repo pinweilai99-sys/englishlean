@@ -156,6 +156,31 @@ export function renderOutput(ctx, unit) {
         ]));
       });
       box.appendChild(row);
+      // 2026-11-10 家长：答完后对每个答案都要有解答，方便孩子理解。
+      // 只在答对后展开（未答不剧透）；分类按"可接受集合"自动判定——合法答语 ✅ 合适，
+      // 其余 💡 中性说明为什么不合适，不标红、不留失败痕迹。英文答案仍配 🔊。
+      if (ok && it.explain) {
+        const expBox = h('div', { class: 'wr-explain', style: 'margin-top:10px;padding:8px 10px;border-radius:12px;background:var(--explain-bg,#f7f9f8)' }, [
+          h('p', { class: 'hint', style: 'font-weight:800;margin-bottom:6px', text: '💡 每个答案都懂了吗？' }),
+        ]);
+        (it.opts || []).forEach((ans) => {
+          const right = accepts.includes(ans);
+          expBox.appendChild(h('div', {
+            class: `wr-explain-row ${right ? 'is-right' : 'is-alt'}`,
+            style: 'display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap;margin:5px 0',
+          }, [
+            h('span', { class: 'wr-explain-tag', text: right ? '✅ 合适' : '💡 这里不合适', style: 'font-weight:800;white-space:nowrap' }),
+            h('button', {
+              class: 'wr-explain-speak', title: '听这句', text: '🔊',
+              style: 'border:none;background:none;cursor:pointer;font-size:inherit;padding:2px 4px',
+              onclick: (e) => { e.stopPropagation(); tts.speak(ans); },
+            }),
+            h('span', { class: 'wr-explain-en', text: ans, style: 'font-weight:700' }),
+            h('span', { class: 'wr-explain-zh-box', style: 'flex-basis:100%;margin-left:2px', text: it.explain[ans] || '' }),
+          ]));
+        });
+        box.appendChild(expBox);
+      }
       wrap.appendChild(box);
     });
 

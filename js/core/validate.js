@@ -80,6 +80,18 @@ export function validateUnit(data) {
           });
         }
       }
+      // 逐项解答（家长 2026-11-10）：答完后对每个选项给中文解说。
+      // 必须覆盖全部 opts、纯中文、不含裸英文（英文答案行单独由渲染层配 🔊）。
+      if (it.explain !== undefined) {
+        if (!it.explain || typeof it.explain !== 'object' || Array.isArray(it.explain)) {
+          push(`writing.items[${i}].explain`, '必须是对象');
+        } else {
+          it.opts.forEach((o) => {
+            if (!isStr(it.explain[o])) push(`writing.items[${i}].explain[${o}]`, '每个选项都要有非空中文解答');
+            else if (/[A-Za-z]/.test(it.explain[o])) push(`writing.items[${i}].explain[${o}]`, '解答必须是纯中文，不能含裸英文');
+          });
+        }
+      }
     });
   }
 
