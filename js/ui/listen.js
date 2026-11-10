@@ -2,8 +2,8 @@
 // 每题播放目标词（listenPairs[i][0]），孩子从两个选项中选出听到的词。
 // 答错自动入错题本；一轮 12 题全部完成后结束并展示成绩，
 // 由孩子/家长选择"再来一轮"或返回，不再自动无限循环。
-import { h, toast, starFly } from './dom.js?v=1794275695';
-import * as tts from '../services/tts.js?v=1794275695';
+import { h, toast, starFly } from './dom.js?v=1794315979';
+import * as tts from '../services/tts.js?v=1794315979';
 
 export function renderListen(ctx, unit) {
   const pairs = unit.listenPairs; // [目标词, 干扰词]，播放的永远是目标词
