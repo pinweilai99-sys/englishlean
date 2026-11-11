@@ -1,6 +1,6 @@
 // 单元页：目标卡 + 4 阶段关卡
-import { h, toast } from './dom.js?v=1794367230';
-import { canEnterStage, stage1Checklist } from '../core/progress.js?v=1794367230';
+import { h, toast } from './dom.js?v=1794374749';
+import { canEnterStage, stage1Checklist } from '../core/progress.js?v=1794374749';
 
 const STAGES = [
   { idx: 0, name: '单词奠基', desc: '先会读单词，才读得懂句子', emoji: '🔤' },
