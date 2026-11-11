@@ -1,6 +1,6 @@
 // 家长中心：语法参考卡 / 学习报告 / 错题本 / 导出恢复重置
-import { h, clear, toast, confirmDialog, modal } from './dom.js?v=1794382806';
-import { exportState, importState, resetState } from '../core/storage.js?v=1794382806';
+import { h, clear, toast, confirmDialog, modal } from './dom.js?v=1794384134';
+import { exportState, importState, resetState } from '../core/storage.js?v=1794384134';
 
 export function renderParent(ctx, unit) {
   const state = ctx.state;
@@ -58,11 +58,11 @@ export function renderParent(ctx, unit) {
   }
 
   // 本地识别模型状态
-  import('../services/local-asr.js?v=1794382806').then(() => {}).catch(() => {});
+  import('../services/local-asr.js?v=1794384134').then(() => {}).catch(() => {});
   wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:22px', text: '🎙️ 发音识别（本地模型）' }));
   const laWrap = h('div', {});
   wrap.appendChild(laWrap);
-  import('../services/local-asr.js?v=1794382806').then((localAsr) => {
+  import('../services/local-asr.js?v=1794384134').then((localAsr) => {
     const st = localAsr.getStatus();
     const desc = st.status === 'ready' ? '✅ 已就绪——跟读自动打分（离线可用）'
       : st.status === 'loading' ? `⏳ 后台下载中 ${st.progress}%（下载完成后自动启用，不影响学习）`
@@ -97,8 +97,8 @@ export function renderParent(ctx, unit) {
     h('button', {
       class: 'btn ghost', text: '🔊 试听一句',
       onclick: async () => {
-        const { hasUsableVoice } = await import('../services/tts.js?v=1794382806');
-        const { hasAudio, retryManifest } = await import('../services/audio.js?v=1794382806');
+        const { hasUsableVoice } = await import('../services/tts.js?v=1794384134');
+        const { hasAudio, retryManifest } = await import('../services/audio.js?v=1794384134');
         paintAudio('⏳ 正在检测…');
         let audio = hasAudio('pet');
         if (!audio) {
