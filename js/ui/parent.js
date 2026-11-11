@@ -82,6 +82,42 @@ export function renderParent(ctx, unit) {
     ]));
   }).catch(() => {});
 
+  // 发音自检（2026-11-11 家长反馈：安卓平板弹「找不到 Google 引擎」且无声）
+  // 家长最需要知道的是「这台设备能不能出声、为什么不能、怎么办」，所以做成可点自检。
+  wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:22px', text: '🔊 发音自检' }));
+  wrap.appendChild(h('p', { class: 'hint', text: '点一下试听，确认这台设备能不能发出英语声音。' }));
+  const audioBox = h('div', {});
+  wrap.appendChild(audioBox);
+  const paintAudio = (desc) => {
+    clear(audioBox);
+    audioBox.appendChild(h('p', { class: 'hint', text: desc }));
+  };
+  paintAudio('（还没检测过，点下面的按钮试试）');
+  wrap.appendChild(h('div', { class: 'btn-row', style: 'margin-top:8px' }, [
+    h('button', {
+      class: 'btn ghost', text: '🔊 试听一句',
+      onclick: async () => {
+        const { hasUsableVoice } = await import('../services/tts.js');
+        const { hasAudio, retryManifest } = await import('../services/audio.js');
+        paintAudio('⏳ 正在检测…');
+        let audio = hasAudio('pet');
+        if (!audio) {
+          // 清单没加载上（弱网/被限速）→ 重拉一次再判定
+          await retryManifest(3000);
+          audio = hasAudio('pet');
+        }
+        const voice = hasUsableVoice();
+        if (audio) {
+          paintAudio('✅ 预生成发音可用（不依赖系统语音引擎，任何设备都能出声）。');
+        } else if (voice) {
+          paintAudio('⚠️ 预生成发音暂未加载，但系统有英语语音引擎，可以朗读。');
+        } else {
+          paintAudio('❌ 这台设备既没有预生成发音、也没有英语语音引擎。\n解决办法：① 换用 Chrome/Edge 浏览器；② 用「离线版」网页文件（englishlean-offline.html，双击即可打开，完全不依赖网络）。');
+        }
+      },
+    }),
+  ]));
+
   // 数据管理
   wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:22px', text: '💾 数据备份与恢复' }));
   wrap.appendChild(h('p', { class: 'hint', text: '进度保存在本机浏览器。换设备或清理缓存前，请先导出备份。' }));

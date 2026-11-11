@@ -43,7 +43,11 @@ export function renderOutput(ctx, unit) {
     });
     wrap.appendChild(grid);
 
-    const kidLine = rp.child.replace('___', session.rpSlot || 'pet');
+    // 孩子台词的空槽默认值：必须取**本单元的槽位词**（U4=pencil/ruler…，U5=rabbit/goldfish…），
+    // 不能写死 'pet'——U4 会出现「Can I use your pet, please?」这种不属于本单元的句子
+    // （2026-11-11 真浏览器安卓模拟时发现）。
+    const slotDefaultEn = (unit.sentences?.slots && unit.sentences.slots[0]) || 'pet';
+    const kidLine = rp.child.replace('___', session.rpSlot || slotDefaultEn);
     const kidZh = (rp.childZh || '').replace('___', session.rpSlot || T.slotDefault);
     const dialog = h('div', { class: 'story-text', style: 'margin-top:12px' }, [
       h('div', { style: 'margin-bottom:10px' }, [h('strong', { text: '🧒 孩子：' }), kidLine]),

@@ -310,6 +310,17 @@ async function boot() {
   state.state = loadState(localStorage);
   tts.setEnabled(state.state.settings?.audioOn !== false);
 
+  // 发音不可用时的应用内中文提示（2026-11-11 家长反馈：安卓平板弹「找不到 Google 引擎」且无声）。
+  // 修复后不再调用 speechSynthesis（不触发系统弹窗），改为在应用内给可执行指引：
+  // ① 预生成音频没加载上 → 多半是网络问题，建议换网络或用离线版；
+  // ② 设备本身没有英语语音引擎 → 建议用 Chrome/Edge，或改用离线单文件。
+  tts.onUnavailable((reason) => {
+    const msg = reason === 'no-voice'
+      ? '🔇 这台设备暂时发不出声音：没找到英语发音引擎。请换用 Chrome/Edge 浏览器，或打开「离线版」网页文件。'
+      : '🔇 发音加载失败，请检查网络后再试一次。';
+    toast(msg, 5000);
+  });
+
   const r0 = parseRoute();
   const want = (r0.name === 'unit' || r0.name === 'stage') ? r0.unitId : DEFAULT_UNIT;
   try {

@@ -1,7 +1,7 @@
 // TTS 发音服务：优先播预生成音频文件（手机无 TTS 引擎也能出声），speechSynthesis 兜底
 // 降级原则：没有音频能力时隐藏喇叭、改为"手动确认"，绝不让页面报错或阻塞学习。
 // 能力检测在调用时进行（而非导入时），确保环境变化（含测试注入）即时生效。
-import { hasAudio, playAudio, stopAudio, ensureReady } from './audio.js';
+import { hasAudio, playAudio, stopAudio, ensureReady, retryManifest } from './audio.js';
 
 const state = {
   enabled: true,
@@ -56,8 +56,87 @@ export function isAvailable() {
   return !!synth();
 }
 
+// 是否存在**可用的英语语音**（纯判断，不触发任何朗读）。
+//
+// 为什么必须有这个判断（2026-11-11 家长反馈：安卓平板弹「找不到 Google 引擎」且无声）：
+// 国产安卓平板 / 微信内置浏览器常未安装 Google TTS 引擎。此时调用 speechSynthesis.speak()
+// 会弹出**系统级**对话框「找不到 Google 引擎 / 未安装语音引擎」，而且永远不会发出声音。
+// 这个弹窗由浏览器/系统弹出，应用无法拦截——唯一能根治的办法就是**根本不调用 speechSynthesis**。
+//
+// 判定口径：
+//  - 无 speechSynthesis → 不可用；
+//  - getVoices() 返回空数组 → 引擎未就绪或未安装 → 不可用（关键：空数组正是安卓无引擎的表现）；
+//  - 只有非英语语音（如 zh-CN）→ 不可用（用中文引擎念英语会跑调）；
+//  - 有英语语音 → 可用。
+//
+// 注意：部分浏览器 getVoices() 首次调用返回空、需要等 voiceschanged 才填充。
+// 所以这里**不缓存结论**，每次实时取；上层 speak() 在真正要朗读前会再等一次（见 waitVoices）。
+export function hasUsableVoice() {
+  const s = synth();
+  if (!s) return false;
+  const voices = (typeof s.getVoices === 'function' ? s.getVoices() : []) || [];
+  return !!chooseVoice(voices);
+}
+
+// 等待英语语音就绪（部分浏览器 voices 是异步加载的）。
+// 返回 true=有可用英语语音；false=等待超时仍无。
+// 超时不能太长（用户点喇叭要立刻出声），也不能太短（否则慢加载的浏览器会误判无引擎）。
+export async function waitVoices(timeoutMs = 600) {
+  if (hasUsableVoice()) return true;
+  const s = synth();
+  if (!s) return false;
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (ok) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      try { s.removeEventListener && s.removeEventListener('voiceschanged', onChange); } catch (e) { /* 忽略 */ }
+      resolve(ok);
+    };
+    const onChange = () => { if (hasUsableVoice()) finish(true); };
+    try {
+      if (s.addEventListener) s.addEventListener('voiceschanged', onChange);
+      else s.onvoiceschanged = onChange;
+    } catch (e) { /* 忽略 */ }
+    const timer = setTimeout(() => finish(hasUsableVoice()), timeoutMs);
+  });
+}
+
 export function isEnabled() {
   return state.enabled;
+}
+
+// ── 发音不可用时的应用内提示（2026-11-11）────────────────────────────────
+// 家长反馈：安卓平板弹「找不到 Google 引擎」且无声。
+// 根因：设备没有英语 TTS 引擎，而预生成音频又没加载上 → 退 speechSynthesis → 系统弹窗。
+// 修复后：两条通道都不可用时，我们**不调用 speechSynthesis**（不弹系统窗），
+// 改为在应用内给一条中文提示，告诉家长「用离线版 / 检查网络 / 换浏览器」。
+//
+// 设计要点：
+//  - 提示只出现一次（同一页面会话内不重复打扰），且是**中性提示**不是错误；
+//  - 用回调注入，tts 服务不直接依赖 UI 层（保持 js/{core,services,ui} 分层）；
+//  - 家长中心提供「发音自检」入口，可随时查看当前设备状态。
+let unavailableNotified = false;
+let unavailableHandler = null;
+
+// 注册「发音不可用」回调（由 app.js 接到 toast）。
+export function onUnavailable(fn) {
+  unavailableHandler = typeof fn === 'function' ? fn : null;
+}
+
+// 内部：两条通道都不可用时通知一次（供上层显示中文提示）。
+function notifyUnavailable(reason) {
+  if (unavailableNotified) return;
+  unavailableNotified = true;
+  try {
+    if (unavailableHandler) unavailableHandler(reason);
+  } catch (e) { /* 忽略 */ }
+}
+
+// 供 app.js 在重新获得发音能力后复位（这样下一次真出问题时还能再提示）。
+export function resetUnavailableNotice() {
+  unavailableNotified = false;
 }
 
 export function setEnabled(flag) {
@@ -89,6 +168,12 @@ function stopCurrent() {
 // → 直接退 speechSynthesis → 国产安卓/微信内置浏览器没有英语 TTS 引擎 → 彻底无声。
 // 现在：**清单尚未就绪时先等它（最多 2.5s）**，再决定走音频还是 TTS。
 // 已就绪则零等待，不拖慢任何正常播放。
+//
+// 2026-11-11 修复（家长反馈：安卓平板弹「找不到 Google 引擎」且无声）：
+// 国内网络下 manifest 首次拉取可能失败（github.io 被限速）→ available 变空集且**永不重试**
+// → 整局每次点喇叭都退 speechSynthesis → 安卓弹系统级「找不到 Google 引擎」。
+// 现在：音频未命中且系统也没有可用英语语音时，**主动重拉一次 manifest** 再判断
+// （弱网恢复后立刻能用上预生成音频），仍失败才返回 no-voice，由上层给中文提示。
 export async function speak(text, opts = {}) {
   if (!state.enabled || !text) {
     return Promise.resolve({ ok: false, reason: 'unavailable' });
@@ -100,7 +185,25 @@ export async function speak(text, opts = {}) {
     // eslint-disable-next-line no-await-in-loop
     const ok = await playAudio(text, undefined, { playbackRate: opts.playbackRate });
     if (gen !== state.gen) return { ok: false, reason: 'cancelled' };
-    if (ok) return { ok: true, via: 'audio' };
+    if (ok) {
+      resetUnavailableNotice(); // 恢复出声 → 复位提示状态，下次真出问题时还能再提示
+      return { ok: true, via: 'audio' };
+    }
+  }
+  // 音频没命中：若系统也没有可用英语语音，先重拉一次 manifest 再试一次
+  // （首屏拉取失败是安卓平板最常见的失败原因，且不重试会导致整局无声）
+  if (!hasUsableVoice()) {
+    const recovered = await retryManifest(opts.retryTimeoutMs ?? 3000);
+    if (gen !== state.gen) return { ok: false, reason: 'cancelled' };
+    if (recovered && hasAudio(text)) {
+      // eslint-disable-next-line no-await-in-loop
+      const ok2 = await playAudio(text, undefined, { playbackRate: opts.playbackRate });
+      if (gen !== state.gen) return { ok: false, reason: 'cancelled' };
+      if (ok2) {
+        resetUnavailableNotice(); // 恢复出声 → 复位提示状态，下次真出问题时还能再提示
+        return { ok: true, via: 'audio' };
+      }
+    }
   }
   return speakSynth(text, opts);
 }
@@ -122,15 +225,38 @@ export async function speakSlow(text, opts = {}) {
     if (gen !== state.gen) return { ok: false, reason: 'cancelled' };
     if (ok) return { ok: true, via: 'audio' };
   }
+  if (!hasUsableVoice()) {
+    const recovered = await retryManifest(opts.retryTimeoutMs ?? 3000);
+    if (gen !== state.gen) return { ok: false, reason: 'cancelled' };
+    if (recovered && hasAudio(text)) {
+      // eslint-disable-next-line no-await-in-loop
+      const ok2 = await playAudio(text, undefined, { playbackRate: rate, onProgress: opts.onProgress });
+      if (gen !== state.gen) return { ok: false, reason: 'cancelled' };
+      if (ok2) return { ok: true, via: 'audio' };
+    }
+  }
   return speakSynth(text, { ...opts, rate });
 }
 
 // speechSynthesis 兜底通道（原实现）
-function speakSynth(text, opts = {}) {
+//
+// 2026-11-11 关键修复（家长反馈：安卓平板弹「找不到 Google 引擎」且无声）：
+// 兜底之前**必须先确认有可用英语语音**。没有就**不调用** speechSynthesis——
+// 因为安卓在缺引擎时会在调用瞬间弹出系统级「找不到 Google 引擎」对话框，
+// 应用无法拦截，用户只看到弹窗+无声，比直接失败更糟。
+// 这里改为：返回 { ok:false, reason:'no-voice' }，由上层给出应用内的中文提示。
+async function speakSynth(text, opts = {}) {
   const { rate = 0.85, pitch = 1.0, lang = 'en-US' } = opts;
   const s = synth();
   if (!s || !state.enabled || !text) {
-    return Promise.resolve({ ok: false, reason: 'unavailable' });
+    return { ok: false, reason: 'unavailable' };
+  }
+  // 等待英语语音就绪（部分浏览器 voices 异步加载）
+  const voiceOk = await waitVoices(opts.voiceTimeoutMs ?? 600);
+  if (!voiceOk) {
+    // 两条通道都不可用：给应用内中文提示（不再触发安卓系统弹窗）
+    notifyUnavailable('no-voice');
+    return { ok: false, reason: 'no-voice' };
   }
   stopCurrent();
   return new Promise((resolve) => {

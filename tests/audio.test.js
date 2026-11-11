@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { audioSlug, hasAudio, initAudio, playAudio, stopAudio, ensureReady, _debugSetAvailable, _debugClearPool, _debugResetManifest } from '../js/services/audio.js';
+import { audioSlug, hasAudio, initAudio, playAudio, stopAudio, ensureReady, retryManifest, _debugSetAvailable, _debugClearPool, _debugResetManifest } from '../js/services/audio.js';
 import * as tts from '../js/services/tts.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -273,4 +273,75 @@ test('AUD-8 浏览器端代码禁止 import Node 内置模块（node:crypto 曾�
     }
   }
   assert.ok(checked >= 15, `应检查到足量浏览器端文件（实际 ${checked}）`);
+});
+
+// ── 2026-11-11 家长反馈：安卓平板弹「找不到 Google 引擎」且整局无声 ──
+// 根因：initAudio 启动时只试 3 次；国内网络下 github.io 被限速 → 3 次全败
+// → available 变空集且**永不重试** → 之后每次点喇叭都退 speechSynthesis
+// → 安卓没装 Google TTS 引擎 → 系统弹窗 + 永远无声。
+// 修复：新增 retryManifest()，需要时按需重拉清单；弱网一恢复立刻能用预生成音频。
+describe('音频清单按需重拉（2026-11-11 修复）', () => {
+  test('AUD-16 retryManifest 在清单为空时能重新拉取并恢复可用', async () => {
+    _debugSetAvailable([]); // 模拟"启动时拉取失败"
+    assert.equal(hasAudio('pet'), false, '前置：清单为空');
+    const realFetch = globalThis.fetch;
+    let calls = 0;
+    globalThis.fetch = async (u) => {
+      calls += 1;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ slugs: ['pet'] }),
+      };
+    };
+    try {
+      const ok = await retryManifest(2000);
+      assert.equal(ok, true, '重拉后应恢复可用');
+      assert.equal(hasAudio('pet'), true, '重拉后 hasAudio 应命中');
+      assert.ok(calls >= 1, '确实发起了重拉请求');
+    } finally {
+      globalThis.fetch = realFetch;
+      _debugSetAvailable([]);
+    }
+  });
+
+  test('AUD-17 retryManifest 在清单已可用时不重复请求（避免每次点喇叭都打网络）', async () => {
+    _debugSetAvailable(['pet']);
+    const realFetch = globalThis.fetch;
+    let calls = 0;
+    globalThis.fetch = async () => { calls += 1; return { ok: true, status: 200, json: async () => ({ slugs: [] }) }; };
+    try {
+      const ok = await retryManifest(2000);
+      assert.equal(ok, true, '已有可用清单应直接返回');
+      assert.equal(calls, 0, '不应发起无谓的网络请求');
+    } finally {
+      globalThis.fetch = realFetch;
+      _debugSetAvailable([]);
+    }
+  });
+
+  test('AUD-18 清单重拉仍失败时不得抛错，speak 返回可诊断的 no-voice（不触发系统弹窗）', async () => {
+    _debugSetAvailable([]);
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = async () => ({ ok: false, status: 503, json: async () => ({}) });
+    const spy = [];
+    globalThis.window = {
+      speechSynthesis: {
+        getVoices: () => [], // 安卓无引擎
+        speak(u) { spy.push(u.text); setTimeout(() => u.onend && u.onend(), 0); },
+        cancel() {},
+      },
+      SpeechSynthesisUtterance: class { constructor(t) { this.text = t; } },
+    };
+    try {
+      const r = await tts.speak('pet', { readyTimeoutMs: 100, retryTimeoutMs: 300 });
+      assert.equal(r.ok, false, '两条通道都不可用时应明确失败');
+      assert.equal(r.reason, 'no-voice', '原因应为 no-voice（供上层给中文提示）');
+      assert.deepEqual(spy, [], '绝不能调用 speechSynthesis（会弹安卓系统对话框）');
+    } finally {
+      globalThis.fetch = realFetch;
+      _debugSetAvailable([]);
+      delete globalThis.window;
+    }
+  });
 });

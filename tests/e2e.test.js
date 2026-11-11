@@ -2477,3 +2477,70 @@ test('E2E-73 U5 真实输出·文案零回归（仍是「宠物」主题）', as
     assert.ok(txt.includes('宠物思维导图'), 'U5 仍应显示「宠物思维导图」');
   } finally { cleanup(); }
 });
+
+// ---- 安卓平板无英语 TTS 引擎（2026-11-11 家长反馈：弹「找不到 Google 引擎」且无声）----
+test('E2E-74 安卓无语音引擎：点喇叭不得调用 speechSynthesis（不弹系统窗），并给出中文提示', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: U4_OUT_SEED(), stubAudio: false });
+  try {
+    // 模拟安卓平板的**两个**故障叠加：
+    //  ① 系统没有英语语音引擎（getVoices 返回空）→ 旧版会调用 speechSynthesis → 弹「找不到 Google 引擎」
+    //  ② 预生成音频清单拉不到（弱网/被限速）→ 没有可用的预生成音频
+    const spy = [];
+    window.speechSynthesis = {
+      getVoices: () => [],            // 安卓无引擎：空列表
+      speak(u) { spy.push(u.text); setTimeout(() => u.onend && u.onend(), 0); },
+      cancel() {},
+    };
+    window.SpeechSynthesisUtterance = class { constructor(t) { this.text = t; } };
+    // 让 manifest 拉取失败（模拟国内网络下 github.io 被限速/拦截）
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = async (u) => {
+      if (String(u).includes('manifest.json')) return { ok: false, status: 503, json: async () => ({}) };
+      return realFetch(u);
+    };
+    // boot 期间清单已被成功加载过（fetch 桩返回真实 manifest）→ 必须清空，
+    // 否则 hasAudio 命中、根本走不到兜底分支，测试就成了摆设。
+    const audioMod = await import('../js/services/audio.js');
+    audioMod._debugSetAvailable([]);
+    globalThis.fetch = async (u) => {
+      if (String(u).includes('manifest.json')) return { ok: false, status: 503, json: async () => ({}) };
+      return realFetch(u);
+    };
+    await navigate(window, app, '#/unit/u4/stage/2');
+    // 点一个英文喇叭（写作情境句的 🔊）
+    const btn = window.document.querySelector('main .wr-ctx-speak');
+    assert.ok(btn, '应能找到英文朗读按钮');
+    btn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 1500));
+    assert.deepEqual(spy, [], '无语音引擎时绝不能调用 speechSynthesis（会弹安卓系统对话框）');
+    globalThis.fetch = realFetch;
+  } finally { cleanup(); }
+});
+
+test('E2E-75 家长中心有「发音自检」入口，能诊断并给出解决办法', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: U4_OUT_SEED() });
+  try {
+    await navigate(window, app, '#/parent');
+    const txt = mainText(window);
+    assert.ok(txt.includes('发音自检'), '家长中心应有「发音自检」入口');
+    const btn = Array.from(window.document.querySelectorAll('main button')).find((b) => b.textContent.includes('试听一句'));
+    assert.ok(btn, '应有「试听一句」按钮');
+    btn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 600));
+    const after = mainText(window);
+    assert.ok(after.includes('预生成发音可用') || after.includes('系统有英语语音引擎'),
+      '自检应给出明确结论');
+  } finally { cleanup(); }
+});
+
+test('E2E-76 U4 角色扮演孩子台词不得用 U5 的「pet」占位（应为本单元槽位词）', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: U4_OUT_SEED() });
+  try {
+    await navigate(window, app, '#/unit/u4/stage/2');
+    const txt = mainText(window);
+    assert.ok(!txt.includes('Can I use your pet, please?'),
+      'U4 孩子台词默认应取本单元槽位词（pencil），不得出现 U5 的 pet');
+    assert.ok(txt.includes('Can I use your pencil, please?'),
+      'U4 孩子台词默认应是 pencil（本单元第一个槽位）');
+  } finally { cleanup(); }
+});

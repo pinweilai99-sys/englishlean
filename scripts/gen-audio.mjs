@@ -43,10 +43,11 @@ export function collectTexts() {
       texts.add(p.q); texts.add(p.a);
       (p.opts || []).forEach((o) => texts.add(o));
     }));
-    // 角色扮演：孩子台词（模板 × 槽位 + 默认 pet）+ 家长应答
+    // 角色扮演：孩子台词（模板 × 本单元全部槽位）+ 家长应答
+    // 注意：默认槽位取**本单元 slots[0]**（U4=pencil，U5=rabbit），与 output.js 运行时一致；
+    // 不能写死 'pet'——那会生成 U4 用不到的音频，且与运行时默认值不一致。
     const rp = u.roleplay || {};
     if (rp.child) {
-      texts.add(rp.child.replace('___', 'pet'));
       (s.slots || []).forEach((slot) => texts.add(rp.child.replace('___', slot)));
     }
     (rp.parent || []).forEach((a) => texts.add(a));

@@ -1,7 +1,7 @@
 // Stage3 真实输出：角色扮演 / Let's Write / 思维导图
-import { h, toast, starFly, confetti } from './dom.js?v=1794315979';
-import * as tts from '../services/tts.js?v=1794315979';
-import * as recorder from '../services/recorder.js?v=1794315979';
+import { h, toast, starFly, confetti } from './dom.js?v=1794367230';
+import * as tts from '../services/tts.js?v=1794367230';
+import * as recorder from '../services/recorder.js?v=1794367230';
 
 // 一道选句题可接受的答案集合：默认只有唯一正确答案 a；
 // 若数据用 accept 声明了"多句课本都合法的答语"（如 OK./Sure. Here you are. 都同意借），
@@ -43,7 +43,11 @@ export function renderOutput(ctx, unit) {
     });
     wrap.appendChild(grid);
 
-    const kidLine = rp.child.replace('___', session.rpSlot || 'pet');
+    // 孩子台词的空槽默认值：必须取**本单元的槽位词**（U4=pencil/ruler…，U5=rabbit/goldfish…），
+    // 不能写死 'pet'——U4 会出现「Can I use your pet, please?」这种不属于本单元的句子
+    // （2026-11-11 真浏览器安卓模拟时发现）。
+    const slotDefaultEn = (unit.sentences?.slots && unit.sentences.slots[0]) || 'pet';
+    const kidLine = rp.child.replace('___', session.rpSlot || slotDefaultEn);
     const kidZh = (rp.childZh || '').replace('___', session.rpSlot || T.slotDefault);
     const dialog = h('div', { class: 'story-text', style: 'margin-top:12px' }, [
       h('div', { style: 'margin-bottom:10px' }, [h('strong', { text: '🧒 孩子：' }), kidLine]),
