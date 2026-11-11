@@ -1038,13 +1038,14 @@ window.__EMBED__ = {"units":{"u4":{"id":"u4","no":4,"title":"Can I use your penc
         }
         let done = false;
         let timer = null;
-        const finish = (ok) => {
+        let interrupted = false;
+        const finish = (ok, isInterrupt) => {
           if (done) return;
           done = true;
           if (timer) clearTimeout(timer);
           if (currentFinish === finish) currentFinish = null;
           if (currentEl === el) currentEl = null;
-          resolve(ok);
+          resolve(isInterrupt ? { ok: false, reason: "interrupted" } : ok);
         };
         currentFinish = finish;
         currentEl = el;
@@ -1093,7 +1094,7 @@ window.__EMBED__ = {"units":{"u4":{"id":"u4","no":4,"title":"Can I use your penc
     if (currentFinish) {
       const f = currentFinish;
       currentFinish = null;
-      f(false);
+      f(false, true);
     }
   }
   function _debugSetAvailable(slugs) {
@@ -1235,6 +1236,9 @@ window.__EMBED__ = {"units":{"u4":{"id":"u4","no":4,"title":"Can I use your penc
     if (hasAudio(text)) {
       const ok = await playAudio(text, void 0, { playbackRate: opts.playbackRate });
       if (gen !== state.gen) return { ok: false, reason: "cancelled" };
+      if (ok && typeof ok === "object" && ok.reason === "interrupted") {
+        return { ok: false, reason: "interrupted" };
+      }
       if (ok) {
         resetUnavailableNotice();
         return { ok: true, via: "audio" };
@@ -1246,6 +1250,9 @@ window.__EMBED__ = {"units":{"u4":{"id":"u4","no":4,"title":"Can I use your penc
       if (recovered && hasAudio(text)) {
         const ok2 = await playAudio(text, void 0, { playbackRate: opts.playbackRate });
         if (gen !== state.gen) return { ok: false, reason: "cancelled" };
+        if (ok2 && typeof ok2 === "object" && ok2.reason === "interrupted") {
+          return { ok: false, reason: "interrupted" };
+        }
         if (ok2) {
           resetUnavailableNotice();
           return { ok: true, via: "audio" };
@@ -1265,6 +1272,9 @@ window.__EMBED__ = {"units":{"u4":{"id":"u4","no":4,"title":"Can I use your penc
     if (hasAudio(text)) {
       const ok = await playAudio(text, void 0, { playbackRate: rate, onProgress: opts.onProgress });
       if (gen !== state.gen) return { ok: false, reason: "cancelled" };
+      if (ok && typeof ok === "object" && ok.reason === "interrupted") {
+        return { ok: false, reason: "interrupted" };
+      }
       if (ok) return { ok: true, via: "audio" };
     }
     if (!hasUsableVoice()) {
@@ -1273,6 +1283,9 @@ window.__EMBED__ = {"units":{"u4":{"id":"u4","no":4,"title":"Can I use your penc
       if (recovered && hasAudio(text)) {
         const ok2 = await playAudio(text, void 0, { playbackRate: rate, onProgress: opts.onProgress });
         if (gen !== state.gen) return { ok: false, reason: "cancelled" };
+        if (ok2 && typeof ok2 === "object" && ok2.reason === "interrupted") {
+          return { ok: false, reason: "interrupted" };
+        }
         if (ok2) return { ok: true, via: "audio" };
       }
     }

@@ -185,6 +185,11 @@ export async function speak(text, opts = {}) {
     // eslint-disable-next-line no-await-in-loop
     const ok = await playAudio(text, undefined, { playbackRate: opts.playbackRate });
     if (gen !== state.gen) return { ok: false, reason: 'cancelled' };
+    // 「被新播放打断」不是失败：绝不能因此退 TTS 兜底
+    // （安卓无引擎时会误弹系统框 / 误报"发不出声音"——2026-11-11 修）
+    if (ok && typeof ok === 'object' && ok.reason === 'interrupted') {
+      return { ok: false, reason: 'interrupted' };
+    }
     if (ok) {
       resetUnavailableNotice(); // 恢复出声 → 复位提示状态，下次真出问题时还能再提示
       return { ok: true, via: 'audio' };
@@ -199,6 +204,9 @@ export async function speak(text, opts = {}) {
       // eslint-disable-next-line no-await-in-loop
       const ok2 = await playAudio(text, undefined, { playbackRate: opts.playbackRate });
       if (gen !== state.gen) return { ok: false, reason: 'cancelled' };
+      if (ok2 && typeof ok2 === 'object' && ok2.reason === 'interrupted') {
+        return { ok: false, reason: 'interrupted' };
+      }
       if (ok2) {
         resetUnavailableNotice(); // 恢复出声 → 复位提示状态，下次真出问题时还能再提示
         return { ok: true, via: 'audio' };
@@ -223,6 +231,9 @@ export async function speakSlow(text, opts = {}) {
     // eslint-disable-next-line no-await-in-loop
     const ok = await playAudio(text, undefined, { playbackRate: rate, onProgress: opts.onProgress });
     if (gen !== state.gen) return { ok: false, reason: 'cancelled' };
+    if (ok && typeof ok === 'object' && ok.reason === 'interrupted') {
+      return { ok: false, reason: 'interrupted' };
+    }
     if (ok) return { ok: true, via: 'audio' };
   }
   if (!hasUsableVoice()) {
@@ -232,6 +243,9 @@ export async function speakSlow(text, opts = {}) {
       // eslint-disable-next-line no-await-in-loop
       const ok2 = await playAudio(text, undefined, { playbackRate: rate, onProgress: opts.onProgress });
       if (gen !== state.gen) return { ok: false, reason: 'cancelled' };
+      if (ok2 && typeof ok2 === 'object' && ok2.reason === 'interrupted') {
+        return { ok: false, reason: 'interrupted' };
+      }
       if (ok2) return { ok: true, via: 'audio' };
     }
   }

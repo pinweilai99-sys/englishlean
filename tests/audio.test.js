@@ -462,3 +462,78 @@ describe('全站朗读文本音频完整性（2026-11-11）', () => {
       '以下朗读文本缺预生成音频（点击会退 TTS 兜底 → 安卓平板弹「找不到 Google 引擎」）：\n' + missing.join('\n'));
   });
 });
+
+// ── 2026-11-11 家长：安卓平板莫名弹「找不到 Google 引擎」──
+// 真因：连点两个喇叭时，第二次播放会 stopAudio() 打断第一个 → 第一个 Promise 被
+// 主动结算为 false → 上层 speak() 把「被打断」误判为「播放失败」→ 退 TTS 兜底
+// → 无引擎设备弹系统框 / 应用内误报「发不出声音」。
+// 修复：打断时结算带 reason:'interrupted' 标记，上层据此直接返回，不再退 TTS。
+describe('打断 vs 失败必须区分（2026-11-11 修复）', () => {
+  test('AUD-23 连点两个喇叭：被打断的那次不得退 TTS 兜底（否则误弹安卓系统框）', async () => {
+    _debugSetAvailable(['pet', 'dog']);
+    _debugClearPool(); // 清元素池：元素池跨用例复用会污染 readyState/play 行为
+    const spoken = [];
+    globalThis.window = {
+      speechSynthesis: {
+        getVoices: () => [],                 // 安卓无引擎
+        speak(u) { spoken.push(u.text); setTimeout(() => u.onend && u.onend(), 0); },
+        cancel() {},
+      },
+      SpeechSynthesisUtterance: class { constructor(t) { this.text = t; } },
+    };
+    // 假 Audio：永不 onended（模拟正在播放），play() 成功
+    globalThis.Audio = class {
+      constructor(src) { this.src = src; this.playbackRate = 1; this.currentTime = 0; this.duration = NaN; this.readyState = 1; }
+      addEventListener() {} removeEventListener() {}
+      play() { return Promise.resolve(); }
+      pause() { this.paused = true; }
+    };
+    try {
+      // 第一次播放（不 await，让它挂着）
+      const p1 = tts.speak('pet', { readyTimeoutMs: 100, retryTimeoutMs: 200 });
+      await new Promise((r) => setTimeout(r, 30));
+      // 第二次播放会 stopAudio() 打断第一次
+      const p2 = tts.speak('dog', { readyTimeoutMs: 100, retryTimeoutMs: 200 });
+      const r1 = await p1;
+      assert.equal(r1.reason, 'interrupted',
+        '被打断的那次应标记为 interrupted（不是失败）');
+      assert.deepEqual(spoken, [],
+        '被打断绝不能退 TTS 兜底（安卓无引擎时会弹系统框）');
+      await p2;
+    } finally {
+      delete globalThis.window;
+      delete globalThis.Audio;
+      _debugSetAvailable([]);
+    }
+  });
+
+  test('AUD-24 真正播放失败（音频元素报错）仍应走 TTS 兜底（不能把失败当打断）', async () => {
+    _debugSetAvailable(['pet']);
+    _debugClearPool(); // 清元素池：避免复用上一用例留下的 readyState=1 元素
+    const spoken = [];
+    globalThis.window = {
+      speechSynthesis: {
+        getVoices: () => [{ lang: 'en-GB', name: 'Daniel' }],
+        speak(u) { spoken.push(u.text); setTimeout(() => u.onend && u.onend(), 0); },
+        cancel() {},
+      },
+      SpeechSynthesisUtterance: class { constructor(t) { this.text = t; } },
+    };
+    // 假 Audio：立即报错（模拟 404/解码失败）
+    globalThis.Audio = class {
+      constructor(src) { this.src = src; this.playbackRate = 1; this.currentTime = 0; this.duration = NaN; this.readyState = 0; }
+      addEventListener() {} removeEventListener() {}
+      play() { return Promise.reject(new Error('decode fail')); }
+      pause() {}
+    };
+    try {
+      const r = await tts.speak('pet', { readyTimeoutMs: 100, retryTimeoutMs: 200 });
+      assert.notEqual(r.reason, 'interrupted', '真失败不应被标成 interrupted');
+      assert.deepEqual(spoken, ['pet'], '真失败仍应无缝退回 TTS 兜底');
+    } finally {
+      delete globalThis.window;
+      delete globalThis.Audio;
+      _debugSetAvailable([]);
+    }
+  });
+});

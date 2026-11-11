@@ -1,7 +1,7 @@
 // Stage3 真实输出：角色扮演 / Let's Write / 思维导图
-import { h, toast, starFly, confetti } from './dom.js?v=1794382806';
-import * as tts from '../services/tts.js?v=1794382806';
-import * as recorder from '../services/recorder.js?v=1794382806';
+import { h, toast, starFly, confetti } from './dom.js?v=1794384134';
+import * as tts from '../services/tts.js?v=1794384134';
+import * as recorder from '../services/recorder.js?v=1794384134';
 
 // 一道选句题可接受的答案集合：默认只有唯一正确答案 a；
 // 若数据用 accept 声明了"多句课本都合法的答语"（如 OK./Sure. Here you are. 都同意借），

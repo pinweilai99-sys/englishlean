@@ -147,13 +147,21 @@ export function playAudio(text, base = AUDIO_BASE, opts = {}) {
 
       let done = false;
       let timer = null;
-      const finish = (ok) => {
+      // ⚠️ 2026-11-11 关键修复（家长：安卓平板莫名弹「找不到 Google 引擎」）：
+      // 连点两个喇叭时，第二次播放会 stopAudio() 打断第一个 → 第一个的 Promise 被
+      // 主动结算为 false → 上层 speak() 把"**被打断**"误判为"**播放失败**" →
+      // 退 TTS 兜底 → 无引擎设备弹系统框 / 应用内误报"发不出声音"。
+      // 现在区分两种结算：interrupted=true 表示"被新播放打断"（正常，不算失败），
+      // 上层据此直接返回 cancelled，不再误触发降级与提示。
+      let interrupted = false;
+      const finish = (ok, isInterrupt) => {
         if (done) return;
         done = true;
         if (timer) clearTimeout(timer);
         if (currentFinish === finish) currentFinish = null;
         if (currentEl === el) currentEl = null;
-        resolve(ok);
+        // 被新播放打断时返回带标记的对象，让上层区分"打断"与"失败"
+        resolve(isInterrupt ? { ok: false, reason: 'interrupted' } : ok);
       };
       currentFinish = finish;
       currentEl = el;
@@ -211,7 +219,7 @@ export function stopAudio() {
   if (currentFinish) {
     const f = currentFinish;
     currentFinish = null;
-    f(false);
+    f(false, true); // 第二参=true → 标记为「被新播放打断」而非「播放失败」
   }
 }
 
