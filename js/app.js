@@ -1,26 +1,26 @@
 // 应用入口：状态管理、路由、渲染调度
-import { loadState, saveState, defaultState } from './core/storage.js?v=1794315979';
+import { loadState, saveState, defaultState } from './core/storage.js?v=1794367230';
 import {
   defaultUnitProgress, computeStagePassed, canEnterStage, isStage1Passed,
   addStars as addStarsCore, checkIn, getUnitProgress, setUnitProgress, dateKey,
-} from './core/progress.js?v=1794315979';
-import { buildReviewPlan, dueReviews, pendingCount } from './core/scheduler.js?v=1794315979';
-import { validateUnit } from './core/validate.js?v=1794315979';
-import { h, clear, toast, confetti, starFly } from './ui/dom.js?v=1794315979';
-import { renderHome, UNITS } from './ui/home.js?v=1794315979';
-import { renderUnit } from './ui/unit.js?v=1794315979';
-import { renderWordCard } from './ui/wordcard.js?v=1794315979';
-import { renderListen } from './ui/listen.js?v=1794315979';
-import { renderPhonics } from './ui/phonics.js?v=1794315979';
-import { renderSpelling } from './ui/spelling.js?v=1794315979';
-import { renderHandwriting } from './ui/handwriting.js?v=1794315979';
-import { renderSentence } from './ui/sentence.js?v=1794315979';
-import { renderOutput } from './ui/output.js?v=1794315979';
-import { renderStories, renderQuiz } from './ui/story.js?v=1794315979';
-import { renderRecall } from './ui/recall.js?v=1794315979';
-import { renderParent } from './ui/parent.js?v=1794315979';
-import * as tts from './services/tts.js?v=1794315979';
-import { initAudio } from './services/audio.js?v=1794315979';
+} from './core/progress.js?v=1794367230';
+import { buildReviewPlan, dueReviews, pendingCount } from './core/scheduler.js?v=1794367230';
+import { validateUnit } from './core/validate.js?v=1794367230';
+import { h, clear, toast, confetti, starFly } from './ui/dom.js?v=1794367230';
+import { renderHome, UNITS } from './ui/home.js?v=1794367230';
+import { renderUnit } from './ui/unit.js?v=1794367230';
+import { renderWordCard } from './ui/wordcard.js?v=1794367230';
+import { renderListen } from './ui/listen.js?v=1794367230';
+import { renderPhonics } from './ui/phonics.js?v=1794367230';
+import { renderSpelling } from './ui/spelling.js?v=1794367230';
+import { renderHandwriting } from './ui/handwriting.js?v=1794367230';
+import { renderSentence } from './ui/sentence.js?v=1794367230';
+import { renderOutput } from './ui/output.js?v=1794367230';
+import { renderStories, renderQuiz } from './ui/story.js?v=1794367230';
+import { renderRecall } from './ui/recall.js?v=1794367230';
+import { renderParent } from './ui/parent.js?v=1794367230';
+import * as tts from './services/tts.js?v=1794367230';
+import { initAudio } from './services/audio.js?v=1794367230';
 
 const DEFAULT_UNIT = 'u5';
 const state = {
@@ -310,6 +310,17 @@ async function boot() {
   state.state = loadState(localStorage);
   tts.setEnabled(state.state.settings?.audioOn !== false);
 
+  // 发音不可用时的应用内中文提示（2026-11-11 家长反馈：安卓平板弹「找不到 Google 引擎」且无声）。
+  // 修复后不再调用 speechSynthesis（不触发系统弹窗），改为在应用内给可执行指引：
+  // ① 预生成音频没加载上 → 多半是网络问题，建议换网络或用离线版；
+  // ② 设备本身没有英语语音引擎 → 建议用 Chrome/Edge，或改用离线单文件。
+  tts.onUnavailable((reason) => {
+    const msg = reason === 'no-voice'
+      ? '🔇 这台设备暂时发不出声音：没找到英语发音引擎。请换用 Chrome/Edge 浏览器，或打开「离线版」网页文件。'
+      : '🔇 发音加载失败，请检查网络后再试一次。';
+    toast(msg, 5000);
+  });
+
   const r0 = parseRoute();
   const want = (r0.name === 'unit' || r0.name === 'stage') ? r0.unitId : DEFAULT_UNIT;
   try {
@@ -342,7 +353,7 @@ async function boot() {
   // E2E 测试通过 __disableLocalAsr 禁用（jsdom 无法执行 wasm）。
   if (window.__disableLocalAsr !== true) {
     setTimeout(() => {
-      import('./services/local-asr.js?v=1794315979')
+      import('./services/local-asr.js?v=1794367230')
         .then((m) => m.maybeAutoLoad())
         .catch(() => { /* 静默：降级链已在 */ });
     }, 5000);

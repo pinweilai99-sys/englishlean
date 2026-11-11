@@ -1,6 +1,6 @@
 // 家长中心：语法参考卡 / 学习报告 / 错题本 / 导出恢复重置
-import { h, clear, toast, confirmDialog, modal } from './dom.js?v=1794315979';
-import { exportState, importState, resetState } from '../core/storage.js?v=1794315979';
+import { h, clear, toast, confirmDialog, modal } from './dom.js?v=1794367230';
+import { exportState, importState, resetState } from '../core/storage.js?v=1794367230';
 
 export function renderParent(ctx, unit) {
   const state = ctx.state;
@@ -58,11 +58,11 @@ export function renderParent(ctx, unit) {
   }
 
   // 本地识别模型状态
-  import('../services/local-asr.js?v=1794315979').then(() => {}).catch(() => {});
+  import('../services/local-asr.js?v=1794367230').then(() => {}).catch(() => {});
   wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:22px', text: '🎙️ 发音识别（本地模型）' }));
   const laWrap = h('div', {});
   wrap.appendChild(laWrap);
-  import('../services/local-asr.js?v=1794315979').then((localAsr) => {
+  import('../services/local-asr.js?v=1794367230').then((localAsr) => {
     const st = localAsr.getStatus();
     const desc = st.status === 'ready' ? '✅ 已就绪——跟读自动打分（离线可用）'
       : st.status === 'loading' ? `⏳ 后台下载中 ${st.progress}%（下载完成后自动启用，不影响学习）`
@@ -81,6 +81,42 @@ export function renderParent(ctx, unit) {
       }),
     ]));
   }).catch(() => {});
+
+  // 发音自检（2026-11-11 家长反馈：安卓平板弹「找不到 Google 引擎」且无声）
+  // 家长最需要知道的是「这台设备能不能出声、为什么不能、怎么办」，所以做成可点自检。
+  wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:22px', text: '🔊 发音自检' }));
+  wrap.appendChild(h('p', { class: 'hint', text: '点一下试听，确认这台设备能不能发出英语声音。' }));
+  const audioBox = h('div', {});
+  wrap.appendChild(audioBox);
+  const paintAudio = (desc) => {
+    clear(audioBox);
+    audioBox.appendChild(h('p', { class: 'hint', text: desc }));
+  };
+  paintAudio('（还没检测过，点下面的按钮试试）');
+  wrap.appendChild(h('div', { class: 'btn-row', style: 'margin-top:8px' }, [
+    h('button', {
+      class: 'btn ghost', text: '🔊 试听一句',
+      onclick: async () => {
+        const { hasUsableVoice } = await import('../services/tts.js?v=1794367230');
+        const { hasAudio, retryManifest } = await import('../services/audio.js?v=1794367230');
+        paintAudio('⏳ 正在检测…');
+        let audio = hasAudio('pet');
+        if (!audio) {
+          // 清单没加载上（弱网/被限速）→ 重拉一次再判定
+          await retryManifest(3000);
+          audio = hasAudio('pet');
+        }
+        const voice = hasUsableVoice();
+        if (audio) {
+          paintAudio('✅ 预生成发音可用（不依赖系统语音引擎，任何设备都能出声）。');
+        } else if (voice) {
+          paintAudio('⚠️ 预生成发音暂未加载，但系统有英语语音引擎，可以朗读。');
+        } else {
+          paintAudio('❌ 这台设备既没有预生成发音、也没有英语语音引擎。\n解决办法：① 换用 Chrome/Edge 浏览器；② 用「离线版」网页文件（englishlean-offline.html，双击即可打开，完全不依赖网络）。');
+        }
+      },
+    }),
+  ]));
 
   // 数据管理
   wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:22px', text: '💾 数据备份与恢复' }));

@@ -61,6 +61,24 @@ export async function initAudio(base = AUDIO_BASE, attempt = 0) {
   return available;
 }
 
+// 重新拉取清单（2026-11-11 家长反馈：安卓平板弹「找不到 Google 引擎」且整局无声）。
+//
+// 根因：initAudio 只在启动时尝试 3 次；国内网络（github.io 被限速/拦截）下
+// 这 3 次可能全部失败 → available 变成**空集且永不重试** → 之后每一次点喇叭
+// 都判定「没有预生成音频」→ 退 speechSynthesis → 安卓平板没装 Google TTS 引擎
+// → 弹出系统级「找不到 Google 引擎」对话框 + 永远无声。
+//
+// 这里提供「按需重拉」：当上层发现既没音频也没可用语音时，主动重拉一次清单，
+// 弱网一恢复就立刻能用上预生成音频（这是安卓/国产设备唯一可靠的出声通道）。
+// 返回 true = 清单成功重拉且非空；false = 仍不可用。
+export async function retryManifest(timeoutMs = 3000) {
+  if (available && available.size > 0) return true; // 已有可用清单，无需重拉
+  const p = initAudio();
+  const timeout = new Promise((resolve) => setTimeout(() => resolve(false), timeoutMs));
+  const r = await Promise.race([p, timeout]);
+  return !!(r && r.size > 0);
+}
+
 // 等待音频清单就绪（最多 timeoutMs）。
 // 为什么需要：initAudio 是异步的，用户首屏点「听一听」时清单可能还没到，
 // 此时 hasAudio() 返回 false → 直接退回 speechSynthesis → 国产安卓/微信内置浏览器
