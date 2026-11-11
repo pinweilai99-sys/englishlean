@@ -51,10 +51,15 @@ export function collectTexts() {
       (s.slots || []).forEach((slot) => texts.add(rp.child.replace('___', slot)));
     }
     (rp.parent || []).forEach((a) => texts.add(a));
-    // 写作情境句 + 孩子台词（Let's Write 情境卡：英文情境描述与孩子问句都要 🔊）
+    // 写作情境句 + 孩子台词 + **每个可选答案**（Let's Write 情境卡：英文情境描述、孩子问句、
+    // 以及每个选项旁的 🔊 都要能出声）。
+    // ⚠️ 2026-11-11 修复：旧版只收 ctx/ask，漏收 opts → U4「借画笔/借水」两题的「Sorry.」
+    // 选项音频文件虽存在但**不在 manifest** → 点该选项 🔊 判定"没有预生成音频"
+    // → 退 speechSynthesis → 安卓平板弹「找不到 Google 引擎」。漏收 = 致命。
     ((u.writing || {}).items || []).forEach((it) => {
       if (it.ctx) texts.add(it.ctx);
       if (it.ask) texts.add(it.ask);
+      (it.opts || []).forEach((o) => { if (o) texts.add(o); });
     });
     // 范文对话（挑战区示范对话：每一句都要 🔊）
     const sd = (u.writing || {}).sampleDialogue;

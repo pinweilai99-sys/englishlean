@@ -345,3 +345,52 @@ describe('音频清单按需重拉（2026-11-11 修复）', () => {
     }
   });
 });
+
+// ── 2026-11-11 家长反馈：安卓平板弹「找不到 Google 引擎」——真凶是音频清单漏项 ──
+// 根因：gen-audio.mjs 收集 writing.items 时只收 ctx/ask，漏收 opts。
+// 后果：U4「借画笔」「借水」两题的「Sorry.」选项音频文件虽存在，但**不在 manifest** →
+//       点该选项的 🔊 → hasAudio() 为 false → 退 speechSynthesis → 安卓弹系统对话框。
+// 本组测试锁死：所有会被朗读的文本都必须在 manifest 里，且 manifest 与磁盘文件必须一致。
+describe('音频清单完整性（2026-11-11 修复：漏收 writing opts）', () => {
+  const root = join(__dirname, '..');
+  const manifest = JSON.parse(readFileSync(join(root, 'assets/audio/manifest.json'), 'utf8'));
+  const have = new Set(manifest.slugs);
+
+  test('AUD-19 两单元 writing 的每个选项都必须在 manifest 中（漏收 → 安卓弹窗）', () => {
+    ['u4', 'u5'].forEach((u) => {
+      const d = JSON.parse(readFileSync(join(root, 'data/units', `${u}.json`), 'utf8'));
+      (d.writing?.items || []).forEach((it, i) => {
+        (it.opts || []).forEach((o) => {
+          const slug = audioSlug(o);
+          assert.ok(have.has(slug),
+            `${u} writing.items[${i}] 的选项「${o}」不在音频清单 → 点它会退 TTS 兜底 → 安卓弹「找不到 Google 引擎」`);
+        });
+      });
+    });
+  });
+
+  test('AUD-20 manifest 与磁盘 m4a 文件必须一一对应（既不漏收也不留孤儿）', () => {
+    const files = readdirSync(join(root, 'assets/audio'))
+      .filter((f) => f.endsWith('.m4a'))
+      .map((f) => f.replace(/\.m4a$/, ''));
+    const inManifest = files.filter((f) => have.has(f));
+    assert.ok(inManifest.length > 250, `应有足够音频（实际 ${inManifest.length}）`);
+    // 每个 manifest 条目都必须有真实文件
+    manifest.slugs.forEach((s) => {
+      assert.ok(existsSync(join(root, 'assets/audio', `${s}.m4a`)), `清单条目 ${s} 缺音频文件`);
+    });
+  });
+
+  test('AUD-21 collectTexts 必须覆盖 writing 的每个选项（防止生成脚本再漏）', async () => {
+    const { collectTexts } = await import('../scripts/gen-audio.mjs');
+    const collected = collectTexts();
+    ['u4', 'u5'].forEach((u) => {
+      const d = JSON.parse(readFileSync(join(root, 'data/units', `${u}.json`), 'utf8'));
+      (d.writing?.items || []).forEach((it) => {
+        (it.opts || []).forEach((o) => {
+          assert.ok(collected.includes(o), `collectTexts 漏收 writing 选项「${o}」`);
+        });
+      });
+    });
+  });
+});
