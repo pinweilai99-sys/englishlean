@@ -8,6 +8,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { audioSlug, hasAudio, initAudio, playAudio, stopAudio, ensureReady, retryManifest, _debugSetAvailable, _debugClearPool, _debugResetManifest } from '../js/services/audio.js';
 import * as tts from '../js/services/tts.js';
+import { chunkSay } from '../js/core/phonics.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
@@ -392,5 +393,72 @@ describe('音频清单完整性（2026-11-11 修复：漏收 writing opts）', (
         });
       });
     });
+  });
+});
+
+// ── 2026-11-11 全站朗读入口审计（家长：安卓平板弹「找不到 Google 引擎」）──
+// 上一次只修了 writing.items.opts，本轮把**全部 50 个朗读入口**的数据来源都审计一遍，
+// 又挖出两类缺口：① 故事屋 quiz 选项（每项都有 🔊）② 语法卡例句 q/a。
+// 本测试把审计固化为断言：以后新增任何朗读入口、任何文本，都不会再漏音频。
+describe('全站朗读文本音频完整性（2026-11-11）', () => {
+  const root = join(__dirname, '..');
+  const manifest = JSON.parse(readFileSync(join(root, 'assets/audio/manifest.json'), 'utf8'));
+  const have = new Set(manifest.slugs);
+  const missing = [];
+  const need = (t, where) => {
+    if (t === undefined || t === null) return;
+    const s = String(t).trim();
+    if (!s) return;
+    if (!have.has(audioSlug(s))) missing.push(where + ': ' + s);
+  };
+
+  test('AUD-22 所有会被朗读的文本都必须在音频清单中（故事选项/语法卡/思维导图/写作/句型…）', () => {
+    ['u4', 'u5'].forEach((u) => {
+      const d = JSON.parse(readFileSync(join(root, 'data/units', u + '.json'), 'utf8'));
+      (d.words || []).forEach((w) => {
+        need(w.tts || w.w, u + '.word');
+        (w.chunks || []).forEach((c) => need(chunkSay(String(c).toLowerCase()), u + '.chunk'));
+      });
+      (d.phonics?.words || []).forEach((w) => need(w, u + '.phonics'));
+      need(d.phonics?.chant, u + '.chant');
+      Object.values(d.sentences?.dialogues || {}).forEach((list) => list.forEach((p) => {
+        need(p.q, u + '.sent.q'); need(p.a, u + '.sent.a');
+        (p.opts || []).forEach((o) => need(o, u + '.sent.opt'));
+      }));
+      (d.sentences?.slots || []).forEach((sl) => need(d.sentences?.pattern?.replace('___', sl), u + '.sent.slot'));
+      (d.sentences?.answers || []).forEach((a) => need(a, u + '.sent.ans'));
+      (d.sentences?.slots || []).forEach((sl) => need(d.roleplay?.child?.replace('___', sl), u + '.rp.child'));
+      (d.roleplay?.parent || []).forEach((a) => need(a, u + '.rp.parent'));
+      (d.writing?.items || []).forEach((it) => {
+        need(it.ctx, u + '.wr.ctx'); need(it.ask, u + '.wr.ask');
+        (it.opts || []).forEach((o) => need(o, u + '.wr.opt'));
+      });
+      (d.writing?.sampleDialogue?.lines || []).forEach((l) => need(l.t, u + '.wr.sample'));
+      const mm = d.mindmap || {};
+      need(mm.sample, u + '.mm.sample');
+      (mm.chain || []).forEach((q) => need(q, u + '.mm.chain'));
+      (mm.steps || []).forEach((st) => {
+        need(st.q, u + '.mm.q');
+        (st.opts || []).forEach((o) => need(o.t, u + '.mm.opt'));
+        Object.values(st.featureByAnimal || {}).forEach((o) => need(o.t, u + '.mm.feat'));
+        need(st.extra?.t, u + '.mm.extra');
+      });
+      need(mm.ending?.t, u + '.mm.ending');
+      (d.grammar?.childCards || []).forEach((c) => { need(c.q, u + '.grammar.q'); need(c.a, u + '.grammar.a'); });
+      (d.reviewCards || []).forEach((c) => need(c.speak, u + '.rc.speak'));
+      (d.stories || []).forEach((st) => {
+        need(st.text, u + '.st.text'); need(st.narration, u + '.st.narration');
+        (st.lines || []).forEach((l) => need(l.t, u + '.st.line'));
+        (st.questions || []).forEach((q) => need(q.speak, u + '.st.q.speak'));
+        (st.quiz || []).forEach((q) => {
+          need(q.q, u + '.st.quiz.q');
+          (q.opts || []).forEach((o) => need(typeof o === 'string' ? o : (o.t || o.label || ''), u + '.st.quiz.opt'));
+          if (q.type === 'tf') { need('T', u + '.st.tf.T'); need('F', u + '.st.tf.F'); }
+        });
+      });
+      (d.quiz || []).forEach((q) => need(q.speak, u + '.quiz.speak'));
+    });
+    assert.deepEqual(missing, [],
+      '以下朗读文本缺预生成音频（点击会退 TTS 兜底 → 安卓平板弹「找不到 Google 引擎」）：\n' + missing.join('\n'));
   });
 });

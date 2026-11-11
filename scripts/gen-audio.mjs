@@ -75,6 +75,13 @@ export function collectTexts() {
       if (st.extra) texts.add(st.extra.t);
     });
     if (mm.ending) texts.add(mm.ending.t);
+    // 语法小规律卡：例句 q/a（UI 配了 🔊 听例句）
+    // ⚠️ 2026-11-11 补：旧版完全没收集 grammar.childCards → U4 卡的「Yes?」等例句
+    // 点 🔊 会退 TTS 兜底 → 安卓平板弹「找不到 Google 引擎」。
+    ((u.grammar || {}).childCards || []).forEach((c) => {
+      if (c.q) texts.add(c.q);
+      if (c.a) texts.add(c.a);
+    });
     // 主动回忆卡
     (u.reviewCards || []).forEach((c) => { if (c.speak) texts.add(c.speak); });
     // 故事 + 故事问题
@@ -83,8 +90,14 @@ export function collectTexts() {
       if (st.narration) texts.add(st.narration);
       (st.lines || []).forEach((l) => { if (l.t) texts.add(l.t); });
       (st.questions || []).forEach((q) => { if (q.speak) texts.add(q.speak); });
-      // 故事阅读理解题干朗读
-      (st.quiz || []).forEach((q) => { if (q.q) texts.add(q.q); });
+      // 故事阅读理解题：题干 + **每个选项**（UI 每个选项旁都有 🔊，缺音频就会退 TTS 兜底）
+      (st.quiz || []).forEach((q) => {
+        if (q.q) texts.add(q.q);
+        (q.opts || []).forEach((o) => {
+          const t = typeof o === 'string' ? o : (o.t || o.label || '');
+          if (t) texts.add(t);
+        });
+      });
     });
     // 微测
     (u.quiz || []).forEach((q) => { if (q.speak) texts.add(q.speak); });
