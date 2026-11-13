@@ -7,7 +7,7 @@ export const UNITS = [
   { id: 'u3', no: 3, name: 'I can use the computer.', zh: '电脑', emoji: '💻', open: false },
   { id: 'u4', no: 4, name: 'Can I use your pencil, please?', zh: '借东西', emoji: '✏️', open: true },
   { id: 'u5', no: 5, name: 'May I have a pet?', zh: '养宠物', emoji: '🐰', open: true },
-  { id: 'u6', no: 6, name: 'Which one do you want?', zh: '选衣物', emoji: '🧥', open: false },
+  { id: 'u6', no: 6, name: 'Which one do you want?', zh: '选衣物', emoji: '🧥', open: true },
   { id: 'u7', no: 7, name: 'What chores do you do?', zh: '家务', emoji: '🧹', open: false },
   { id: 'u8', no: 8, name: "What's your hobby?", zh: '爱好', emoji: '🎻', open: false },
 ];

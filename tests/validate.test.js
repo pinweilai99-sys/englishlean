@@ -762,3 +762,92 @@ test('validateUnit 能检出「缺 theme」与「思维导图某问无可选项�
   assert.equal(r2.valid, false, '思维导图某问无可选项必须判为不合法');
   assert.ok(r2.errors.some((x) => x.includes('mindmap.steps[2]')), '思维导图某问无可选项必须被检出');
 });
+
+
+// ---- U6 第六单元数据契约（2026-11-13 家长：严格按 U4 模式构建 U6）----
+const u6 = JSON.parse(readFileSync(join(__dirname, '../data/units/u6.json'), 'utf8'));
+
+test('U6-1 u6.json 通过校验；课本标题与核心句型与存档一致', () => {
+  const r = validateUnit(u6);
+  assert.equal(r.valid, true, '校验失败: ' + r.errors.join(' | '));
+  assert.equal(u6.id, 'u6');
+  assert.equal(u6.no, 6);
+  assert.equal(u6.title, 'Which one do you want?');
+  assert.equal(u6.sentences.pattern, 'Which ___ do you want?', '课本 P40 原句 Which scarf do you want? 的模板');
+});
+
+test('U6-2 U6 主题词契约齐全，且不得混入 U5 的「宠物」硬编码', () => {
+  ['topic', 'roleplay', 'mindmap', 'introNoun', 'slotDefault'].forEach((k) => {
+    assert.ok(typeof u6.theme[k] === 'string' && u6.theme[k].trim(), 'theme.' + k + ' 必须是非空字符串');
+  });
+  assert.equal(u6.theme.topic, '衣物');
+  assert.ok(!JSON.stringify(u6.theme).includes('宠物'), 'U6 主题词不得串到 U5 的宠物');
+});
+
+test('U6-3 U6 应答配对 12 题：choice 模式、线索可见、答案位置 0/1/2 各 4、纯中文门控', () => {
+  assert.equal(u6.sentences.cueMode, 'choice', '选择疑问句单元必须声明 choice 模式');
+  const pairs = Object.values(u6.sentences.dialogues).flat();
+  assert.equal(pairs.length, 12, '应答配对应与 U4 一样保持 12 题（6 组 × 2 题）');
+  const pos = [0, 0, 0];
+  pairs.forEach((p) => {
+    assert.ok(p.cueZh && p.rule, '「' + p.q + '」必须有可见线索与规则解说');
+    assert.ok(!/[A-Za-z]/.test(p.cueZh), 'cueZh 必须纯中文：' + p.q);
+    assert.ok(!/[A-Za-z]/.test(p.rule), 'rule 必须纯中文：' + p.q);
+    assert.ok(p.opts.includes(p.a), '正确答案必须在选项内：' + p.q);
+    assert.equal(new Set(p.opts).size, p.opts.length, '选项不得重复：' + p.q);
+    pos[p.opts.indexOf(p.a)] += 1;
+  });
+  assert.deepEqual(pos, [4, 4, 4], '正确答案位置 0/1/2 各 4 题，均匀轮转（防孩子靠位置猜）');
+});
+
+test('U6-4 U6 单词 12 个（四会 9 / 认读 3），每词 chunks/split/memo 齐全', () => {
+  assert.equal(u6.words.length, 12);
+  assert.equal(u6.words.filter((w) => w.tier === 'four').length, 9);
+  assert.equal(u6.words.filter((w) => w.tier === 'read').length, 3);
+  u6.words.forEach((w) => {
+    assert.ok(w.ipa && w.zh && w.img && w.tts, w.w + ' 缺基础字段');
+    assert.ok(Array.isArray(w.chunks) && w.chunks.length > 0, w.w + ' 缺音节分块');
+    assert.ok(Array.isArray(w.split) && w.split.length > 0, w.w + ' 缺拼读拆分');
+    assert.ok(w.memo, w.w + ' 缺记忆提示');
+  });
+  assert.equal(u6.phonics.pattern, 'ar', '课本 E 部分语音是 ar /ɑː/');
+});
+
+test('U6-5 U6 思维导图四问都有可点选项；写作 accept/explain 契约合法', () => {
+  assert.equal(u6.mindmap.steps.length, 4);
+  u6.mindmap.steps.forEach((st, i) => {
+    assert.ok((st.opts || []).length > 0, '第 ' + (i + 1) + ' 问没有可点选项 → 思维导图永远解锁不了');
+  });
+  assert.equal(u6.writing.items.length, 3);
+  u6.writing.items.forEach((it) => {
+    assert.ok(it.opts.includes(it.a));
+    it.opts.forEach((o) => {
+      assert.ok(it.explain[o], '选项「' + o + '」缺中文解答');
+      assert.ok(!/[A-Za-z]/.test(it.explain[o]), '解答必须纯中文：' + o);
+    });
+    (it.accept || [it.a]).forEach((x) => assert.ok(it.opts.includes(x), 'accept 必须是 opts 之一：' + x));
+  });
+});
+
+test('U6-6 U6 考点微测覆盖听/读/写/说与语音，题量≥50、id 唯一、听力题占比≥1/3', () => {
+  assert.ok(u6.quiz.length >= 50, '微测题量应≥50（实际 ' + u6.quiz.length + '）');
+  assert.equal(new Set(u6.quiz.map((q) => q.id)).size, u6.quiz.length, '微测 id 不得重复');
+  const types = new Set(u6.quiz.map((q) => q.type));
+  ['listen_choice', 'listen_pick', 'cloze', 'communicate', 'true_false', 'read', 'phonetic']
+    .forEach((t) => assert.ok(types.has(t), '缺题型 ' + t));
+  const listening = u6.quiz.filter((q) => q.type.startsWith('listen') || q.type === 'phonetic');
+  assert.ok(listening.length / u6.quiz.length >= 1 / 3,
+    '听力/听辨题占比应≥1/3（家长：听力比重大），实际 ' + listening.length + '/' + u6.quiz.length);
+  assert.equal(u6.stories.length, 3, '故事屋应有 3 篇（课本 F / A + 同步优学阅读理解）');
+  u6.stories.forEach((s) => assert.equal(s.quiz.length, 3, '故事 ' + s.id + ' 应有 3 道阅读题'));
+});
+
+test('U6-7 正反对照：缺 theme / 思维导图某问无选项 / cueMode 拼错，validateUnit 必须检出', () => {
+  assert.equal(validateUnit(u6).valid, true, '前置：正常 U6 数据本身必须合法（防测试摆设）');
+  const noTheme = structuredClone(u6); delete noTheme.theme;
+  assert.ok(validateUnit(noTheme).errors.some((e) => e.includes('theme')), '缺 theme 必须被检出');
+  const noOpt = structuredClone(u6); noOpt.mindmap.steps[2].opts = [];
+  assert.ok(validateUnit(noOpt).errors.some((e) => e.includes('mindmap.steps[2]')), '思维导图某问无可选项必须被检出');
+  const badMode = structuredClone(u6); badMode.sentences.cueMode = 'choise';
+  assert.ok(validateUnit(badMode).errors.some((e) => e.includes('cueMode')), 'cueMode 拼错必须被检出（否则静默退回极性模式）');
+});

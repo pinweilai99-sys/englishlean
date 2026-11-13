@@ -52,6 +52,11 @@ export function validateUnit(data) {
     if (!isStr(data.sentences.pattern)) push('sentences.pattern', '必须是非空字符串');
     if (!Array.isArray(data.sentences.slots) || data.sentences.slots.length === 0) push('sentences.slots', '必须是非空数组');
     if (!Array.isArray(data.sentences.answers) || data.sentences.answers.length === 0) push('sentences.answers', '必须是非空数组');
+    // U6 选择疑问句单元声明 cueMode='choice'（应答配对改按「想要哪一件」线索判定）。
+    // 不声明 = 默认 polarity（U4/U5 零回归）；拼错值会静默退回极性模式 → 必须拦下。
+    if (data.sentences.cueMode !== undefined && !['choice', 'polarity'].includes(data.sentences.cueMode)) {
+      push('sentences.cueMode', `必须是 choice 或 polarity，实际 ${data.sentences.cueMode}`);
+    }
   }
 
   if (!data.roleplay || typeof data.roleplay !== 'object') push('roleplay', '必须存在');

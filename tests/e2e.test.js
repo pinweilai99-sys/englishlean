@@ -175,15 +175,24 @@ test('E2E-28 字帖词序纯函数：单元内四会在前、跨单元追加去�
   } finally { cleanup(); }
 });
 
-test('E2E-1 首页渲染：8 张单元卡，U5 与 U4 可进（其余锁定）', async () => {
+test('E2E-1 首页渲染：8 张单元卡，U4/U5/U6 开放（2026-11-13 需求变更：新增 U6），其余 5 个锁定', async () => {
   const { window, cleanup } = await freshApp();
   try {
     const cards = window.document.querySelectorAll('.unit-card');
     assert.equal(cards.length, 8);
     const openNames = [...window.document.querySelectorAll('.unit-card.is-open .unit-name')].map((n) => n.textContent);
+    // 前置断言：旧规格开放的两个单元仍开放（证明只是扩展，没有退化）
     assert.ok(openNames.some((t) => t.includes('May I have a pet?')), 'U5 应开放');
     assert.ok(openNames.some((t) => t.includes('Can I use your pencil')), 'U4 应开放');
-    assert.equal(window.document.querySelectorAll('.unit-card.is-locked').length, 6);
+    // 新规格正反对照：U6 由「锁定」变「开放」（旧版这条会失败，说明行为确实变了）
+    assert.ok(openNames.some((t) => t.includes('Which one do you want?')), 'U6 应开放（新增单元）');
+    const lockedNames = [...window.document.querySelectorAll('.unit-card.is-locked .unit-name')].map((n) => n.textContent);
+    assert.equal(lockedNames.length, 5, '8 张卡 − 3 张开放 = 5 张锁定（旧规格为 6）');
+    assert.ok(!lockedNames.some((t) => t.includes('Which one do you want?')), 'U6 不得再出现在锁定列表');
+    ['What does he look like?', 'What would you like?', 'I can use the computer.',
+      'What chores do you do?', "What's your hobby?"].forEach((name) => {
+      assert.ok(lockedNames.some((t) => t.includes(name)), `${name} 应仍锁定（不得误开放）`);
+    });
   } finally { cleanup(); }
 });
 
@@ -2542,5 +2551,86 @@ test('E2E-76 U4 角色扮演孩子台词不得用 U5 的「pet」占位（应为
       'U4 孩子台词默认应取本单元槽位词（pencil），不得出现 U5 的 pet');
     assert.ok(txt.includes('Can I use your pencil, please?'),
       'U4 孩子台词默认应是 pencil（本单元第一个槽位）');
+  } finally { cleanup(); }
+});
+
+// ---- U6 第六单元（2026-11-13 家长：严格按 U4 模式构建，核心句型改选择疑问句）----
+const U6_WORDS = ['sweater', 'scarf', 'jacket', 'raincoat', 'shoes', 'socks', 'thick', 'thin', 'pair', 'which', 'try', 'idea'];
+const u6Seed = () => ({
+  version: 1, stars: 0, streak: 0, lastStudyDate: null,
+  progress: { u6: { stagePassed: [true, false, false, false], wordsDone: U6_WORDS.slice(), listenScore: 0.9, quizBest: null } },
+  wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+});
+
+test('E2E-77 U6 已注册开放：首页 3/8、单元页加载 U6 数据与课本句型', async () => {
+  const { window, app, cleanup } = await freshApp();
+  try {
+    await navigate(window, app, '#/home');
+    assert.match(mainText(window), /3 \/ 8 个单元开放/, 'U6 开放后应显示 3/8');
+    await navigate(window, app, '#/unit/u6');
+    assert.equal(app.state.data.id, 'u6', '应加载 u6.json');
+    assert.equal(app.state.data.title, 'Which one do you want?');
+    assert.match(mainText(window), /Which one do you want/, '单元页应显示课本核心句型');
+  } finally { cleanup(); }
+});
+
+test('E2E-78 U6 选择疑问句应答配对：线索可见、不能用「是／不是」作答（cueMode=choice）', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: u6Seed() });
+  try {
+    await navigate(window, app, '#/unit/u6/stage/1');
+    const txt = mainText(window);
+    assert.match(txt, /核心句型/, 'Stage2 应解锁');
+    assert.match(txt, /看线索，选出合适的回答/, '选择疑问句模式应改显「看线索」');
+    assert.ok(!txt.includes('看表情，选出合适的回答'), '不得再显示点头／摇头说明');
+    const badge = window.document.querySelector('main .cue-badge');
+    assert.ok(badge, '题干前应有可见线索徽标');
+    assert.match(badge.textContent, /天冷，想要厚的/, '徽标应显示本单元「想要哪一件」的线索');
+    assert.ok(!/点头|摇头/.test(badge.textContent), '徽标不得出现点头／摇头表情语义');
+
+    // ① 用「是／不是」作答 → 必须指出这是选择疑问句（不能套极性判定）
+    const yesBtn = optBtn(window.document, 'Yes, I do.');
+    assert.ok(yesBtn, '应有「是／不是」型真错干扰项');
+    yesBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 40));
+    assert.match(window.document.getElementById('toast').textContent, /不能用/,
+      '选择疑问句用「是／不是」作答应被明确纠正');
+    assert.match(mainText(window), /选择疑问句/, '反馈卡要讲清选择疑问句规则');
+
+    // ② 改选正确项 → 标绿、反馈消失（不留失败痕迹）
+    const okBtn = optBtn(window.document, 'I want the thick one, please.');
+    assert.ok(okBtn, '应有课本正确答语');
+    okBtn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 40));
+    assert.ok(window.document.querySelector('main .option.is-correct'), '正确项应答对并标绿');
+  } finally { cleanup(); }
+});
+
+test('E2E-79 正反对照：U5 未声明 cueMode → 仍是点头／摇头极性模式（U6 适配零回归）', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, false, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/1');
+    const txt = mainText(window);
+    assert.match(txt, /看表情，选出合适的回答/, 'U5 应保持原极性说明');
+    assert.ok(!txt.includes('看线索，选出合适的回答'), 'U5 不得被切到 choice 模式');
+    const badge = window.document.querySelector('main .cue-badge');
+    assert.match(badge.textContent, /点头|摇头/, 'U5 徽标仍应是点头／摇头');
+    assert.ok(!badge.textContent.includes('👉'), 'U5 不得出现 U6 的线索箭头');
+  } finally { cleanup(); }
+});
+
+test('E2E-80 U6 回忆卡看图卡有衣物插画（pic 字段驱动、离线内联 SVG）', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: u6Seed() });
+  try {
+    await navigate(window, app, '#/unit/u6');
+    await navigate(window, app, '#/recall');
+    assert.match(mainText(window), /回忆卡中心/);
+    const pic = window.document.querySelector('.recall-pic svg');
+    assert.ok(pic, 'U6 rc1 看图卡应渲染插画 svg');
+    assert.equal(pic.getAttribute('aria-label'), 'a sweater', 'rc1 插画应是毛衣');
   } finally { cleanup(); }
 });

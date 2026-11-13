@@ -12,6 +12,10 @@ import { chunkSay } from '../js/core/phonics.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
+// 自动纳入所有单元：以后新增 U6/U7… 时音频完整性断言自动生效，
+// 不能写死 ['u4','u5']（那样新单元会绕过校验 → 安卓平板漏音频 → 弹「找不到 Google 引擎」）。
+const ALL_UNITS = readdirSync(join(root, 'data/units'))
+  .filter((f) => f.endsWith('.json')).map((f) => f.replace(/\.json$/, '')).sort();
 
 describe('audioSlug（纯函数）', () => {
   test('AUD-1 基本映射：小写化、去标点、空格转连字符', () => {
@@ -358,7 +362,7 @@ describe('音频清单完整性（2026-11-11 修复：漏收 writing opts）', (
   const have = new Set(manifest.slugs);
 
   test('AUD-19 两单元 writing 的每个选项都必须在 manifest 中（漏收 → 安卓弹窗）', () => {
-    ['u4', 'u5'].forEach((u) => {
+    ALL_UNITS.forEach((u) => {
       const d = JSON.parse(readFileSync(join(root, 'data/units', `${u}.json`), 'utf8'));
       (d.writing?.items || []).forEach((it, i) => {
         (it.opts || []).forEach((o) => {
@@ -385,7 +389,7 @@ describe('音频清单完整性（2026-11-11 修复：漏收 writing opts）', (
   test('AUD-21 collectTexts 必须覆盖 writing 的每个选项（防止生成脚本再漏）', async () => {
     const { collectTexts } = await import('../scripts/gen-audio.mjs');
     const collected = collectTexts();
-    ['u4', 'u5'].forEach((u) => {
+    ALL_UNITS.forEach((u) => {
       const d = JSON.parse(readFileSync(join(root, 'data/units', `${u}.json`), 'utf8'));
       (d.writing?.items || []).forEach((it) => {
         (it.opts || []).forEach((o) => {
@@ -413,7 +417,7 @@ describe('全站朗读文本音频完整性（2026-11-11）', () => {
   };
 
   test('AUD-22 所有会被朗读的文本都必须在音频清单中（故事选项/语法卡/思维导图/写作/句型…）', () => {
-    ['u4', 'u5'].forEach((u) => {
+    ALL_UNITS.forEach((u) => {
       const d = JSON.parse(readFileSync(join(root, 'data/units', u + '.json'), 'utf8'));
       (d.words || []).forEach((w) => {
         need(w.tts || w.w, u + '.word');

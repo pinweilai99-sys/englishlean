@@ -40,6 +40,34 @@ const PIC_SVGS = {
     <circle cx="118" cy="38" r="3.5" fill="#3a4653"/>
     <path d="M106 26 l-5 -9 M113 24 l0 -11 M120 26 l5 -9" stroke="#c73a26" stroke-width="3" stroke-linecap="round"/>
   </svg>`,
+  // U6 衣物主题（2026-11-13）：看图说单词卡用得到，纯内联 SVG、离线可用
+  sweater: `<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg" width="220" height="154" role="img" aria-label="a sweater">
+    <rect width="200" height="140" rx="14" fill="#eef4ff"/>
+    <path d="M72 40 L50 50 L36 92 L56 100 L72 68 Z" fill="#5b8def" stroke="#3367cc" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M128 40 L150 50 L164 92 L144 100 L128 68 Z" fill="#5b8def" stroke="#3367cc" stroke-width="3" stroke-linejoin="round"/>
+    <rect x="72" y="38" width="56" height="78" rx="9" fill="#5b8def" stroke="#3367cc" stroke-width="3"/>
+    <path d="M86 38 q14 16 28 0" fill="none" stroke="#3367cc" stroke-width="3"/>
+    <path d="M74 106 h52" stroke="#3367cc" stroke-width="3"/>
+    <path d="M88 62 h24 M88 74 h24 M88 86 h24" stroke="#a9c6ff" stroke-width="2" stroke-linecap="round"/>
+  </svg>`,
+  scarf: `<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg" width="220" height="154" role="img" aria-label="a scarf">
+    <rect width="200" height="140" rx="14" fill="#fff3ea"/>
+    <path d="M34 44 q66 44 124 -4 l2 22 q-62 46 -128 4 Z" fill="#f2924a" stroke="#c96a1e" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M124 60 l20 54 -22 -4 -12 -48 Z" fill="#f2924a" stroke="#c96a1e" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M124 112 l2 12 M132 111 l3 12 M140 108 l4 12" stroke="#c96a1e" stroke-width="3" stroke-linecap="round"/>
+    <path d="M44 48 q60 38 108 2" fill="none" stroke="#ffc48a" stroke-width="2"/>
+  </svg>`,
+  raincoat: `<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg" width="220" height="154" role="img" aria-label="a raincoat">
+    <rect width="200" height="140" rx="14" fill="#eaf7f4"/>
+    <path d="M82 40 q18 -22 36 0" fill="#4bbfa5" stroke="#218e78" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M76 44 L54 54 L44 108 L72 108 L72 44 Z" fill="#4bbfa5" stroke="#218e78" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M124 44 L146 54 L156 108 L128 108 L128 44 Z" fill="#4bbfa5" stroke="#218e78" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M76 40 h48 v76 h-48 Z" fill="#4bbfa5" stroke="#218e78" stroke-width="3"/>
+    <path d="M100 40 v76" stroke="#218e78" stroke-width="2"/>
+    <circle cx="92" cy="62" r="3" fill="#f7e07a"/>
+    <circle cx="92" cy="82" r="3" fill="#f7e07a"/>
+    <circle cx="92" cy="102" r="3" fill="#f7e07a"/>
+  </svg>`,
 };
 
 export function renderRecall(ctx, unit) {

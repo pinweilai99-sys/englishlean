@@ -1,0 +1,1778 @@
+{
+  "id": "u6",
+  "no": 6,
+  "title": "Which one do you want?",
+  "objective": {
+    "child": "学完你能用英语在服装店说出想要哪一件（厚的还是薄的、长的还是短的），还会礼貌地问「我能试穿吗」。",
+    "parent": "选择疑问句（Which one do you want, A or B?）＋ 购物请求（Can I have/try…?）＋ 反义词与 a pair of ＋ 语音 ar /ɑː/"
+  },
+  "theme": {
+    "topic": "衣物",
+    "roleplay": "服装店角色扮演",
+    "mindmap": "选衣物思维导图",
+    "introNoun": "衣物",
+    "slotDefault": "新衣服"
+  },
+  "words": [
+    {
+      "w": "sweater",
+      "ipa": "/ˈswetə(r)/",
+      "zh": "毛衣",
+      "tier": "four",
+      "img": "🧶",
+      "chunks": [
+        "swea",
+        "ter"
+      ],
+      "split": [
+        "swea",
+        "ter"
+      ],
+      "memo": "swea·ter：ea 组合读 /e/，结尾 -er 读轻声 /ə/",
+      "tts": "sweater"
+    },
+    {
+      "w": "scarf",
+      "ipa": "/skɑːf/",
+      "zh": "围巾",
+      "tier": "four",
+      "img": "🧣",
+      "chunks": [
+        "scarf"
+      ],
+      "split": [
+        "sc",
+        "ar",
+        "f"
+      ],
+      "memo": "单音节 sc-ar-f：ar 读长音 /ɑː/，和 farm / card 同族",
+      "tts": "scarf"
+    },
+    {
+      "w": "jacket",
+      "ipa": "/ˈdʒækɪt/",
+      "zh": "夹克衫",
+      "tier": "four",
+      "img": "🧥",
+      "chunks": [
+        "jack",
+        "et"
+      ],
+      "split": [
+        "jack",
+        "et"
+      ],
+      "memo": "jack·et：重音在 jack，ck 只读一个 /k/",
+      "tts": "jacket"
+    },
+    {
+      "w": "raincoat",
+      "ipa": "/ˈreɪnkəʊt/",
+      "zh": "雨衣",
+      "tier": "four",
+      "img": "🌧️",
+      "chunks": [
+        "rain",
+        "coat"
+      ],
+      "split": [
+        "rain",
+        "coat"
+      ],
+      "memo": "合成词 rain（雨）＋coat（外套）；ai 读 /eɪ/、oa 读 /əʊ/",
+      "tts": "raincoat"
+    },
+    {
+      "w": "shoes",
+      "ipa": "/ʃuːz/",
+      "zh": "鞋（复数）",
+      "tier": "four",
+      "img": "👟",
+      "chunks": [
+        "shoes"
+      ],
+      "split": [
+        "sh",
+        "oe",
+        "s"
+      ],
+      "memo": "shoe＋s：鞋成双，课本里常说 a pair of shoes（一双鞋）",
+      "tts": "shoes"
+    },
+    {
+      "w": "socks",
+      "ipa": "/sɒks/",
+      "zh": "袜子（复数）",
+      "tier": "four",
+      "img": "🧦",
+      "chunks": [
+        "socks"
+      ],
+      "split": [
+        "s",
+        "o",
+        "cks"
+      ],
+      "memo": "sock＋s：袜子也成双，a pair of socks（一双袜子）",
+      "tts": "socks"
+    },
+    {
+      "w": "thick",
+      "ipa": "/θɪk/",
+      "zh": "厚的",
+      "tier": "four",
+      "img": "📕",
+      "chunks": [
+        "thick"
+      ],
+      "split": [
+        "th",
+        "i",
+        "ck"
+      ],
+      "memo": "th 咬舌尖读 /θ/，ck 只读 /k/；反义词是 thin（薄的）",
+      "tts": "thick"
+    },
+    {
+      "w": "thin",
+      "ipa": "/θɪn/",
+      "zh": "薄的",
+      "tier": "four",
+      "img": "📄",
+      "chunks": [
+        "thin"
+      ],
+      "split": [
+        "th",
+        "i",
+        "n"
+      ],
+      "memo": "和 thick 只差最后一个音：thick 厚的 ↔ thin 薄的",
+      "tts": "thin"
+    },
+    {
+      "w": "pair",
+      "ipa": "/peə(r)/",
+      "zh": "一双；一对",
+      "tier": "four",
+      "img": "👥",
+      "chunks": [
+        "pair"
+      ],
+      "split": [
+        "p",
+        "air"
+      ],
+      "memo": "air 组合读 /eə/；a pair of＋复数名词，表示成双的一对",
+      "tts": "pair"
+    },
+    {
+      "w": "which",
+      "ipa": "/wɪtʃ/",
+      "zh": "哪一个",
+      "tier": "read",
+      "img": "❓",
+      "chunks": [
+        "which"
+      ],
+      "split": [
+        "wh",
+        "i",
+        "ch"
+      ],
+      "memo": "wh 读 /w/、ch 读 /tʃ/；用来问「哪一个」，后面常跟 or 给两个选项",
+      "tts": "which"
+    },
+    {
+      "w": "try",
+      "ipa": "/traɪ/",
+      "zh": "试；尝试",
+      "tier": "read",
+      "img": "🙋",
+      "chunks": [
+        "try"
+      ],
+      "split": [
+        "tr",
+        "y"
+      ],
+      "memo": "y 在单音节词尾读 /aɪ/；try on 是「试穿」",
+      "tts": "try"
+    },
+    {
+      "w": "idea",
+      "ipa": "/aɪˈdɪə/",
+      "zh": "主意；想法",
+      "tier": "read",
+      "img": "💡",
+      "chunks": [
+        "i",
+        "de",
+        "a"
+      ],
+      "split": [
+        "i",
+        "de",
+        "a"
+      ],
+      "memo": "i·de·a 三音节，重音在 de；I have a good idea!（我有个好主意！）",
+      "tts": "idea"
+    }
+  ],
+  "phonics": {
+    "pattern": "ar",
+    "ipa": "/ɑː/",
+    "words": [
+      "farm",
+      "card",
+      "car",
+      "shark",
+      "hard",
+      "Mark"
+    ],
+    "chant": "Here is a card, From my teacher Mark. Let's go to the farm, And work hard!"
+  },
+  "listenPairs": [
+    [
+      "which",
+      "what"
+    ],
+    [
+      "sweater",
+      "sweet"
+    ],
+    [
+      "thick",
+      "think"
+    ],
+    [
+      "thin",
+      "thing"
+    ],
+    [
+      "little",
+      "late"
+    ],
+    [
+      "try",
+      "tree"
+    ],
+    [
+      "scarf",
+      "car"
+    ],
+    [
+      "pair",
+      "poor"
+    ],
+    [
+      "shoe",
+      "shoes"
+    ],
+    [
+      "jacket",
+      "jeans"
+    ],
+    [
+      "raincoat",
+      "rain"
+    ],
+    [
+      "idea",
+      "ice"
+    ]
+  ],
+  "sentences": {
+    "pattern": "Which ___ do you want?",
+    "slots": [
+      "sweater",
+      "scarf",
+      "jacket",
+      "raincoat",
+      "shoes",
+      "socks"
+    ],
+    "answers": [
+      "I want the thick one, please.",
+      "I want the thin one, please."
+    ],
+    "extra": {
+      "Can I have a new sweater, Mum?": "Yes, dear.",
+      "Can I try it on, please?": "Sure."
+    },
+    "cueMode": "choice",
+    "dialogues": {
+      "sweater": [
+        {
+          "q": "Which one do you want, the thick one or the thin one?",
+          "a": "I want the thick one, please.",
+          "zh": "你想要哪一件，厚的还是薄的？——我想要厚的那件。",
+          "cue": "choice",
+          "cueZh": "天冷，想要厚的",
+          "opts": [
+            "I want the thick one, please.",
+            "I want the thin one, please.",
+            "Yes, I do."
+          ],
+          "rule": "天冷就要选厚的那件。选择疑问句不能用「是／不是」回答，要直接说出选中的那一件。"
+        },
+        {
+          "q": "Which one do you want, a long one or a short one?",
+          "a": "A short one, please.",
+          "zh": "你想要哪一件，长的还是短的？——请给我短的。",
+          "cue": "choice",
+          "cueZh": "想要短的",
+          "opts": [
+            "A long one, please.",
+            "A short one, please.",
+            "No, I don't."
+          ],
+          "rule": "线索说想要短的，就答「请给我短的」；长的那件和「不是」都没有回答想要哪一件。"
+        }
+      ],
+      "scarf": [
+        {
+          "q": "Which scarf do you want, the long one or the short one?",
+          "a": "I want the short one, please.",
+          "zh": "你想要哪条围巾，长的还是短的？——我想要短的那条。",
+          "cue": "choice",
+          "cueZh": "想要短围巾",
+          "opts": [
+            "I want the long one, please.",
+            "No, I don't.",
+            "I want the short one, please."
+          ],
+          "rule": "问的是围巾，线索要短的，就说「我想要短的那条」；长围巾和「不是」都不合线索。"
+        },
+        {
+          "q": "Which scarf do you want, the new one or the old one?",
+          "a": "The new one, please.",
+          "zh": "你想要哪条围巾，新的还是旧的？——请给我新的。",
+          "cue": "choice",
+          "cueZh": "想要新围巾",
+          "opts": [
+            "The new one, please.",
+            "The old one, please.",
+            "Yes, please."
+          ],
+          "rule": "线索是想要新的，就答「请给我新的」；旧的那条和「好的，请」都没说出要哪一条。"
+        }
+      ],
+      "jacket": [
+        {
+          "q": "Which jacket do you want, the big one or the small one?",
+          "a": "The small one, please.",
+          "zh": "你想要哪件夹克，大号的还是小号的？——请给我小号的。",
+          "cue": "choice",
+          "cueZh": "想要小号的",
+          "opts": [
+            "The big one, please.",
+            "The small one, please.",
+            "Thank you."
+          ],
+          "rule": "线索想要小号，就答「请给我小号的」；大号和道谢都没有回答想要哪一件。"
+        },
+        {
+          "q": "Which jacket does Mingming want, the blue one or the green one?",
+          "a": "He wants the green one.",
+          "zh": "明明想要哪件夹克，蓝色的还是绿色的？——他想要绿色的。",
+          "cue": "choice",
+          "cueZh": "明明想要绿色的",
+          "opts": [
+            "He wants the blue one.",
+            "Yes, he does.",
+            "He wants the green one."
+          ],
+          "rule": "问的是明明想要哪件，要用「他想要……」来答；蓝色的那件和「是的」都不合线索。"
+        }
+      ],
+      "raincoat": [
+        {
+          "q": "Which raincoat do you want, a long one or a short one?",
+          "a": "A long one, please.",
+          "zh": "你想要哪件雨衣，长的还是短的？——请给我长的。",
+          "cue": "choice",
+          "cueZh": "下雨，想要长的",
+          "opts": [
+            "A long one, please.",
+            "A short one, please.",
+            "No, I don't."
+          ],
+          "rule": "下雨想要长雨衣，就答「请给我长的」；短雨衣和「不是」都没回答想要哪一件。"
+        },
+        {
+          "q": "Which raincoat do you want, the thick one or the thin one?",
+          "a": "I want the thin one, please.",
+          "zh": "你想要哪件雨衣，厚的还是薄的？——我想要薄的那件。",
+          "cue": "choice",
+          "cueZh": "天热，想要薄的",
+          "opts": [
+            "I want the thick one, please.",
+            "I want the thin one, please.",
+            "Yes, I do."
+          ],
+          "rule": "天热想要薄雨衣，就说「我想要薄的那件」；厚的和「是」都不合线索。"
+        }
+      ],
+      "shoes": [
+        {
+          "q": "Which shoes do you want, the black ones or the blue ones?",
+          "a": "I want the blue ones, please.",
+          "zh": "你想要哪双鞋，黑色的还是蓝色的？——我想要蓝色的那双。",
+          "cue": "choice",
+          "cueZh": "想要蓝色的",
+          "opts": [
+            "Yes, I do.",
+            "I want the black ones, please.",
+            "I want the blue ones, please."
+          ],
+          "rule": "线索想要蓝色的鞋，就说「我想要蓝色的那双」；黑色和「是」都没有回答想要哪一双。"
+        },
+        {
+          "q": "Which pair do you want, a pair of shoes or a pair of socks?",
+          "a": "A pair of shoes, please.",
+          "zh": "你想要哪一双，一双鞋还是一双袜子？——请给我一双鞋。",
+          "cue": "choice",
+          "cueZh": "想要一双鞋",
+          "opts": [
+            "A pair of shoes, please.",
+            "A pair of socks, please.",
+            "Thank you."
+          ],
+          "rule": "线索想要一双鞋，就答「请给我一双鞋」；袜子和道谢都没回答想要哪一双。"
+        }
+      ],
+      "socks": [
+        {
+          "q": "Which socks do you want, the thick ones or the thin ones?",
+          "a": "The thin ones, please.",
+          "zh": "你想要哪双袜子，厚的还是薄的？——请给我薄的那双。",
+          "cue": "choice",
+          "cueZh": "夏天，想要薄袜",
+          "opts": [
+            "The thick ones, please.",
+            "The thin ones, please.",
+            "No, I don't."
+          ],
+          "rule": "夏天想要薄袜，就答「请给我薄的那双」；厚袜和「不是」都不合线索。"
+        },
+        {
+          "q": "Which socks do you want, the long ones or the short ones?",
+          "a": "I want the short ones, please.",
+          "zh": "你想要哪双袜子，长的还是短的？——我想要短的那双。",
+          "cue": "choice",
+          "cueZh": "想要短袜",
+          "opts": [
+            "Yes, I do.",
+            "I want the long ones, please.",
+            "I want the short ones, please."
+          ],
+          "rule": "线索想要短袜，就说「我想要短的那双」；长袜和「是」都没回答想要哪一双。"
+        }
+      ]
+    }
+  },
+  "roleplay": {
+    "scene": "服装店：你想挑一件新衣服",
+    "child": "Can I have a ___, please?",
+    "childZh": "我可以买___吗？",
+    "parent": [
+      "Yes, dear.",
+      "Sure. Here you are.",
+      "Which one do you want?",
+      "It's nice but a little expensive."
+    ],
+    "parentZh": {
+      "Yes, dear.": "可以呀，亲爱的。",
+      "Sure. Here you are.": "当然，给你。",
+      "Which one do you want?": "你想要哪一件？",
+      "It's nice but a little expensive.": "挺好看的，就是有点贵。"
+    }
+  },
+  "writing": {
+    "prompt": "玲玲和妈妈在服装店挑毛衣。请把这段购物对话补完整。",
+    "slots": 3,
+    "zhMap": {
+      "Can I have a new sweater, Mum?": "妈妈，我能买一件新毛衣吗？",
+      "Yes, dear.": "可以呀，亲爱的。",
+      "Which one do you want, the thick one or the thin one?": "你想要哪一件，厚的还是薄的？",
+      "The thick one, please.": "请给我厚的那件。",
+      "Can I try it on, please?": "我能试穿一下吗？",
+      "Sure.": "当然可以。",
+      "It's nice but a little expensive.": "挺好看的，就是有点贵。",
+      "Thank you. I like this one.": "谢谢。我喜欢这一件。"
+    },
+    "sampleDialogue": {
+      "scene": "🧥 服装店（SALE 五折）",
+      "lines": [
+        {
+          "who": "🧒 Lingling",
+          "t": "Can I have a new sweater, Mum?",
+          "zh": "妈妈，我能买一件新毛衣吗？"
+        },
+        {
+          "who": "👩 Mum",
+          "t": "Yes, dear.",
+          "zh": "可以呀，亲爱的。"
+        },
+        {
+          "who": "👩 Mum",
+          "t": "Which one do you want, the thick one or the thin one?",
+          "zh": "你想要哪一件，厚的还是薄的？"
+        },
+        {
+          "who": "🧒 Lingling",
+          "t": "The thick one, please.",
+          "zh": "请给我厚的那件。"
+        },
+        {
+          "who": "🧒 Lingling",
+          "t": "Can I try it on, please?",
+          "zh": "我能试穿一下吗？"
+        },
+        {
+          "who": "👩 Mum",
+          "t": "Sure.",
+          "zh": "当然可以。"
+        },
+        {
+          "who": "👩 Mum",
+          "t": "It's nice but a little expensive.",
+          "zh": "挺好看的，就是有点贵。"
+        },
+        {
+          "who": "🧒 Lingling",
+          "t": "Thank you. I like this one.",
+          "zh": "谢谢。我喜欢这一件。"
+        }
+      ]
+    },
+    "items": [
+      {
+        "ctx": "Lingling and Mum are in a clothes shop. Lingling says:",
+        "ctxZh": "玲玲和妈妈在服装店。玲玲说：",
+        "askWho": "Lingling",
+        "ask": "Can I have a new sweater, Mum?",
+        "askZh": "妈妈，我能买一件新毛衣吗？",
+        "a": "Yes, dear.",
+        "opts": [
+          "Yes, dear.",
+          "Thank you.",
+          "You're welcome."
+        ],
+        "explain": {
+          "Yes, dear.": "可以呀，亲爱的——妈妈答应了买新毛衣，正好回答了「我能买吗」，答得最贴切。",
+          "Thank you.": "谢谢——是拿到东西之后才说的，这会儿还没回答能不能买，答非所问。",
+          "You're welcome.": "不客气——是别人道谢之后的回应，现在还没人说谢谢呢。"
+        }
+      },
+      {
+        "ctx": "Mum asks which one she wants.",
+        "ctxZh": "妈妈问她想要哪一件。",
+        "askWho": "Mum",
+        "ask": "Which one do you want, the thick one or the thin one?",
+        "askZh": "你想要哪一件，厚的还是薄的？",
+        "a": "The thick one, please.",
+        "opts": [
+          "The thick one, please.",
+          "Yes, I do.",
+          "It's nice but a little expensive."
+        ],
+        "explain": {
+          "The thick one, please.": "请给我厚的那件——从两件里选了厚的一件，正好回答了「想要哪一件」。",
+          "Yes, I do.": "是的——选择疑问句要说出选中的那一件，不能用「是／不是」回答。",
+          "It's nice but a little expensive.": "挺好看的，就是有点贵——这是在评价衣服，没有回答想要哪一件。"
+        }
+      },
+      {
+        "ctx": "Lingling wants to try the sweater on.",
+        "ctxZh": "玲玲想试穿这件毛衣。",
+        "askWho": "Lingling",
+        "ask": "Can I try it on, please?",
+        "askZh": "我能试穿一下吗？",
+        "a": "Sure.",
+        "accept": [
+          "Sure.",
+          "Yes, dear."
+        ],
+        "opts": [
+          "Sure.",
+          "Yes, dear.",
+          "Thank you."
+        ],
+        "explain": {
+          "Sure.": "当然可以——妈妈同意试穿，答得对。",
+          "Yes, dear.": "可以呀，亲爱的——课本里妈妈就是这样答应请求的，意思一样，也算对。",
+          "Thank you.": "谢谢——是别人答应之后才说的，这会儿还没回答能不能试穿。"
+        }
+      }
+    ]
+  },
+  "mindmap": {
+    "chain": [
+      "What do you want to buy?",
+      "Which one do you want?",
+      "What do you say if it is expensive?",
+      "How do you ask to try it on?"
+    ],
+    "chainZh": [
+      "你想买什么？",
+      "你想要哪一件？",
+      "嫌贵的时候怎么说？",
+      "想试穿怎么开口？"
+    ],
+    "sample": "Can I have a new sweater, Mum? Which one do you want, the thick one or the thin one? The thick one, please. It's nice but a little expensive. Can I try it on, please?",
+    "steps": [
+      {
+        "q": "What do you want to buy?",
+        "qZh": "你想买什么？",
+        "opts": [
+          {
+            "t": "I want a new sweater.",
+            "zh": "我想要一件新毛衣。"
+          },
+          {
+            "t": "I want a pair of shoes.",
+            "zh": "我想要一双鞋。"
+          },
+          {
+            "t": "I want a raincoat.",
+            "zh": "我想要一件雨衣。"
+          },
+          {
+            "t": "I want a scarf.",
+            "zh": "我想要一条围巾。"
+          }
+        ]
+      },
+      {
+        "q": "Which one do you want?",
+        "qZh": "你想要哪一件？",
+        "opts": [
+          {
+            "t": "Which one do you want, the thick one or the thin one?",
+            "zh": "你想要哪一件，厚的还是薄的？"
+          },
+          {
+            "t": "Which one do you want, a long one or a short one?",
+            "zh": "你想要哪一件，长的还是短的？"
+          }
+        ]
+      },
+      {
+        "q": "What do you say if it is expensive?",
+        "qZh": "嫌贵的时候怎么说？",
+        "opts": [
+          {
+            "t": "It's nice but a little expensive.",
+            "zh": "挺好看的，就是有点贵。"
+          },
+          {
+            "t": "How about this one?",
+            "zh": "这一件怎么样？"
+          }
+        ]
+      },
+      {
+        "q": "How do you ask to try it on?",
+        "qZh": "想试穿怎么开口？",
+        "opts": [
+          {
+            "t": "Can I try it on, please?",
+            "zh": "我能试穿一下吗？"
+          },
+          {
+            "t": "You look good!",
+            "zh": "你穿着真好看！"
+          }
+        ]
+      }
+    ],
+    "ending": {
+      "t": "Thank you. I like this one!",
+      "zh": "谢谢。我喜欢这一件！"
+    }
+  },
+  "grammar": {
+    "parentCard": [
+      "选择疑问句：Which one do you want, A or B? —— or 连接两个选项，回答择其一；不能用 Yes/No 作答。",
+      "a pair of + 复数名词：a pair of shoes / a pair of socks；作主语时谓语随 pair 用单数。",
+      "名词复数与恒复数：scarf→scarves/scarfs；shoes / socks / clothes / trousers / jeans 常用复数。",
+      "程度表达：too + 形容词（太……，超出需要）与 a little + 形容词（有点……）语气不同。",
+      "一般现在时第三人称单数：wears / likes / wants / has；常见标志词 often / every day。",
+      "语音 ar /ɑː/：farm, card, car, shark, hard, Mark；注意 ir / ur / er 不发此音。"
+    ],
+    "childCards": [
+      {
+        "title": "问「想要哪一件」，用 Which one",
+        "q": "Which one do you want, the thick one or the thin one?",
+        "a": "I want the thick one, please.",
+        "note": "句子里用「或者」摆出两件，回答要说出选中的那一件；不能用「是／不是」来答。"
+      },
+      {
+        "title": "想试穿，先礼貌开口",
+        "q": "Can I try it on, please?",
+        "a": "Sure.",
+        "note": "请求别人帮忙或允许时，用「请问我可以……吗」，对方常回「当然可以」。"
+      },
+      {
+        "title": "「太……了」和一对反义词",
+        "q": "The coat is too long.",
+        "a": "The scarf is too short.",
+        "note": "太长了、太短了，都表示不合适；长和短、厚和薄、新和旧，正好一对一对记。"
+      }
+    ]
+  },
+  "reviewCards": [
+    {
+      "id": "rc1",
+      "type": "say_sentence",
+      "prompt": "看图说出「你想要哪一件」",
+      "pic": "sweater",
+      "speak": "Which one do you want, the thick one or the thin one?",
+      "answer": "Which one do you want, the thick one or the thin one?"
+    },
+    {
+      "id": "rc2",
+      "type": "listen_reverse",
+      "prompt": "听答句反推问句",
+      "speak": "I want the thick one, please.",
+      "answer": "Which one do you want, the thick one or the thin one?"
+    },
+    {
+      "id": "rc3",
+      "type": "listen_reverse",
+      "prompt": "听答句反推问句",
+      "speak": "Sure.",
+      "answer": "Can I try it on, please?"
+    },
+    {
+      "id": "rc4",
+      "type": "say_word",
+      "prompt": "看图说单词",
+      "pic": "scarf",
+      "speak": "scarf",
+      "answer": "scarf"
+    },
+    {
+      "id": "rc5",
+      "type": "say_word",
+      "prompt": "看图说单词",
+      "pic": "raincoat",
+      "speak": "raincoat",
+      "answer": "raincoat"
+    },
+    {
+      "id": "rc6",
+      "type": "story_retell",
+      "prompt": "复述：课本 F 里三个人各喜欢哪件新衣服？",
+      "answer": "周洁喜欢牛仔裤和鞋；刘丽喜欢外套、帽子和裙子，不喜欢太大的新鞋；明明想要绿夹克，还喜欢黑裤子和蓝鞋。"
+    },
+    {
+      "id": "rc7",
+      "type": "phonics_sort",
+      "prompt": "选出含 ar（长音）的单词",
+      "speak": "farm",
+      "answer": "farm"
+    }
+  ],
+  "stories": [
+    {
+      "id": "F",
+      "title": "新衣服",
+      "titleEn": "New clothes",
+      "text": "Zhou Jie has new clothes. But he doesn't like some of them. The coat is too long. The cap is too big. The scarf is too short. He likes the jeans and the shoes. They're nice. Liu Li wears new clothes too. The coat is nice and thin. The hat is pretty. The skirt is beautiful. She has a new pair of shoes, but she doesn't like them. They're too big. Mingming is in a clothes shop. Which jacket does he want? He wants the green one. He likes the black trousers and the blue shoes. He's happy.",
+      "tasks": [
+        "跟读 3 遍",
+        "演一演：三个人各自喜欢哪一件？"
+      ],
+      "narration": "Zhou Jie has new clothes.",
+      "narrationZh": "周洁有新衣服。",
+      "lines": [
+        {
+          "who": "📖 旁白",
+          "t": "Zhou Jie has new clothes.",
+          "zh": "周洁有新衣服。"
+        },
+        {
+          "who": "📖 旁白",
+          "t": "The coat is too long.",
+          "zh": "外套太长了。"
+        },
+        {
+          "who": "📖 旁白",
+          "t": "The cap is too big.",
+          "zh": "帽子太大了。"
+        },
+        {
+          "who": "📖 旁白",
+          "t": "The scarf is too short.",
+          "zh": "围巾太短了。"
+        },
+        {
+          "who": "📖 旁白",
+          "t": "He likes the jeans and the shoes.",
+          "zh": "他喜欢牛仔裤和鞋。"
+        },
+        {
+          "who": "📖 旁白",
+          "t": "Liu Li wears new clothes too.",
+          "zh": "刘丽也穿着新衣服。"
+        },
+        {
+          "who": "📖 旁白",
+          "t": "The coat is nice and thin.",
+          "zh": "外套又好看又薄。"
+        },
+        {
+          "who": "📖 旁白",
+          "t": "She has a new pair of shoes, but she doesn't like them.",
+          "zh": "她有一双新鞋，可她不喜欢。"
+        },
+        {
+          "who": "📖 旁白",
+          "t": "Which jacket does he want?",
+          "zh": "他想要哪件夹克？"
+        },
+        {
+          "who": "📖 旁白",
+          "t": "He wants the green one.",
+          "zh": "他想要绿色的那件。"
+        }
+      ],
+      "quiz": [
+        {
+          "q": "Zhou Jie's cap is too big.",
+          "qZh": "周洁的帽子太大了。",
+          "type": "tf",
+          "a": "T",
+          "opts": [
+            "T",
+            "F"
+          ]
+        },
+        {
+          "q": "Liu Li likes her new pair of shoes.",
+          "qZh": "刘丽喜欢她那双新鞋。",
+          "type": "tf",
+          "a": "F",
+          "opts": [
+            "T",
+            "F"
+          ]
+        },
+        {
+          "q": "Which jacket does Mingming want?",
+          "qZh": "明明想要哪件夹克？",
+          "type": "choice",
+          "a": "The green one.",
+          "opts": [
+            "The green one.",
+            "The blue one.",
+            "The black one."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "A",
+      "title": "买毛衣",
+      "titleEn": "A new sweater",
+      "text": "Can I have a new sweater, Mum? Yes, dear. Which one do you want, a long one or a short one? A short one, please. Which one do you want, the thick one or the thin one? The thick one, please. It's nice but a little expensive. How about this one? Can I try it on, please? Sure. You look good! Thanks. I like this one.",
+      "tasks": [
+        "跟读 3 遍",
+        "演一演：玲玲最后选了哪一件？"
+      ],
+      "narration": "Mrs Chen and Lingling are in a clothes shop.",
+      "narrationZh": "陈妈妈和玲玲在服装店。",
+      "lines": [
+        {
+          "who": "🧒 Lingling",
+          "t": "Can I have a new sweater, Mum?",
+          "zh": "妈妈，我能买一件新毛衣吗？"
+        },
+        {
+          "who": "👩 Mum",
+          "t": "Yes, dear.",
+          "zh": "可以呀，亲爱的。"
+        },
+        {
+          "who": "👩 Mum",
+          "t": "Which one do you want, a long one or a short one?",
+          "zh": "你想要哪一件，长的还是短的？"
+        },
+        {
+          "who": "🧒 Lingling",
+          "t": "A short one, please.",
+          "zh": "请给我短的。"
+        },
+        {
+          "who": "👩 Mum",
+          "t": "Which one do you want, the thick one or the thin one?",
+          "zh": "你想要哪一件，厚的还是薄的？"
+        },
+        {
+          "who": "🧒 Lingling",
+          "t": "The thick one, please.",
+          "zh": "请给我厚的那件。"
+        },
+        {
+          "who": "👩 Mum",
+          "t": "It's nice but a little expensive.",
+          "zh": "挺好看的，就是有点贵。"
+        },
+        {
+          "who": "👩 Mum",
+          "t": "How about this one?",
+          "zh": "这一件怎么样？"
+        },
+        {
+          "who": "🧒 Lingling",
+          "t": "Can I try it on, please?",
+          "zh": "我能试穿一下吗？"
+        },
+        {
+          "who": "👩 Mum",
+          "t": "Sure.",
+          "zh": "当然可以。"
+        },
+        {
+          "who": "👩 Mum",
+          "t": "You look good!",
+          "zh": "你穿着真好看！"
+        },
+        {
+          "who": "🧒 Lingling",
+          "t": "Thanks. I like this one.",
+          "zh": "谢谢。我喜欢这一件。"
+        }
+      ],
+      "quiz": [
+        {
+          "q": "Lingling wants a short sweater.",
+          "qZh": "玲玲想要短毛衣。",
+          "type": "tf",
+          "a": "T",
+          "opts": [
+            "T",
+            "F"
+          ]
+        },
+        {
+          "q": "The sweater is very cheap.",
+          "qZh": "这件毛衣很便宜。",
+          "type": "tf",
+          "a": "F",
+          "opts": [
+            "T",
+            "F"
+          ]
+        },
+        {
+          "q": "What does Lingling ask to do?",
+          "qZh": "玲玲请求做什么？",
+          "type": "choice",
+          "a": "Try it on.",
+          "opts": [
+            "Try it on.",
+            "Go home.",
+            "Buy a scarf."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "X",
+      "title": "Jenny's birthday",
+      "titleEn": "Jenny's birthday",
+      "text": "Today is Saturday. It's Jenny's birthday. Her mother wants to buy a present for her, so they go shopping. They see many clothes in a shop. Her mother wants to buy her a red dress, but Jenny doesn't like the colour, so she chooses a blue one. Then they go to have lunch. Jenny has a hamburger, and her mother has some fish and rice. Jenny sees a pet shop. There is a lovely cat in the shop. \"Mum, may I have the cat?\" Jenny asks. \"Can you take good care of it?\" Mum asks. \"Yes, I can,\" Jenny says. They go home with the lovely cat at last.",
+      "tasks": [
+        "跟读 3 遍",
+        "演一演：Jenny 一天里买了什么、吃了什么？"
+      ],
+      "narration": "Today is Saturday. It's Jenny's birthday.",
+      "narrationZh": "今天是星期六，是珍妮的生日。",
+      "lines": [
+        {
+          "who": "📖 旁白",
+          "t": "It's Jenny's birthday.",
+          "zh": "今天是珍妮的生日。"
+        },
+        {
+          "who": "📖 旁白",
+          "t": "Her mother wants to buy a present for her.",
+          "zh": "妈妈想给她买件礼物。"
+        },
+        {
+          "who": "📖 旁白",
+          "t": "Jenny chooses a blue dress.",
+          "zh": "珍妮挑了一条蓝裙子。"
+        },
+        {
+          "who": "📖 旁白",
+          "t": "Jenny has a hamburger for lunch.",
+          "zh": "珍妮午饭吃了一个汉堡。"
+        },
+        {
+          "who": "🧒 Jenny",
+          "t": "Mum, may I have the cat?",
+          "zh": "妈妈，我可以养这只猫吗？"
+        },
+        {
+          "who": "👩 Mum",
+          "t": "Can you take good care of it?",
+          "zh": "你能好好照顾它吗？"
+        },
+        {
+          "who": "🧒 Jenny",
+          "t": "Yes, I can.",
+          "zh": "能，我可以。"
+        },
+        {
+          "who": "📖 旁白",
+          "t": "They go home with the lovely cat at last.",
+          "zh": "最后他们带着可爱的猫回家了。"
+        }
+      ],
+      "quiz": [
+        {
+          "q": "Jenny's birthday is on Sunday.",
+          "qZh": "珍妮的生日在星期天。",
+          "type": "tf",
+          "a": "F",
+          "opts": [
+            "T",
+            "F"
+          ]
+        },
+        {
+          "q": "Jenny likes the red dress very much.",
+          "qZh": "珍妮很喜欢那条红裙子。",
+          "type": "tf",
+          "a": "F",
+          "opts": [
+            "T",
+            "F"
+          ]
+        },
+        {
+          "q": "What do they take home at last?",
+          "qZh": "他们最后带什么回家？",
+          "type": "choice",
+          "a": "A lovely cat.",
+          "opts": [
+            "A lovely cat.",
+            "A rabbit.",
+            "A pet dog."
+          ]
+        }
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "I1",
+      "type": "listen_choice",
+      "prompt": "听音选词：选出你听到的单词（第 1 题）",
+      "options": [
+        "which",
+        "what",
+        "where"
+      ],
+      "answer": 0,
+      "explain": "which 哪一个；what 什么；where 哪里。",
+      "speak": "which"
+    },
+    {
+      "id": "I2",
+      "type": "listen_choice",
+      "prompt": "听音选词：选出你听到的单词（第 2 题）",
+      "options": [
+        "thick",
+        "think",
+        "look"
+      ],
+      "answer": 0,
+      "explain": "thick 厚的；think 想；look 看。",
+      "speak": "thick"
+    },
+    {
+      "id": "I3",
+      "type": "listen_choice",
+      "prompt": "听音选词：选出你听到的单词（第 3 题）",
+      "options": [
+        "little",
+        "late",
+        "lot"
+      ],
+      "answer": 0,
+      "explain": "little 小的／一点儿；late 迟的；lot 许多。",
+      "speak": "little"
+    },
+    {
+      "id": "I4",
+      "type": "listen_choice",
+      "prompt": "听音选词：选出你听到的单词（第 4 题）",
+      "options": [
+        "idea",
+        "ice",
+        "egg"
+      ],
+      "answer": 0,
+      "explain": "idea 主意；ice 冰；egg 蛋。",
+      "speak": "idea"
+    },
+    {
+      "id": "I5",
+      "type": "listen_choice",
+      "prompt": "听音选词：选出你听到的单词（第 5 题）",
+      "options": [
+        "try",
+        "tired",
+        "ten"
+      ],
+      "answer": 0,
+      "explain": "try 试；tired 累的；ten 十。",
+      "speak": "try"
+    },
+    {
+      "id": "I6",
+      "type": "listen_choice",
+      "prompt": "听音选词：选出你听到的单词（第 6 题）",
+      "options": [
+        "scarf",
+        "school",
+        "skirt"
+      ],
+      "answer": 0,
+      "explain": "scarf 围巾；school 学校；skirt 裙子。",
+      "speak": "scarf"
+    },
+    {
+      "id": "I7",
+      "type": "listen_choice",
+      "prompt": "听音选词：选出你听到的单词（第 7 题）",
+      "options": [
+        "sweater",
+        "sweet",
+        "weather"
+      ],
+      "answer": 0,
+      "explain": "sweater 毛衣；sweet 甜的；weather 天气。",
+      "speak": "sweater"
+    },
+    {
+      "id": "I8",
+      "type": "listen_choice",
+      "prompt": "听音选词：选出你听到的单词（第 8 题）",
+      "options": [
+        "raincoat",
+        "rainbow",
+        "coat"
+      ],
+      "answer": 0,
+      "explain": "raincoat 雨衣；rainbow 彩虹；coat 外套。",
+      "speak": "raincoat"
+    },
+    {
+      "id": "I9",
+      "type": "listen_choice",
+      "prompt": "听音选词：选出你听到的单词（第 9 题）",
+      "options": [
+        "pair",
+        "poor",
+        "pen"
+      ],
+      "answer": 0,
+      "explain": "pair 一双；poor 穷的；pen 钢笔。",
+      "speak": "pair"
+    },
+    {
+      "id": "I10",
+      "type": "listen_choice",
+      "prompt": "听音选词：选出你听到的单词（第 10 题）",
+      "options": [
+        "jacket",
+        "jeans",
+        "jack"
+      ],
+      "answer": 0,
+      "explain": "jacket 夹克；jeans 牛仔裤；jack 杰克（人名）。",
+      "speak": "jacket"
+    },
+    {
+      "id": "II1",
+      "type": "listen_pick",
+      "prompt": "听音选图：选出你听到的衣物（第 1 题）",
+      "options": [
+        "🧶 毛衣",
+        "🧣 围巾",
+        "🧦 袜子"
+      ],
+      "answer": 0,
+      "explain": "sweater 是毛衣。",
+      "speak": "sweater"
+    },
+    {
+      "id": "II2",
+      "type": "listen_pick",
+      "prompt": "听音选图：选出你听到的衣物（第 2 题）",
+      "options": [
+        "🧣 围巾",
+        "👟 鞋子",
+        "🧢 帽子"
+      ],
+      "answer": 0,
+      "explain": "scarf 是围巾。",
+      "speak": "scarf"
+    },
+    {
+      "id": "II3",
+      "type": "listen_pick",
+      "prompt": "听音选图：选出你听到的衣物（第 3 题）",
+      "options": [
+        "🌧️ 雨衣",
+        "👕 T 恤",
+        "👖 裤子"
+      ],
+      "answer": 0,
+      "explain": "raincoat 是雨衣。",
+      "speak": "raincoat"
+    },
+    {
+      "id": "II4",
+      "type": "listen_pick",
+      "prompt": "听音选图：选出你听到的衣物（第 4 题）",
+      "options": [
+        "👟 鞋子",
+        "🧦 袜子",
+        "🧤 手套"
+      ],
+      "answer": 0,
+      "explain": "shoes 是鞋（复数）。",
+      "speak": "shoes"
+    },
+    {
+      "id": "II5",
+      "type": "listen_pick",
+      "prompt": "听音选图：选出你听到的衣物（第 5 题）",
+      "options": [
+        "🧥 夹克衫",
+        "🧶 毛衣",
+        "👗 连衣裙"
+      ],
+      "answer": 0,
+      "explain": "jacket 是夹克衫。",
+      "speak": "jacket"
+    },
+    {
+      "id": "III1",
+      "type": "listen_choice",
+      "prompt": "听句子，选出你听到的那一句（第 1 题）",
+      "options": [
+        "Which one do you want?",
+        "What do you want?",
+        "Where do you want?"
+      ],
+      "answer": 0,
+      "explain": "课本核心句型：你想要哪一件？",
+      "speak": "Which one do you want?"
+    },
+    {
+      "id": "III2",
+      "type": "listen_choice",
+      "prompt": "听句子，选出你听到的那一句（第 2 题）",
+      "options": [
+        "Can I try it on, please?",
+        "Can I have a look?",
+        "Can I use it, please?"
+      ],
+      "answer": 0,
+      "explain": "try on 是试穿。",
+      "speak": "Can I try it on, please?"
+    },
+    {
+      "id": "III3",
+      "type": "listen_choice",
+      "prompt": "听句子，选出你听到的那一句（第 3 题）",
+      "options": [
+        "The coat is too long.",
+        "The coat is too big.",
+        "The coat is too short."
+      ],
+      "answer": 0,
+      "explain": "too long 太长了。",
+      "speak": "The coat is too long."
+    },
+    {
+      "id": "III4",
+      "type": "listen_choice",
+      "prompt": "听句子，选出你听到的那一句（第 4 题）",
+      "options": [
+        "I want a pair of socks.",
+        "I want a pair of shoes.",
+        "I want a new scarf."
+      ],
+      "answer": 0,
+      "explain": "a pair of socks 一双袜子。",
+      "speak": "I want a pair of socks."
+    },
+    {
+      "id": "III5",
+      "type": "listen_choice",
+      "prompt": "听句子，选出你听到的那一句（第 5 题）",
+      "options": [
+        "It's nice but a little expensive.",
+        "It's nice and cheap.",
+        "It's too big for me."
+      ],
+      "answer": 0,
+      "explain": "a little expensive 有点贵。",
+      "speak": "It's nice but a little expensive."
+    },
+    {
+      "id": "IV1",
+      "type": "cloze",
+      "prompt": "选词填空：I want a new ___.（毛衣）",
+      "options": [
+        "sweater",
+        "sweet",
+        "weather"
+      ],
+      "answer": 0,
+      "explain": "sweater 毛衣；ea 组合读 /e/。"
+    },
+    {
+      "id": "IV2",
+      "type": "cloze",
+      "prompt": "选词填空：Which one do you want, the ___ one or the thin one?（厚的）",
+      "options": [
+        "thick",
+        "think",
+        "thin"
+      ],
+      "answer": 0,
+      "explain": "thick 厚的，与 thin 薄的是一对反义词。"
+    },
+    {
+      "id": "IV3",
+      "type": "cloze",
+      "prompt": "选词填空：Can I ___ it on, please?（试穿）",
+      "options": [
+        "try",
+        "tired",
+        "take"
+      ],
+      "answer": 0,
+      "explain": "try on 试穿，固定搭配。"
+    },
+    {
+      "id": "IV4",
+      "type": "cloze",
+      "prompt": "选词填空：I want a ___ of shoes.（一双）",
+      "options": [
+        "pair",
+        "poor",
+        "piece"
+      ],
+      "answer": 0,
+      "explain": "a pair of＋复数名词，表示一双。"
+    },
+    {
+      "id": "IV5",
+      "type": "cloze",
+      "prompt": "选词填空：The coat is ___ long for Jim.（太）",
+      "options": [
+        "too",
+        "to",
+        "two"
+      ],
+      "answer": 0,
+      "explain": "too＋形容词＝太……；to 是介词，two 是数字 2。"
+    },
+    {
+      "id": "IV6",
+      "type": "cloze",
+      "prompt": "选词填空：It's nice but a ___ expensive.（有点）",
+      "options": [
+        "little",
+        "late",
+        "lot"
+      ],
+      "answer": 0,
+      "explain": "a little expensive 有点贵。"
+    },
+    {
+      "id": "IV7",
+      "type": "cloze",
+      "prompt": "选词填空：___ one do you want?（哪一个）",
+      "options": [
+        "Which",
+        "What",
+        "Where"
+      ],
+      "answer": 0,
+      "explain": "Which one 用来在几个里选一个。"
+    },
+    {
+      "id": "IV8",
+      "type": "cloze",
+      "prompt": "选词填空：The ___ is too short.（围巾）",
+      "options": [
+        "scarf",
+        "school",
+        "skirt"
+      ],
+      "answer": 0,
+      "explain": "scarf 围巾；课本 F 有 The scarf is too short."
+    },
+    {
+      "id": "IV9",
+      "type": "cloze",
+      "prompt": "选词填空：I have a good ___!（主意）",
+      "options": [
+        "idea",
+        "ice",
+        "eye"
+      ],
+      "answer": 0,
+      "explain": "idea 主意；课本 D 有 I have a good idea!"
+    },
+    {
+      "id": "IV10",
+      "type": "cloze",
+      "prompt": "选词填空：Which cap do you want, the big one ___ the small one?（还是）",
+      "options": [
+        "or",
+        "and",
+        "but"
+      ],
+      "answer": 0,
+      "explain": "选择疑问句用 or 连接两个选项。"
+    },
+    {
+      "id": "V1",
+      "type": "true_false",
+      "prompt": "判断：The book is thick. The paper is thin. —— 两句用了一对反义词",
+      "options": [
+        "T",
+        "F"
+      ],
+      "answer": 0,
+      "explain": "thick 厚的 ↔ thin 薄的，是反义词。"
+    },
+    {
+      "id": "V2",
+      "type": "true_false",
+      "prompt": "判断：The ruler is long. The scarf is new. —— 两句用了一对反义词",
+      "options": [
+        "T",
+        "F"
+      ],
+      "answer": 1,
+      "explain": "long 长的 与 new 新的 不是一对反义词。"
+    },
+    {
+      "id": "V3",
+      "type": "true_false",
+      "prompt": "判断：The dog is old. The man is young. —— 两句用了一对反义词",
+      "options": [
+        "T",
+        "F"
+      ],
+      "answer": 0,
+      "explain": "old 年老的 ↔ young 年轻的，是反义词。"
+    },
+    {
+      "id": "V4",
+      "type": "true_false",
+      "prompt": "判断：The tree is tall. The flower is short. —— 两句用了一对反义词",
+      "options": [
+        "T",
+        "F"
+      ],
+      "answer": 0,
+      "explain": "tall 高的 ↔ short 矮的，是反义词。"
+    },
+    {
+      "id": "V5",
+      "type": "true_false",
+      "prompt": "判断：The jacket is small. The shorts are nice. —— 两句用了一对反义词",
+      "options": [
+        "T",
+        "F"
+      ],
+      "answer": 1,
+      "explain": "small 小的 与 nice 好看的 不是一对反义词。"
+    },
+    {
+      "id": "VI1",
+      "type": "communicate",
+      "prompt": "情景交际：Can I have a new sweater, Dad? → ?",
+      "options": [
+        "Yes, dear.",
+        "The sweater is red.",
+        "Thank you."
+      ],
+      "answer": 0,
+      "explain": "课本 A：请求买毛衣，妈妈答 Yes, dear."
+    },
+    {
+      "id": "VI2",
+      "type": "communicate",
+      "prompt": "情景交际：Which one do you want? → ?",
+      "options": [
+        "The thin one.",
+        "You're welcome.",
+        "Yes, I do."
+      ],
+      "answer": 0,
+      "explain": "选择疑问句要说出选中的那一件。"
+    },
+    {
+      "id": "VI3",
+      "type": "communicate",
+      "prompt": "情景交际：Can I try it on, please? → ?",
+      "options": [
+        "Sure.",
+        "It's nice.",
+        "You're welcome."
+      ],
+      "answer": 0,
+      "explain": "课本 A：请求试穿，答 Sure."
+    },
+    {
+      "id": "VI4",
+      "type": "communicate",
+      "prompt": "情景交际：Thank you. → ?",
+      "options": [
+        "You're welcome.",
+        "Sure.",
+        "The short one."
+      ],
+      "answer": 0,
+      "explain": "道谢的回应是 You're welcome."
+    },
+    {
+      "id": "VI5",
+      "type": "communicate",
+      "prompt": "情景交际：Your kite is beautiful. → ?",
+      "options": [
+        "Thank you.",
+        "Sorry.",
+        "Here you are."
+      ],
+      "answer": 0,
+      "explain": "被夸奖时说 Thank you."
+    },
+    {
+      "id": "VII1",
+      "type": "cloze",
+      "prompt": "单项选择：Lily and her father ___ the jacket.",
+      "options": [
+        "buy",
+        "buys",
+        "is buying"
+      ],
+      "answer": 0,
+      "explain": "主语是两个人（复数），动词用原形 buy。"
+    },
+    {
+      "id": "VII2",
+      "type": "cloze",
+      "prompt": "单项选择：There ___ a cute dog.",
+      "options": [
+        "is",
+        "are",
+        "am"
+      ],
+      "answer": 0,
+      "explain": "a cute dog 是单数，用 There is。"
+    },
+    {
+      "id": "VII3",
+      "type": "cloze",
+      "prompt": "单项选择：Can you take ___ care of the rabbit?",
+      "options": [
+        "good",
+        "well",
+        "bad"
+      ],
+      "answer": 0,
+      "explain": "take good care of 好好照顾，固定搭配。"
+    },
+    {
+      "id": "VII4",
+      "type": "cloze",
+      "prompt": "单项选择：The coat is ___ long for Jim.",
+      "options": [
+        "too",
+        "to",
+        "in"
+      ],
+      "answer": 0,
+      "explain": "too long 太长了。"
+    },
+    {
+      "id": "VII5",
+      "type": "cloze",
+      "prompt": "单项选择：I want a pair of ___.",
+      "options": [
+        "socks",
+        "sock",
+        "a sock"
+      ],
+      "answer": 0,
+      "explain": "a pair of 后接复数名词 socks。"
+    },
+    {
+      "id": "VIII1",
+      "type": "read",
+      "prompt": "阅读理解：课本 F：Whose cap is too big?",
+      "options": [
+        "Zhou Jie's",
+        "Liu Li's",
+        "Mingming's"
+      ],
+      "answer": 0,
+      "explain": "课本 F 第一段的帽子是周洁的，太大了。"
+    },
+    {
+      "id": "VIII2",
+      "type": "read",
+      "prompt": "阅读理解：课本 F：Whose coat is nice and thin?",
+      "options": [
+        "Liu Li's",
+        "Zhou Jie's",
+        "Mingming's"
+      ],
+      "answer": 0,
+      "explain": "课本 F 第二段写刘丽的外套又好看又薄。"
+    },
+    {
+      "id": "VIII3",
+      "type": "read",
+      "prompt": "阅读理解：课本 F：Which jacket does Mingming want?",
+      "options": [
+        "The green one.",
+        "The blue one.",
+        "The black one."
+      ],
+      "answer": 0,
+      "explain": "课本 F 第三段：He wants the green one."
+    },
+    {
+      "id": "VIII4",
+      "type": "read",
+      "prompt": "阅读理解：Jenny's birthday：What dress does Jenny choose?",
+      "options": [
+        "A blue one.",
+        "A red one.",
+        "A yellow one."
+      ],
+      "answer": 0,
+      "explain": "她不喜欢红裙子的颜色，挑了蓝色的。"
+    },
+    {
+      "id": "VIII5",
+      "type": "read",
+      "prompt": "阅读理解：Jenny's birthday：What do they take home at last?",
+      "options": [
+        "A lovely cat.",
+        "A rabbit.",
+        "A pet dog."
+      ],
+      "answer": 0,
+      "explain": "最后带回家的是宠物店里那只可爱的猫。"
+    },
+    {
+      "id": "IX1",
+      "type": "read",
+      "prompt": "短文填空：The ___ is 60 yuan. It is a little thick.（毛衣）",
+      "options": [
+        "sweater",
+        "jacket",
+        "skirt"
+      ],
+      "answer": 0,
+      "explain": "同步优学听力填空第 1 空：sweater 60 元，有点厚。"
+    },
+    {
+      "id": "IX2",
+      "type": "read",
+      "prompt": "短文填空：A ___ of socks is 2 yuan.（一双）",
+      "options": [
+        "pair",
+        "piece",
+        "cup"
+      ],
+      "answer": 0,
+      "explain": "同步优学听力填空第 4 空：a pair of socks 2 元。"
+    },
+    {
+      "id": "P1",
+      "type": "phonetic",
+      "prompt": "🔤 语音 ar：听音，选出含 ar（长音）的单词（第 1 题）",
+      "options": [
+        "farm 🚜",
+        "bird 🐦",
+        "book 📕"
+      ],
+      "answer": 0,
+      "explain": "farm 里 ar 发长音 /ɑː/。",
+      "speak": "farm"
+    },
+    {
+      "id": "P2",
+      "type": "phonetic",
+      "prompt": "🔤 语音 ar：听音，选出含 ar（长音）的单词（第 2 题）",
+      "options": [
+        "card 🃏",
+        "cup ☕",
+        "cake 🍰"
+      ],
+      "answer": 0,
+      "explain": "card 里 ar 发长音 /ɑː/。",
+      "speak": "card"
+    },
+    {
+      "id": "P3",
+      "type": "phonetic",
+      "prompt": "🔤 语音 ar：听音，选出含 ar（长音）的单词（第 3 题）",
+      "options": [
+        "shark 🦈",
+        "ship 🚢",
+        "shop 🏪"
+      ],
+      "answer": 0,
+      "explain": "shark 里 ar 发长音 /ɑː/。",
+      "speak": "shark"
+    },
+    {
+      "id": "P4",
+      "type": "phonetic",
+      "prompt": "🔤 语音 ar：听音，选出含 ar（长音）的单词（第 4 题）",
+      "options": [
+        "car 🚗",
+        "cat 🐱",
+        "cap 🧢"
+      ],
+      "answer": 0,
+      "explain": "car 里 ar 发长音 /ɑː/。",
+      "speak": "car"
+    },
+    {
+      "id": "P5",
+      "type": "phonetic",
+      "prompt": "🔤 语音 ar：听音，选出含 ar（长音）的单词（第 5 题）",
+      "options": [
+        "hard 💪",
+        "hand ✋",
+        "head 🙂"
+      ],
+      "answer": 0,
+      "explain": "hard 里 ar 发长音 /ɑː/。",
+      "speak": "hard"
+    }
+  ]
+}

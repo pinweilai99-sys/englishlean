@@ -80,7 +80,14 @@ export function renderSentence(ctx, unit) {
     // ───────── 卡片 2：应答配对（每只动物一组课本对话，举一反三） ─────────
     const cardPair = h('div', { class: 'card' });
     cardPair.appendChild(h('div', { class: 'card-title', text: '↔️ 第 2 步 · 应答配对' }));
-    cardPair.appendChild(h('p', { class: 'card-sub', text: '看表情，选出合适的回答——别人点头还是摇头，答法就不一样。' }));
+    // U6 教材核心句型是选择疑问句（Which one do you want, A or B?），回答要说出选中的那一件，
+    // 既不是「点头／摇头」也不能用「是／不是」作答 → 不能套用极性判定。
+    // 单元可用 sentences.cueMode='choice' 声明，此时改按「想要哪一件」的可见线索作答。
+    // U4/U5 不设此字段 → 默认 polarity，行为一字不变（零回归，由 E2E 正反对照锁定）。
+    const cueMode = s.cueMode || 'polarity';
+    cardPair.appendChild(h('p', { class: 'card-sub', text: cueMode === 'choice'
+      ? '看线索，选出合适的回答——想要哪一件，答法就不一样。'
+      : '看表情，选出合适的回答——别人点头还是摇头，答法就不一样。' }));
     // 动物 → 该动物的两组对话（全部取自课本：May I have/hold/touch/feed...、take good care of、导盲犬 Can he...）
     // cue 是「题目条件」而非答案译文：必须答题前可见。课本 C 部分同一问句 Yes/No 两解并列，
     // 若不给出情境线索，多个选项都是合法答语，题型即失去效度（孩子答对却被判错）。
@@ -100,9 +107,16 @@ export function renderSentence(ctx, unit) {
       if (q.startsWith('May I')) return '这题问「我可以吗」，回答要说「你可以」～';
       if (q.startsWith('Can you')) return '这题问「你能吗」，回答要说「我能」～';
       if (q.startsWith('Can he')) return '这题问「它能吗」，回答要说「它能」～';
+      if (q.startsWith('Which')) return '这题问「想要哪一件」，要说出选中的那一件～';
       return '再听听谁在问、谁在答～';
     };
     const feedbackText = (pair, kind) => {
+      // choice 模式（U6 选择疑问句）：不谈点头／摇头，把注意力引回「线索想要哪一件」。
+      if (cueMode === 'choice') {
+        return kind === 'offtopic'
+          ? '💡 选择疑问句要说出选中的那一件，不能用「是／不是」回答哦～'
+          : '💡 看看线索：这题想要哪一件？要选出和线索对得上的那一句～';
+      }
       // U4 借物题有「道谢」型干扰项（Thank you.）——它既非同意也非拒绝，
       // 是根本没回答「能不能」，不能套用「主语错位」的说法。
       if (kind === 'offtopic') return '💡 这句没在回答「能不能」这个问题哦～先看看对方是点头还是摇头。';
@@ -116,13 +130,17 @@ export function renderSentence(ctx, unit) {
       // 题干行：题干 + 🔊 听题目 + 👀 中文意思（零基础支架：先自己试，卡住再扶）
       const qRow = h('div', { class: 'story-text', style: 'font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap' }, [
         h('span', { text: pair.q }),
-        // 情境线索徽标：答题前就可见（题目条件，不进中文门控）；对齐考点 IX「看图表情定答语」
+        // 情境线索徽标：答题前就可见（题目条件，不进中文门控）；对齐考点 IX「看图表情定答语」。
+        // choice 模式（U6）改显「想要哪一件」的线索，不用点头／摇头表情。
         h('span', {
           class: 'cue-badge',
-          title: '看表情，判断对方是同意还是拒绝',
-          text: `${pair.cue === 'no' ? '🙅' : '😊'} ${pair.cueZh || (pair.cue === 'no' ? '摇头：不行' : '点头：可以')}`,
+          title: cueMode === 'choice' ? '看线索，判断想要哪一件' : '看表情，判断对方是同意还是拒绝',
+          text: cueMode === 'choice'
+            ? `👉 ${pair.cueZh || '看线索选一件'}`
+            : `${pair.cue === 'no' ? '🙅' : '😊'} ${pair.cueZh || (pair.cue === 'no' ? '摇头：不行' : '点头：可以')}`,
           style: 'font-size:0.7em;font-weight:500;padding:3px 9px;border-radius:999px;white-space:nowrap;'
-            + (pair.cue === 'no' ? 'background:#FAECE7;color:#712B13;' : 'background:#E1F5EE;color:#085041;'),
+            + (cueMode === 'choice' ? 'background:#EAF2FB;color:#1B4F72;'
+              : (pair.cue === 'no' ? 'background:#FAECE7;color:#712B13;' : 'background:#E1F5EE;color:#085041;')),
         }),
         h('button', {
           class: 'q-speak', title: '听题目', text: '🔊',
@@ -162,20 +180,28 @@ export function renderSentence(ctx, unit) {
                 ctx.addStars(1); starFly(1);
               }
               delete feedback[keyOf(pair.q)];
-              toast('配对正确！你看懂表情啦～');
+              toast(cueMode === 'choice' ? '配对正确！你选对那一件啦～' : '配对正确！你看懂表情啦～');
             } else {
               ctx.addWrong({ unit: unit.id, type: 'answer_match', q: pair.q, a: pair.a, chosen: ans });
-              // 支架式即时纠正：不剧透答案，把注意力引回「表情极性」「谁在问谁在答」或「答没答题」。
-              // U4 借物的婉拒答语是 Sorry, I'm using it.（不含 No/can't），故 isNo 必须认 Sorry/using it；
-              // 否则孩子点了拒绝项却被说成「主语错位」，反馈会误导。
-              const isYes = /(^Sure\b|^Yes\b|Here you are|^OK\b)/.test(ans);
-              const isNo = /(^No\b|can't|^Sorry\b|using it|working now)/.test(ans);
-              const offtopic = !isYes && !isNo;
-              const polarityClash = pair.cue === 'no' ? isYes : isNo;
-              feedback[keyOf(pair.q)] = offtopic ? 'offtopic' : (polarityClash ? 'polarity' : 'subject');
-              toast(offtopic ? '这句还没回答「能不能」这个问题哦～'
-                : polarityClash ? '看看表情，是点头还是摇头呀？'
-                  : '这句答的是别的问题哦，看看下面的 💡～');
+              if (cueMode === 'choice') {
+                // 选择疑问句（U6）：真错只有两类 —— ① 用「是／不是」作答（根本没说选哪一件）
+                // ② 选了与线索冲突的另一件。不做点头／摇头极性判定（会误导）。
+                const isYesNo = /^(Yes|No|OK)\b/.test(ans);
+                feedback[keyOf(pair.q)] = isYesNo ? 'offtopic' : 'subject';
+                toast(isYesNo ? '选择疑问句不能用「是／不是」回答哦～' : '再看看线索，要选哪一件呀？');
+              } else {
+                // 支架式即时纠正：不剧透答案，把注意力引回「表情极性」「谁在问谁在答」或「答没答题」。
+                // U4 借物的婉拒答语是 Sorry, I'm using it.（不含 No/can't），故 isNo 必须认 Sorry/using it；
+                // 否则孩子点了拒绝项却被说成「主语错位」，反馈会误导。
+                const isYes = /(^Sure\b|^Yes\b|Here you are|^OK\b)/.test(ans);
+                const isNo = /(^No\b|can't|^Sorry\b|using it|working now)/.test(ans);
+                const offtopic = !isYes && !isNo;
+                const polarityClash = pair.cue === 'no' ? isYes : isNo;
+                feedback[keyOf(pair.q)] = offtopic ? 'offtopic' : (polarityClash ? 'polarity' : 'subject');
+                toast(offtopic ? '这句还没回答「能不能」这个问题哦～'
+                  : polarityClash ? '看看表情，是点头还是摇头呀？'
+                    : '这句答的是别的问题哦，看看下面的 💡～');
+              }
             }
             render();
             const ok = dialogues.every((p) => session.answeredOk?.[keyOf(p.q)]);
