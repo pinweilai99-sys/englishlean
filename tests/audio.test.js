@@ -485,17 +485,28 @@ describe('打断 vs 失败必须区分（2026-11-11 修复）', () => {
       },
       SpeechSynthesisUtterance: class { constructor(t) { this.text = t; } },
     };
-    // 假 Audio：永不 onended（模拟正在播放），play() 成功
+    // 假 Audio：永不 onended（模拟正在播放），play() 成功；有限时长让兜底定时器
+    // 只有约 2 秒，万一失败能快速暴露，而不是干等 8 秒。
+    let firstPlayCalls = 0;
     globalThis.Audio = class {
-      constructor(src) { this.src = src; this.playbackRate = 1; this.currentTime = 0; this.duration = NaN; this.readyState = 1; }
+      constructor(src) { this.src = src; this.playbackRate = 1; this.currentTime = 0; this.duration = 0.9; this.readyState = 1; }
       addEventListener() {} removeEventListener() {}
-      play() { return Promise.resolve(); }
+      play() { firstPlayCalls += 1; return Promise.resolve(); }
       pause() { this.paused = true; }
     };
     try {
+      // 前置：清单必须命中，否则 speak() 会先走 ensureReady 异步路径，与 p2 形成竞态
+      assert.equal(hasAudio('pet'), true, '前置：pet 必须在音频清单里');
       // 第一次播放（不 await，让它挂着）
       const p1 = tts.speak('pet', { readyTimeoutMs: 100, retryTimeoutMs: 200 });
-      await new Promise((r) => setTimeout(r, 30));
+      // 等 p1 **确实挂进 playAudio** 再启动 p2。旧版固定等 30ms：全量测试高负载时不够，
+      // 会出现「p2 先挂起、p1 后挂起」→ p1 走兜底 finish(true) 返回 {ok:true}（reason undefined）
+      // 的偶发失败（2026-11-13 最终验收时复现）。改为按 play() 信号同步，消除竞态。
+      const t0 = Date.now();
+      while (firstPlayCalls === 0 && Date.now() - t0 < 1000) {
+        await new Promise((r) => setTimeout(r, 5));
+      }
+      assert.equal(firstPlayCalls, 1, '第一次播放应已进入音频通道（p1 已挂起）');
       // 第二次播放会 stopAudio() 打断第一次
       const p2 = tts.speak('dog', { readyTimeoutMs: 100, retryTimeoutMs: 200 });
       const r1 = await p1;
