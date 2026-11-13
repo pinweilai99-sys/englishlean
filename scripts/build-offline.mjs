@@ -36,11 +36,18 @@ async function main() {
   // 3) jspdf（handwriting 依赖的全局 UMD）
   const jspdf = read(join(ROOT, 'js/vendor/jspdf.umd.min.js'));
 
-  // 4) 单元数据 U4 + U5
-  const units = {
-    u4: JSON.parse(read(join(DOCS, 'data/units/u4.json'))),
-    u5: JSON.parse(read(join(DOCS, 'data/units/u5.json'))),
-  };
+  // 4) 单元数据：自动纳入 docs/data/units/ 下全部单元。
+  // ⚠️ 2026-11-13 修复：旧版写死 u4/u5，新增 U6 后离线包里没有 u6 →
+  // file:// 下 fetch('data/units/u6.json') 未命中垫片 → 退真实 fetch → Failed to fetch
+  // → app.js 显示「😢 加载失败」。禁止再写死单元列表；新增单元自动进离线包。
+  const unitsDir = join(DOCS, 'data/units');
+  const unitIds = readdirSync(unitsDir)
+    .filter((f) => f.endsWith('.json'))
+    .map((f) => f.replace(/\.json$/, ''))
+    .sort();
+  const units = {};
+  for (const id of unitIds) units[id] = JSON.parse(read(join(unitsDir, `${id}.json`)));
+  const unitLabel = 'Unit ' + unitIds.map((id) => id.replace(/^u/, '')).join(' / ');
 
   // 5) 音频：仅清单中的 slug -> base64 data URI（避免孤儿分块音频膨胀离线包）
   const audioDir = join(DOCS, 'assets/audio');
@@ -90,7 +97,7 @@ window.__EMBED__ = ${JSON.stringify({ units, audio, manifest })};
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>英语乐园 · 离线版（Unit 4 & 5）</title>
+<title>英语乐园 · 离线版（${unitLabel}）</title>
 <style>${tokensCss}
 ${appCss}</style>
 </head>
@@ -112,6 +119,7 @@ ${appCss}</style>
   console.log('written', outPath);
   console.log('size MB =', (Buffer.byteLength(html) / 1024 / 1024).toFixed(2));
   console.log('audio slugs embedded =', Object.keys(audio).length);
+  console.log('unit ids embedded =', unitIds.join(', '));
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
