@@ -308,14 +308,14 @@ export function renderOutput(ctx, unit) {
     // 4. 思维导图（四问互动引导 + 自动拼装介绍词）
     //    课本 H 板块"Let's Learn to Learn"：用 4 个问题组织一段宠物介绍。
     //    孩子不会凭空说 → 把大任务拆成 4 个"点选答案"微任务（无对错，选什么就是自己的答案），
-    //    4 答自动拼装成介绍词 → 逐句可听 + 整段连读 → 跟读完成。Q3 特征句随 Q2 动物联动。
+    //    4 答自动拼装成介绍词 → 逐句可听 + 整段连读 → 跟读完成。Q3 特征句随 Q2 所选对象联动。
     wrap.appendChild(h('div', { class: 'card-title', style: 'margin-top:24px', text: `③ ${T.mindmap}` }));
     wrap.appendChild(h('p', { class: 'hint', style: 'font-weight:700', text: `回答 4 个小问题，就能拼出你自己的${T.introNoun}介绍！` }));
     const mm = unit.mindmap;
     session.mmPick = session.mmPick || {};
     const mmSteps = mm.steps || [];
-    // 数据驱动：哪一步是「特征句题」（带 featureByAnimal），其上一题即「动物/对象选择题」。
-    // 旧版把第 3 问（索引 2）硬编码成动物专属分支 → U4（无 featureByAnimal/extra）第 3 问渲染出
+    // 数据驱动：哪一步是「特征句题」（带 featureByAnimal），其上一题即「对象选择题」。
+    // 旧版把第 3 问（索引 2）硬编码成 U5 宠物专属分支 → U4（无 featureByAnimal/extra）第 3 问渲染出
     // 0 个按钮，孩子永远选不完 → 思维导图永远解锁不了（家长 2026-11-10 截图）。
     const featStepIdx = mmSteps.findIndex((st) => st && Object.keys(st.featureByAnimal || {}).length > 0);
     const pickStepIdx = featStepIdx > 0 ? featStepIdx - 1 : -1;
@@ -326,7 +326,7 @@ export function renderOutput(ctx, unit) {
       onclick: () => {
         session.mmPick[i] = o;
         if (i === pickStepIdx && featStepIdx > 0) {
-          // 选了具体对象（如 cat）→ 特征题随之变化，已选的特征句必须清空（对齐句型页换动物清空逻辑）
+          // 选了具体对象（如 cat）→ 特征题随之变化，已选的特征句必须清空（对齐句型页换词清空逻辑）
           const keys = Object.keys(mmSteps[featStepIdx].featureByAnimal || {});
           const key = keys.find((k) => new RegExp(`\\b${k}\\b`, 'i').test(o.t));
           if (key && session.mmAnimal !== key) {

@@ -1,10 +1,12 @@
-// Stage2 核心句型：① 句型填空（选动物填空+跟读） → ② 应答配对
+// Stage2 核心句型：① 句型填空（选槽位词填空+跟读） → ② 应答配对
 // 结构：两张独立卡片，层级清晰（填空是第一步，配对是第二步）
 import { h, toast, starFly, confetti } from './dom.js';
 import * as tts from '../services/tts.js';
 
 export function renderSentence(ctx, unit) {
   const s = unit.sentences;
+  // 填空卡文案随单元主题走（U4=文具 / U5=宠物 / U6=衣物），禁硬编码 U5 的主题词。
+  const topic = unit.theme?.topic || '词';
   const session = ctx.session;
   const wrap = h('div');
   // 答错后的即时对照卡：只活在当前页面生命周期，不写入 session/存档（不留失败痕迹）；答对即消失
@@ -19,7 +21,7 @@ export function renderSentence(ctx, unit) {
     // ───────── 卡片 1：句型填空 ─────────
     const cardFill = h('div', { class: 'card' });
     cardFill.appendChild(h('div', { class: 'card-title', text: '💬 第 1 步 · 句型填空' }));
-    cardFill.appendChild(h('p', { class: 'card-sub', text: '选一个动物填进空格，再把整句读出来！' }));
+    cardFill.appendChild(h('p', { class: 'card-sub', text: `从下面的${topic}里选一个填进空格，再把整句读出来！` }));
 
     const slot = session.slot || null;
     const sentence = slot ? s.pattern.replace('___', slot) : null;
@@ -36,14 +38,14 @@ export function renderSentence(ctx, unit) {
       h('button', {
         class: 'btn', text: '🔊 听整句',
         onclick: () => {
-          if (!sentence) { toast('先在下面选一个动物填进空格里吧！'); return; }
+          if (!sentence) { toast(`先从下面的${topic}里选一个填进空格里吧！`); return; }
           tts.speak(sentence);
         },
       }),
     ]));
 
-    // 填空操练：点动物填空 + 跟读确认
-    cardFill.appendChild(h('div', { class: 'card-title', style: 'margin-top:16px', text: '🖊️ 填空：点一个动物填进空格里' }));
+    // 填空操练：点槽位词填空 + 跟读确认
+    cardFill.appendChild(h('div', { class: 'card-title', style: 'margin-top:16px', text: `🖊️ 填空：从下面的${topic}里点一个` }));
     const slotRow = h('div', { class: 'word-bank', style: 'margin-top:10px' });
     s.slots.forEach((w) => {
       slotRow.appendChild(h('button', {
@@ -63,7 +65,7 @@ export function renderSentence(ctx, unit) {
       h('button', {
         class: 'btn leaf', text: '🎤 我读出来了',
         onclick: () => {
-          if (!slot) { toast('先选一个动物填进空格里！'); return; }
+          if (!slot) { toast(`先从下面的${topic}里选一个！`); return; }
           used.add(slot);
           session.usedSlots = Array.from(used);
           ctx.addStars(1);
@@ -74,10 +76,10 @@ export function renderSentence(ctx, unit) {
         },
       }),
     ]));
-    cardFill.appendChild(h('p', { class: 'hint', text: `已填读过 ${used.size} / 3 种动物（达到 3 种即完成）` }));
+    cardFill.appendChild(h('p', { class: 'hint', text: `已填读过 ${used.size} / 3 个词（达到 3 个即完成）` }));
     wrap.appendChild(cardFill);
 
-    // ───────── 卡片 2：应答配对（每只动物一组课本对话，举一反三） ─────────
+    // ───────── 卡片 2：应答配对（每组槽位词一组课本对话，举一反三） ─────────
     const cardPair = h('div', { class: 'card' });
     cardPair.appendChild(h('div', { class: 'card-title', text: '↔️ 第 2 步 · 应答配对' }));
     // U6 教材核心句型是选择疑问句（Which one do you want, A or B?），回答要说出选中的那一件，
@@ -88,7 +90,7 @@ export function renderSentence(ctx, unit) {
     cardPair.appendChild(h('p', { class: 'card-sub', text: cueMode === 'choice'
       ? '看线索，选出合适的回答——想要哪一件，答法就不一样。'
       : '看表情，选出合适的回答——别人点头还是摇头，答法就不一样。' }));
-    // 动物 → 该动物的两组对话（全部取自课本：May I have/hold/touch/feed...、take good care of、导盲犬 Can he...）
+    // 槽位词 → 该组的两组对话（全部取自课本：May I have/hold/touch/feed...、take good care of、导盲犬 Can he...）
     // cue 是「题目条件」而非答案译文：必须答题前可见。课本 C 部分同一问句 Yes/No 两解并列，
     // 若不给出情境线索，多个选项都是合法答语，题型即失去效度（孩子答对却被判错）。
     // 默认取本单元 dialogues 的第一组：U5 第一个键是 pet（保持原行为），
@@ -99,8 +101,8 @@ export function renderSentence(ctx, unit) {
       { q: `May I have a ${animal}?`, a: 'Yes, you can.', zh: `我可以养一只${animal}吗？——可以。`, cue: 'yes', cueZh: '点头：可以', opts: ['Yes, you can.', "No, you can't.", 'Yes, I can.'], rule: '点头＝同意。问『我可以吗』要答『你可以』；答『我能』是主语错。' },
       { q: 'May I hold it?', a: 'Sure.', zh: '我可以抱抱它吗？——当然可以。', cue: 'yes', cueZh: '点头：可以', opts: ['Sure.', "No, you can't.", 'OK. Yes, I can.'], rule: '点头＝可以，用『当然可以』来答；答『我能』是主语错。' },
     ];
-    // 答案按「动物|题干」记录：换动物后所有题目（含第 2 题）自动清空重练；
-    // 星标按题干记录：同题干换动物不重复加星（防刷星）
+    // 答案按「槽位词|题干」记录：换词后所有题目（含第 2 题）自动清空重练；
+    // 星标按题干记录：同题干换词不重复加星（防刷星）
     const keyOf = (q) => `${animal}|${q}`;
     // 答错对照卡：讲清「这句本身没错 / 它答的是哪类问题 / 这题该怎么答」，不剧透英文答案
     const subjectRule = (q) => {
@@ -240,9 +242,9 @@ export function renderSentence(ctx, unit) {
     const done = session.usedSlots?.length >= 3 && dialogues.every((p) => session.answeredOk?.[keyOf(p.q)]);
     cardPair.appendChild(h('div', { class: 'btn-row', style: 'margin-top:18px' }, [
       h('button', {
-        class: 'btn', text: done ? '✅ 完成句型阶段' : '🔒 完成 3 种动物跟读和应答配对后解锁',
+        class: 'btn', text: done ? '✅ 完成句型阶段' : '🔒 完成 3 个词跟读和应答配对后解锁',
         onclick: () => {
-          if (!done) { toast('再替换几种动物吧～'); return; }
+          if (!done) { toast('再换几个词试试吧～'); return; }
           ctx.completeStage(unit.id, 1);
           toast('🎉 核心句型完成！', 3000);
           confetti();

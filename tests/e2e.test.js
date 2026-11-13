@@ -2634,3 +2634,33 @@ test('E2E-80 U6 回忆卡看图卡有衣物插画（pic 字段驱动、离线内
     assert.equal(pic.getAttribute('aria-label'), 'a sweater', 'rc1 插画应是毛衣');
   } finally { cleanup(); }
 });
+
+
+// ---- U6 填空卡文案数据驱动（2026-11-13 离线包全流程验证时发现）----
+test('E2E-81 U6 核心句型填空卡不得出现 U5 的「动物」文案，应显示本单元主题词', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: u6Seed() });
+  try {
+    await navigate(window, app, '#/unit/u6/stage/1');
+    const txt = mainText(window);
+    assert.match(txt, /核心句型/, '应在核心句型页');
+    assert.ok(!txt.includes('动物'),
+      'U6 是衣物单元，填空卡不得再写「选一个动物 / 3 种动物」（U5 硬编码串单元）');
+    assert.ok(txt.includes('衣物'), '应显示 U6 主题词「衣物」');
+  } finally { cleanup(); }
+});
+
+test('E2E-82 正反对照：U5 填空卡显示自己的主题词「宠物」，不带 U6 的「衣物」', async () => {
+  const seed = {
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { u5: { stagePassed: [true, false, false, false], wordsDone: UNIT.words.map((w) => w.w), listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  };
+  const { window, app, cleanup } = await freshApp({ seed });
+  try {
+    await navigate(window, app, '#/unit/u5/stage/1');
+    const txt = mainText(window);
+    assert.ok(txt.includes('宠物'), 'U5 应显示自己的主题词「宠物」（前置：主题词确实进了填空卡）');
+    assert.ok(!txt.includes('衣物'), 'U5 不得串到 U6 的「衣物」文案');
+    assert.ok(!txt.includes('动物'), '改口径后 U5 也不应残留「动物」硬编码');
+  } finally { cleanup(); }
+});
