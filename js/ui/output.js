@@ -239,10 +239,14 @@ export function renderOutput(ctx, unit) {
     // 句型支架示例全部用已生成音频的句子（英语必有播放铁律），点 🔊 听示范
     wrap.appendChild(h('p', { class: 'hint', style: 'margin-top:14px;font-weight:700', text: `✏️ 挑战（选做）：学着自己写——编一段对话，或介绍你的${T.topic}` }));
     const chalBox = h('div', { style: 'margin-top:6px' });
+    // ⚠️ 2026-11-13 修复：旧版把示范句写死成 U5 宠物主题的句子，
+    // U4（借文具）与 U6（选衣物）都会串单元。改为取自**本单元范文对话**的句子；
+    // sampleDialogue.lines 每句都已被 gen-audio 收集，配 🔊 朗读不会缺音频（AUD-22 已锁）。
+    const sdForChal = ((wr.sampleDialogue || {}).lines || []).map((l) => l.t).filter(Boolean);
     const chalExamples = [
-      { label: '对话示范：', lines: ['May I have a cat?', 'Yes, you can.'] },
-      { label: '介绍示范：', lines: ['I want a dog.', 'It has short legs.', 'I love my pet!'] },
-    ];
+      { label: '对话示范：', lines: sdForChal.slice(0, 2) },
+      { label: '更多句子：', lines: sdForChal.slice(2, 5) },
+    ].filter((ex) => ex.lines.length > 0);
     chalExamples.forEach((ex) => {
       chalBox.appendChild(h('div', { class: 'story-text', style: 'margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap' }, [
         h('strong', { text: ex.label }),

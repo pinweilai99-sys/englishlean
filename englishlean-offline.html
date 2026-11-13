@@ -24984,10 +24984,11 @@ ${e3}`);
       }
       wrap.appendChild(h("p", { class: "hint", style: "margin-top:14px;font-weight:700", text: `\u270F\uFE0F \u6311\u6218\uFF08\u9009\u505A\uFF09\uFF1A\u5B66\u7740\u81EA\u5DF1\u5199\u2014\u2014\u7F16\u4E00\u6BB5\u5BF9\u8BDD\uFF0C\u6216\u4ECB\u7ECD\u4F60\u7684${T.topic}` }));
       const chalBox = h("div", { style: "margin-top:6px" });
+      const sdForChal = ((wr.sampleDialogue || {}).lines || []).map((l) => l.t).filter(Boolean);
       const chalExamples = [
-        { label: "\u5BF9\u8BDD\u793A\u8303\uFF1A", lines: ["May I have a cat?", "Yes, you can."] },
-        { label: "\u4ECB\u7ECD\u793A\u8303\uFF1A", lines: ["I want a dog.", "It has short legs.", "I love my pet!"] }
-      ];
+        { label: "\u5BF9\u8BDD\u793A\u8303\uFF1A", lines: sdForChal.slice(0, 2) },
+        { label: "\u66F4\u591A\u53E5\u5B50\uFF1A", lines: sdForChal.slice(2, 5) }
+      ].filter((ex) => ex.lines.length > 0);
       chalExamples.forEach((ex) => {
         chalBox.appendChild(h("div", { class: "story-text", style: "margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap" }, [
           h("strong", { text: ex.label }),

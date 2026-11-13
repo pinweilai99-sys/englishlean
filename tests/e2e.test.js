@@ -1474,8 +1474,11 @@ test('E2E-43 对话连读改名+挑战自由创作（句型支架带🔊）+ 底
     assert.ok(mainText(window).includes('编一段对话，或介绍你的宠物'), '挑战应为自由创作定位');
     const chalSpeaks = window.document.querySelectorAll('main .wr-challenge-speak');
     assert.equal(chalSpeaks.length, 2, '两个句型支架示例都应有 🔊');
-    assert.ok(mainText(window).includes('May I have a cat?'), '对话示范应展示');
-    assert.ok(mainText(window).includes('I love my pet!'), '介绍示范应展示');
+    // 需求变更正反对照（2026-11-13）：示范句改取自本单元范文对话，
+    // 旧版写死的 U5 宠物示范句不再出现（U4/U6 曾因此串单元）。
+    assert.ok(mainText(window).includes('May I come in?'), 'U5 对话示范应取自本单元范文对话');
+    assert.ok(mainText(window).includes('The rabbit is lovely!'), 'U5 第二组示范也应来自本单元范文');
+    assert.ok(!mainText(window).includes('May I have a cat?'), '前置：旧版写死的宠物示范句应已移除（证明行为确实变了）');
     // 4) 完成写作后底部提示只剩两项
     await clickButton(window, '这三句我会了');
     await new Promise((r) => setTimeout(r, 30));
@@ -2663,4 +2666,112 @@ test('E2E-82 正反对照：U5 填空卡显示自己的主题词「宠物」，�
     assert.ok(!txt.includes('衣物'), 'U5 不得串到 U6 的「衣物」文案');
     assert.ok(!txt.includes('动物'), '改口径后 U5 也不应残留「动物」硬编码');
   } finally { cleanup(); }
+});
+
+
+// ---- U6 四阶段交互通关验收（2026-11-13 续：上轮只验「能打开」，未验「能学完」）----
+const u6OutSeed = () => ({
+  version: 1, stars: 0, streak: 0, lastStudyDate: null,
+  progress: { u6: { stagePassed: [true, true, false, false], wordsDone: U6_WORDS.slice(), listenScore: 0.9, quizBest: null } },
+  wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+});
+
+test('E2E-83 U6 Stage1 交互通关：填读 3 个衣物词 + 应答配对全对 → stagePassed[1]=true', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: u6Seed() });
+  try {
+    await navigate(window, app, '#/unit/u6/stage/1');
+    for (const w of ['sweater', 'scarf', 'jacket']) {
+      await clickButton(window, w);
+      await clickButton(window, '我读出来了');
+    }
+    // 最后选的槽位是 jacket → 应答配对跟随 jacket 组的两道选择疑问句
+    for (const a of ['The small one, please.', 'He wants the green one.']) {
+      const b = optBtn(window.document, a);
+      assert.ok(b, `应有正确选项「${a}」`);
+      b.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+      await new Promise((r) => setTimeout(r, 30));
+    }
+    assert.equal(persisted(window).progress.u6.stagePassed[1], true,
+      'U6 核心句型阶段应能真正通关（不是只渲染得出页面）');
+  } finally { cleanup(); }
+});
+
+test('E2E-84 U6 思维导图四问全可点：4 问选完能拼出介绍词并完成（U4 曾在此永远解锁不了）', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: u6OutSeed() });
+  try {
+    await navigate(window, app, '#/unit/u6/stage/2');
+    const qs = ['What do you want to buy?', 'Which one do you want?',
+      'What do you say if it is expensive?', 'How do you ask to try it on?'];
+    const picks = ['I want a new sweater.',
+      'Which one do you want, the thick one or the thin one?',
+      "It's nice but a little expensive.", 'Can I try it on, please?'];
+    // 按 .mm-speak 精确定位四问的选项行，不能按问题文本找 div：
+    // U6 角色扮演的家长应答里也有一句「Which one do you want?」，与第 2 问完全同文，
+    // 按文本取「最短匹配 div」会误落到角色扮演区（测试自身假红，2026-11-13 踩过）。
+    const mmRows = Array.from(window.document.querySelectorAll('main div.btn-row'))
+      .filter((row) => row.querySelector('button.option .mm-speak'));
+    assert.equal(mmRows.length, 4, '思维导图应有四行可点选项（少一行就永远解锁不了）');
+    qs.forEach((q) => assert.ok(mainText(window).includes(q), `页面应显示问题「${q}」`));
+    for (let i = 0; i < qs.length; i += 1) {
+      const btn = Array.from(mmRows[i].querySelectorAll('button.option'))
+        .find((b) => (b.textContent || '').includes(picks[i]));
+      assert.ok(btn, `第 ${i + 1} 问应有选项「${picks[i]}」`);
+      btn.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+      await new Promise((r) => setTimeout(r, 30));
+    }
+    assert.ok(mainText(window).includes('介绍词拼好啦'), '四问全选应拼出介绍词');
+    assert.ok(mainText(window).includes('Thank you. I like this one!'), '拼装段应含 U6 结尾句');
+    await clickButton(window, '我的衣物介绍好了');
+    assert.ok(!mainText(window).includes('还没完成：③'),
+      '思维导图完成后底部不应再提示未完成');
+  } finally { cleanup(); }
+});
+
+test('E2E-85 U6 写作选句 3 题全对（含 accept 多解）→ 逐项解答 + writeDone', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: u6OutSeed() });
+  try {
+    await navigate(window, app, '#/unit/u6/stage/2');
+    await wrPickIn(window, '玲玲和妈妈在服装店', 'Yes, dear.');
+    await wrPickIn(window, '妈妈问她想要哪一件', 'The thick one, please.');
+    await wrPickIn(window, '玲玲想试穿这件毛衣', 'Sure.');
+    assert.ok(mainText(window).includes('三段对话连起来，演一演'), '三题全对应进入第 2 步连读');
+    assert.ok(mainText(window).includes('答得最贴切'), '答后应展开逐项中文解答');
+    await clickButton(window, '这三句我会了');
+    assert.ok(!mainText(window).includes("② Let's Write 对话"), '写作完成后应从未完成列表消失');
+  } finally { cleanup(); }
+});
+
+test('E2E-86 U6 挑战层示范句不得串到 U5 宠物句（必须取自本单元范文对话）', async () => {
+  const { window, app, cleanup } = await freshApp({ seed: u6OutSeed() });
+  try {
+    await navigate(window, app, '#/unit/u6/stage/2');
+    const txt = mainText(window);
+    assert.equal(window.document.querySelectorAll('main .wr-challenge-speak').length, 2,
+      '两句示范都要有 🔊');
+    assert.ok(!txt.includes('May I have a cat?'), 'U6 是衣物单元，不得显示 U5 的「May I have a cat?」');
+    assert.ok(!txt.includes('I love my pet!'), 'U6 不得显示 U5 的「I love my pet!」');
+    assert.ok(txt.includes('Can I have a new sweater, Mum?'), '应展示 U6 本单元范文对话的句子');
+  } finally { cleanup(); }
+});
+
+test('E2E-87 正反对照：U4 / U5 挑战层示范句各自取本单元范文，且不再残留旧硬编码', async () => {
+  const seedFor = (id, words) => ({
+    version: 1, stars: 0, streak: 0, lastStudyDate: null,
+    progress: { [id]: { stagePassed: [true, true, false, false], wordsDone: words, listenScore: 0.9, quizBest: null } },
+    wrongBank: [], reviewPlan: [], settings: { audioOn: true },
+  });
+  const { window: w4, app: a4, cleanup: c4 } = await freshApp({ seed: seedFor('u4', []) });
+  try {
+    await navigate(w4, a4, '#/unit/u4/stage/2');
+    const t4 = mainText(w4);
+    assert.ok(t4.includes('Can I use your brush, please?'), 'U4 示范应取本单元借文具范文');
+    assert.ok(!t4.includes('May I have a cat?'), 'U4 不得残留 U5 宠物硬编码');
+  } finally { c4(); }
+  const { window: w5, app: a5, cleanup: c5 } = await freshApp({ seed: seedFor('u5', UNIT.words.map((x) => x.w)) });
+  try {
+    await navigate(w5, a5, '#/unit/u5/stage/2');
+    const t5 = mainText(w5);
+    assert.ok(t5.includes('May I come in?'), 'U5 示范应取本单元宠物范文');
+    assert.ok(!t5.includes('Can I have a new sweater, Mum?'), 'U5 不得串到 U6 衣物范文');
+  } finally { c5(); }
 });
